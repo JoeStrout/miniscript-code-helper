@@ -432,3 +432,231 @@ Key changes from Lua:
 - `for count = 1, times do` / `end` → `for count in range(1, times)` / `end for`
 - `func()` → `func` — in MiniScript, bare reference to a function invokes it
 - `rep(sayHi, 4)` → `rep @sayHi, 4` — use `@` to pass a function reference without invoking it, and no parens needed on a statement-level call
+
+## Rot-13 (C#)
+
+**User:** Convert the following program from C# to MiniScript: 
+```
+using System;
+using System.Linq;
+
+class Program {
+    private static char shift(char c) {
+        return c.ToString().ToLower().First() switch {
+            >= 'a' and <= 'm' => (char)(c + 13),
+            >= 'n' and <= 'z' => (char)(c - 13),
+            var _ => c
+        };
+    }
+
+    static string Rot13(string s) => new string(s.Select(c => shift(c)).ToArray());
+
+    static void Main(string[] args) {
+        string test = "Hello world!";
+        Console.WriteLine(Rot13(test));
+    }
+}
+```
+
+**Assistant:**
+```
+shift = function(c)
+	lower = c.lower
+	if lower >= "a" and lower <= "m" then                                                                                                    
+		return char(c.code + 13)
+	else if lower >= "n" and lower <= "z" then                                                                                               
+		return char(c.code - 13)                          
+	else
+		return c
+	end if
+end function
+
+rot13 = function(s)
+	result = ""
+	for c in s
+		result += shift(c)
+	end for
+	return result
+end function
+
+test = "Hello world!"
+print rot13(test)
+```
+Key changes from C#:
+- `c.ToString().ToLower().First()` → `c.lower` — iterating a string already gives single characters
+- `(char)(c + 13)` → `char(c.code + 13)` — `.code` gets the Unicode value, `char()` converts back
+- String comparison works directly in MiniScript (`"a" <= "m"`)
+- `s.Select(c => shift(c))` → simple `for c in s` loop building a result string
+- No classes, namespaces, or type declarations needed
+
+# Explanation
+
+## Semiprime
+
+**User:** Explain what this MiniScript function is doing.                                                                                              
+
+```
+isSemiprime = function(num)
+    divisor = 2
+    primes = 0
+    while primes < 3 and num != 1
+        if num % divisor == 0 then
+            num = num / divisor
+            primes += 1
+        else
+            divisor = divisor + 1
+        end if
+    end while
+    return primes == 2
+end function
+```
+
+**Assistant:** This function checks whether a number is a semiprime — a number that is the product of exactly two prime factors (e.g., 6 = 2×3, 9 = 3×3, 15 = 3×5).
+                                                                       
+How it works:
+                                                                                                                                           
+1. Starting with `divisor = 2`, it tries to divide num by the smallest possible factors
+2. Each time `divisor` divides evenly, it divides `num` and increments `primes` (the prime factor count)
+3. If divisor doesn't divide evenly, it tries the next one
+4. The loop exits early if it finds 3 prime factors (can't be semiprime) or num is fully factored down to 1
+5. Returns whether exactly 2 prime factors were found
+
+Example: `isSemiprime(15)` → divides by 3 (primes=1, num=5), then by 5 (primes=2, num=1) → returns `1` (true).
+
+## Levenshtein distance
+
+**User:** Explain this code:
+```
+string.editDistance = function(s2)
+	n = self.len
+	m = s2.len
+	if n == 0 then return m
+	if m == 0 then return n
+	
+	s1chars = self.split("")
+	s2chars = s2.split("")
+	d = range(0, m)	
+	lastCost = 0
+	
+	for i in range(1, n)
+		s1char = s1chars[i-1]
+		lastCost = i
+		jMinus1 = 0
+		for j in range(1, m)
+			if s1char == s2chars[jMinus1] then cost = 0 else cost = 1
+			
+			// set nextCost to the minimum of the following three possibilities:
+			a = d[j] + 1
+			b = lastCost + 1
+			c = cost + d[jMinus1]
+			
+			if a < b then
+				if c < a then nextCost = c else nextCost = a
+			else
+				if c < b then nextCost = c else nextCost = b
+			end if
+			
+			d[jMinus1] = lastCost
+			lastCost = nextCost
+			jMinus1 = j
+		end for
+		d[m] = lastCost
+	end for
+	
+	return nextCost
+end function
+```
+
+**Assistant:**
+This adds an edit distance (Levenshtein distance) method to the `string` type. It computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another.
+                                                                                                                                               
+For example, `"kitten".editDistance("sitting")` returns 3.
+                                                                                                                                               
+How it works:
+
+This is the classic Wagner-Fischer dynamic programming algorithm, optimized to use a single 1D array d instead of a full 2D matrix.
+
+1. Base cases: If either string is empty, the distance is the length of the other string.
+2. Setup: `d` is initialized to `range(0, m)` — representing the cost of inserting each character of `s2` from nothing.
+3. Main loop: For each character `i` in `self` (the first string):
+  - It walks through each character `j` in `s2`
+  - At each step, it computes the minimum cost from three operations:
+    - `a` = `d[j] + 1` — deletion (cost from the row above + 1)
+    - `b` = `lastCost + 1` — insertion (cost from the left + 1)
+    - `c` = `cost + d[jMinus1]` — substitution (diagonal cost + 0 if chars match, 1 if not)
+  - The minimum of `a`, `b`, `c` becomes `nextCost`
+  - `d` is updated in-place as it goes, with `lastCost` tracking the previous column's value
+4. Result: The final `nextCost` is the edit distance.
+
+MiniScript-specific note: By assigning this to `string.editDistance`, it becomes a method available on all strings, since `string` is the prototype for all string values. The string it's called on is accessed via `self`.
+
+## Shoelace formula for polygon area
+
+**User:** What's going on in this code?
+```
+shoelace = function(vertices)
+    sum = 0
+    points = vertices.len
+    
+    for i in range(0,points-2)
+        sum = sum + vertices[i][0]*vertices[i+1][1]
+    end for
+    sum = sum + vertices[points-1][0]*vertices[0][1]
+    
+    for i in range(points-1,1)
+        sum = sum - vertices[i][0]*vertices[i-1][1]
+    end for
+    sum = sum - vertices[0][0]*vertices[points-1][1]
+    
+    return abs(sum)/2
+end function
+
+verts = [[3,4],[5,11],[12,8],[9,5],[5,6]]
+print shoelace(verts)
+```
+
+**Assistant:** This implements the Shoelace formula (also called Gauss's area formula) to calculate the area of a polygon given its vertices.
+
+How it works:                                                                                                                                
+
+Given a list of 2D vertices like `[x, y]`, the formula computes the area by cross-multiplying coordinates:                                     
+                                                        
+1. First loop — sums the "forward" cross products: each vertex's x times the next vertex's y (`x₀y₁ + x₁y₂ + x₂y₃ + ...`)
+2. Wrapping term — adds the last vertex's x times the first vertex's y to close the polygon
+3. Second loop — subtracts the "backward" cross products: each vertex's x times the previous vertex's y (`x₁y₀ + x₂y₁ + x₃y₂ + ...`), going
+from the last vertex down to index 1
+4. Wrapping term — subtracts the first vertex's x times the last vertex's y
+5. Result — `abs(sum) / 2` gives the polygon's area (the `abs` ensures a positive result regardless of vertex winding order)
+
+For the given pentagon with vertices `[3,4], [5,11], [12,8], [9,5], [5,6]`, it prints 30.
+
+Note: There's a subtle bug risk — the second loop uses range(points-1, 1). Since MiniScript's range auto-descends, this correctly counts down. But if there were fewer than 2 vertices, it could behave unexpectedly.
+
+# API/Documentation Questions
+
+## Map iteration
+
+**User:** How do I iterate over a map in MiniScript?                                                                                                   
+                                             
+**Assistant:** In MiniScript, iterate over a map using a `for` loop:                                                                                          
+                                                                                                                                         
+m = {"a": 1, "b": 2, "c": 3}                                                                                                                 
+for kv in m
+    print kv.key + ": " + kv.value                                                                                                           
+end for                                                                                                                                    
+
+The loop variable (`kv`) is a mini-map with `.key` and `.value` properties for each entry.
+
+## Repeating `n` times
+
+**User:** How do I repeat some code `n` times?
+
+You can use a `for` loop with a `range` from `1` to `n`:
+```
+for i in range(1, n, 1):
+    print "Iteration " + i
+end for
+```
+Alterantively, if you want to start counting at zero, you could use `range(0, n-1, 1)`.
+
+The explicit step `1` (third parameter to `range`) ensures that it always counts up or returns an empty list; without it, `range(1, n)` would return `[1, 0]` when `n` is `0`.
