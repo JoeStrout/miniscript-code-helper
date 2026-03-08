@@ -105,3 +105,12 @@ Finished the second training run, this time with a final loss of 0.0646.  Let's 
 A much better answer!  That bit about "as `[key: value]` map" doesn't make a lot of sense to me, and its syntax for defining `map` in the code example is wrong, but the rest of it is correct.
 
 So, this is progress, and proves that the LoRA adapter works.  I think the next step is probably to build out the QA corpus so we have a lot more training data.
+
+
+## Mar 8, 2026
+
+I used Claude to go through all 30 chapters of _Learn to Code in 30 Days_ and generate questions based on that material.  I instructed it to leave the answers blank (just "TODO").  I reviewed and modified/added myself, resulting in 70 new questions.  Then, separately, I instructed Claude to find the unanswered questions, and for each one, spawn a fresh sub-agent to activate the MiniScript skill and answer a single question.  My goal with all that was to produce a fresh answer not relying on or referring to any previous context.
+
+We now have 100 questions and answers.  However, I need to go over and manually verify the answers -- a quick scan showed some errors or misunderstandings on Claude's part.
+
+
