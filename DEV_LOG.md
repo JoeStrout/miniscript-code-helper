@@ -20,43 +20,39 @@ Then, I wrote (with help from Claude) [test_model.py](test_model.py), which down
 
 I was pleasantly surprised to find that out of the box, Qwen-Coder-7B knows about MiniScript:
 
----
-You: Have you heard of MiniScript?
-
-Assistant: Yes, I am aware of MiniScript. It is a simple programming language designed to be easy 
-for beginners to learn and use. MiniScript is often used as an introduction to programming 
-concepts and can be used for basic scripting tasks. It has a syntax that is similar to Python and 
-supports many of the same features, such as variables, loops, conditionals, and functions. 
-Additionally, MiniScript is open-source and can be downloaded and used on various platforms.
----
+>You: Have you heard of MiniScript?
+>
+>Assistant: Yes, I am aware of MiniScript. It is a simple programming language designed to be easy 
+>for beginners to learn and use. MiniScript is often used as an introduction to programming 
+>concepts and can be used for basic scripting tasks. It has a syntax that is similar to Python and 
+>supports many of the same features, such as variables, loops, conditionals, and functions. 
+>Additionally, MiniScript is open-source and can be downloaded and used on various platforms.
 
 However, as expected, it doesn't really understand much about the language:
 
----
-You: How would I iterate over a map in MiniScript?
-
-Assistant: In MiniScript, you can iterate over a map (also known as a dictionary or associative 
-array) using a `for` loop with the `each` keyword. The following example demonstrates how to 
-iterate over a map called `myMap`:
-```
-myMap = {
-  "key1": "value1",
-  "key2": "value2",
-  "key3": "value3"
-}
-
-for key, value in myMap.each():
-  print("Key: " + key)
-  print("Value: " + value)
-```
-
-This will output the keys and values of each entry in the map. The `each()` method returns an 
-iterator that yields the key-value pairs in the map. You can then use these pairs in your loop 
-body to perform any operations you need.
-It's important to note that MiniScript does not have built-in support for maps, so if you're 
-working with a different programming language that uses a different data structure for maps, you 
-may need to adapt this code accordingly.
----
+> You: How would I iterate over a map in MiniScript?
+> 
+> Assistant: In MiniScript, you can iterate over a map (also known as a dictionary or associative 
+> array) using a `for` loop with the `each` keyword. The following example demonstrates how to 
+> iterate over a map called `myMap`:
+> ```
+> myMap = {
+>   "key1": "value1",
+>   "key2": "value2",
+>   "key3": "value3"
+> }
+> 
+> for key, value in myMap.each():
+>   print("Key: " + key)
+>   print("Value: " + value)
+> ```
+> 
+> This will output the keys and values of each entry in the map. The `each()` method returns an 
+> iterator that yields the key-value pairs in the map. You can then use these pairs in your loop 
+> body to perform any operations you need.
+> It's important to note that MiniScript does not have built-in support for maps, so if you're 
+> working with a different programming language that uses a different data structure for maps, you 
+> may need to adapt this code accordingly.
 
 It's answering in Python rather than MiniScript.  So, fine-tuning time!
 
@@ -92,21 +88,20 @@ After the first training run, the loss only got to a little more than 1.0, and u
 
 Finished the second training run, this time with a final loss of 0.0646.  Let's try it again!
 
----
-You: How would I iterate over a map in MiniScript?
+> You: How would I iterate over a map in MiniScript?
+> 
+> Assistant: In MiniScript, use `for kv in map` to iterate over entries as `[key: value]` maps.                                      >                                                               
+> ```
+> map = [a: 1, b: 2, c: 3]
+> for kv in map
+>     print kv.key + ": " + kv.value
+> end for
+> // prints:
+> // a: 1
+> // b: 2
+> // c: 3
+> ```
 
-Assistant: In MiniScript, use `for kv in map` to iterate over entries as `[key: value]` maps.                                                                                                    
-```
-map = [a: 1, b: 2, c: 3]
-for kv in map
-    print kv.key + ": " + kv.value
-end for
-// prints:
-// a: 1
-// b: 2
-// c: 3
-```
----
 A much better answer!  That bit about "as `[key: value]` map" doesn't make a lot of sense to me, and its syntax for defining `map` in the code example is wrong, but the rest of it is correct.
 
 So, this is progress, and proves that the LoRA adapter works.  I think the next step is probably to build out the QA corpus so we have a lot more training data.
