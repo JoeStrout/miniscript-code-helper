@@ -651,7 +651,7 @@ The loop variable (`kv`) is a mini-map with `.key` and `.value` properties for e
 
 **User:** How do I repeat some code `n` times?
 
-You can use a `for` loop with a `range` from `1` to `n`:
+**Assistant:** You can use a `for` loop with a `range` from `1` to `n`:
 ```
 for i in range(1, n, 1):
     print "Iteration " + i
