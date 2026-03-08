@@ -660,3 +660,88 @@ end for
 Alterantively, if you want to start counting at zero, you could use `range(0, n-1, 1)`.
 
 The explicit step `1` (third parameter to `range`) ensures that it always counts up or returns an empty list; without it, `range(1, n)` would return `[1, 0]` when `n` is `0`.
+
+# Style & Idioms
+
+## Dice-rolling example
+
+**User:** How can I make the following MiniScript code more idiomatic?
+```
+rollDice = function(diceStr)
+	// parse the string
+	result = 0;
+	modifier = 0;
+	plusPos = diceStr.indexOf("+");
+	minusPos = diceStr.indexOf("-");
+	if (plusPos != null) then
+		modifier = (diceStr[(plusPos + 1):]).val;
+		diceStr = (diceStr[:plusPos]);
+	else if (minusPos != null) then
+		modifier = -(diceStr[(minusPos + 1):]).val;
+		diceStr = (diceStr[:(minusPos)]);
+	end if
+	dPos = diceStr.indexOf("d");
+	if (dPos == null) then
+		return(null);
+	end if
+	numDice = (diceStr[:(dPos)]).val;
+	numSides = (diceStr[(dPos + 1):]).val;
+	if (numDice == 0 or numSides == 0) then
+		return(null);
+	end if
+	result = {};
+	result["rolls"] = [];
+	result["total"] = modifier;
+	for i in range(0, (numDice - 1))
+		roll = floor(rnd * numSides) + 1;
+		result["rolls"].push(roll);
+		result["total"] = result["total"] + roll
+	end for
+	return(result);
+end function
+
+print(rollDice("3d6+1"));
+```
+
+**Assistant:** Here is a cleaned-up version:
+
+```
+rollDice = function(diceStr)
+	modifier = 0
+	plusPos = diceStr.indexOf("+")
+	minusPos = diceStr.indexOf("-")
+	if plusPos != null then
+		modifier = diceStr[plusPos+1:].val
+		diceStr = diceStr[:plusPos]
+	else if minusPos != null then
+		modifier = -diceStr[minusPos+1:].val
+		diceStr = diceStr[:minusPos]
+	end if
+	dPos = diceStr.indexOf("d")
+	if dPos == null then return null
+	numDice = diceStr[:dPos].val
+	numSides = diceStr[dPos+1:].val
+	if numDice == 0 or numSides == 0 then return null
+	result = {}
+	result.rolls = []
+	result.total = modifier
+	for i in range(1, numDice)
+		roll = ceil(rnd * numSides)
+		result.rolls.push roll
+		result.total += roll
+	end for
+	return result
+end function
+
+print rollDice("3d6+1")
+```
+
+Summary of changes:
+
+- Removed semicolons — they're used only to separate multiple statements on a line, and are unnecessary noise at the end of a line
+- Removed parentheses from `if` conditions, `return`, `print`, and `.push` — parentheses aren't needed on statement-level calls or conditionals
+- Removed redundant parentheses around slice expressions like `(diceStr[(plusPos + 1):])` → `diceStr[plusPos+1:]`
+- Dot notation for map keys: `result.rolls` instead of `result["rolls"]`
+- `range(1, numDice)` - more readable/idiomatic, and doesn't affect the behavior since the loop variable isn't used
+- Removed unused `result = 0` at the top (it was immediately overwritten)
+
