@@ -553,12 +553,12 @@ Key translations from the pseudocode:
 
 **User:** Implement the following algorithm in MiniScript.
 
-The inputs are the array, which we call array; the number n of elements in array; and target, the number being searched for. The output is the index in array of target:
+The inputs are the array, which we call `array`; the number `n` of elements in array; and `target`, the number being searched for. The output is the index in `array` of `target`:
 
 1. Let min = 0 and max = n-1.
 2. Compute guess as the average of max and min, rounded down (so that it is an integer).
 3. If array[guess] equals target, then stop. You found it! Return guess.
-4. If the guess was too low, that is, array[guess] \< target, then set min = guess + 1.
+4. If the guess was too low, that is, array[guess] < target, then set min = guess + 1.
 5. Otherwise, the guess was too high. Set max = guess - 1.
 6. Go back to step 2.
 
@@ -747,7 +747,7 @@ for kv in m
     print kv.key + ": " + kv.value                                                                                                           
 end for                                                                                                                                    
 
-The loop variable (`kv`) is a mini-map with `.key` and `.value` properties for each entry.
+The loop variable (`kv` in this example) is a mini-map with `.key` and `.value` properties for each entry.
 
 ## Repeating `n` times
 
@@ -852,7 +852,8 @@ Summary of changes:
 
 **User:** How do variables work in MiniScript? Do I need to declare them with a type?
 
-**Assistant:**
+**Assistant:** Here's a quick example showing global and local variables:
+
 ```
 demo = function
     g = "local value"       // creates a NEW local g
@@ -861,6 +862,7 @@ demo = function
     globals.g = "changed"
 end function
 
+g = "global value"
 demo
 print g                     // changed
 ```
@@ -943,7 +945,7 @@ Since there are no multi-line block comments, if you need to comment out a large
 
 **User:** How do I get input from the user in MiniScript?
 
-**Assistant:** Use the `input` function to prompt the user and get a string back:
+**Assistant:** In most MiniScript environments, you can use the `input` function to prompt the user and get a string back:
 
 ```
 name = input("What is your name? ")
@@ -1037,6 +1039,12 @@ print x < 5 or x > 100   // 0 (false: neither condition is met)
 print not (x == 15)       // 0 (false: x is 15, negated)
 ```
 
+It's also possible to chain several comparisons in a row, in which case, each pair of operands is considered in turn.  This is often used for checking whether a number is within a civen range:
+```
+x = 15
+print 10 <= x <= 20    // 1 (true: x is between 10 and 20, inclusive)
+```
+
 Since any nonzero number counts as true and zero counts as false, you can use numbers directly in conditions:
 ```
 lives = 3
@@ -1106,9 +1114,9 @@ Key points:
 
 **User:** How do I write a `for` loop in MiniScript?
 
-**Assistant:** MiniScript has two forms of `for` loop: iterating over a collection, and iterating over a numeric range.
+**Assistant:** A `for` loop in MiniScript iterates over a collection (list, string, or map), by assigning a _loop variable_ to each element of the collection in turn.
 
-**Iterating over a list (or other collection):**
+**Iterating over a list:**
 ```
 fruits = ["apple", "banana", "cherry"]
 for fruit in fruits
@@ -1128,7 +1136,7 @@ When iterating over a map, each iteration variable is a mini-map with `.key` and
 
 **Using `range` for numeric loops:**
 
-The `range` function generates a list of numbers. It takes up to three arguments: `range(start, end, step)`.
+The `range` function generates a list of numbers. It takes up to three arguments: `range(start, end, step)`, and is very commonly used with `for`.
 ```
 for i in range(1, 5)
     print i
@@ -1642,11 +1650,7 @@ print s  // Hello
 ```
 result = ""
 for ch in "Hello"
-    if ch == "l" then
-        result += "r"
-    else
-        result += ch
-    end if
+    if ch == "l" then result += "r" else result += ch
 end for
 print result  // Herro
 ```
@@ -1852,7 +1856,7 @@ b[0].push 99
 print a[0]      // [1, 2]  -- truly independent now
 ```
 
-This same behavior applies to maps. Assigning a map to a new variable does not copy it; use the `+` operator with an empty map (`{} + myMap`) to make a shallow copy of a map.
+This same behavior applies to maps. Assigning a map to a new variable does not copy it; use the `+` operator with an empty map (`myMap + {}`) to make a shallow copy of a map.
 
 ## Copying a list
 
@@ -1874,7 +1878,7 @@ copy.push 99
 print original  // [1, 2, 3, 4, 5] -- original is unaffected
 print copy      // [1, 2, 3, 4, 5, 99]
 ```
-The `[:]` syntax creates a shallow copy of the list. This means the list itself is new, but if it contains other lists or maps, those inner elements are still shared references. If you need a deep copy (where nested structures are also independent), you need to copy each level manually:
+The slice operator is typically used to get a smaller sublist, but if you omit both the start and the end index, it copies from the beginning to the end.  In other words, this `[:]` syntax creates a shallow copy of the list. This means the list itself is new, but if it contains other lists or maps, those inner elements are still shared references. If you need a deep copy (where nested structures are also independent), you need to copy each level manually:
 ```
 deepCopy = function(lst)
     result = []
@@ -1896,14 +1900,13 @@ print independent  // [[1, 2, 99], [3, 4]]
 ```
 A few things to note:
 - `[:]` is the idiomatic way to shallow-copy a list in MiniScript
-- The same `[:]` trick works for maps too
 - For simple lists of numbers or strings, a shallow copy is all you need since those types are values, not references
 
 ## Creating and using maps
 
 **User:** How do I create and use a map (dictionary) in MiniScript?
 
-**Assistant:** Maps (also called dictionaries) are one of MiniScript's core data types. You create them with curly braces and access values by key using bracket or dot notation.
+**Assistant:** Maps (sometimes called dictionaries) are one of MiniScript's core data types. You create them with curly braces and access values by key using bracket or dot notation.
 
 **Creating a map:**
 ```
@@ -1915,6 +1918,9 @@ person = {"name": "Alice", "age": 30, "city": "Portland"}
 ```
 
 **Accessing and setting values:**
+
+You can read or write a value for a key by putting the key after the map reference in square brackets, like `person["name"]`.  When the key happens to be a valid MiniScript identifier (i.e. starts with a letter or underscore, and contains only letters, underscores, and numbers), then you can also use dot notation, as shown here:
+
 ```
 print person["name"]    // Alice
 print person.name       // Alice (dot notation shorthand)
@@ -2012,12 +2018,12 @@ Both `original` and `copy` refer to the exact same map, so changing `copy.score`
 To make an independent copy, use the `+` operator with an empty map:
 ```
 original = {"name": "Alice", "score": 10}
-copy = {} + original
+copy = original + {}
 copy.score = 99
 print original.score  // 10 -- original is unaffected
 ```
 
-The expression `{} + original` creates a new map and merges all key-value pairs from `original` into it. After that, `copy` and `original` are separate maps, and changes to one do not affect the other.
+The expression `original + {}` creates a new map and merges all key-value pairs from `original` into it. After that, `copy` and `original` are separate maps, and changes to one do not affect the other.
 
 The same principle applies to lists. Assigning a list to a new variable gives you two references to the same list. To copy a list, use the slice shorthand `original[:]`.
 
@@ -2068,7 +2074,7 @@ end function
 print square(4)   // prints: 16
 ```
 
-Note the parentheses rules: when calling a function as a standalone statement (not part of a larger expression), parentheses are optional and discouraged — so you write `greet "Alice"` rather than `greet("Alice")`. But when the function call is embedded in an expression, such as passing its result to `print`, you do need parentheses: `print square(4)`.
+Note the parentheses rules: when calling a function as a standalone statement (not part of a larger expression), parentheses are optional and discouraged — so you write `greet "Alice"` rather than `greet("Alice")`. But when the function call is embedded in an larger statement, such as passing its result to `print`, you do need parentheses: `print square(4)`.
 
 You can also store a reference to a function using `@` and call it later:
 
@@ -2102,10 +2108,8 @@ end function
 
 test 5        // a=5, b=10
 test 5, 20    // a=5, b=20
-test           // a=null, b=10
+test          // a=, b=10
 ```
-
-Default values are evaluated once when the function is defined, not each time it's called. This matters if you use a mutable value like a list as a default — but in practice, simple values like numbers and strings are the most common defaults.
 
 ## The `return` statement
 
@@ -2281,7 +2285,7 @@ myDog.name = "Rex"
 myDog.speak   // Rex says Woof!
 ```
 
-`new Dog` creates a new map whose `__isa` property points to `Dog`. The instance inherits all of `Dog`'s properties and methods. Setting a property on the instance doesn't affect the prototype.
+`new Dog` creates a new map whose `__isa` property points to `Dog`. This causes the instance to inherit all of `Dog`'s properties and methods. Setting a property on the instance doesn't affect the prototype.
 
 **Inheritance:**
 
@@ -2310,6 +2314,8 @@ whiskers = new Cat
 whiskers.name = "Whiskers"
 whiskers.speak  // Whiskers says Meow!
 ```
+
+Any lookup of a map entry (such as `whiskers.speak` above) looks first in that map, but if it's not found, then MiniScript walks the `__isa` chain until it either finds the given key, or throws a "Key Not Found" error.  This is how properties and methods are inherited, and can be overridden, in the class hierarchy.
 
 Key points:
 - "Classes" are just maps used as prototypes
@@ -2371,10 +2377,10 @@ You can use `isa` to check if an object inherits from a prototype:
 ```
 print myDog isa Dog     // 1 (true)
 print myDog isa Animal  // 1 (true)
-print myDog isa map     // 1 (true — all maps inherit from map)
+print myDog isa map     // 1 (true — all objects are maps)
 ```
 
-You can also inspect `__isa` directly: `print dog.__isa == Animal` prints `1`.
+You can also inspect `__isa` directly: `print Dog.__isa == Animal` prints `1`.  (But be careful, this only checks the _immediate_ parent, not more distant ancestors.)
 
 ## Using `self` in methods
 
@@ -2407,7 +2413,7 @@ Important: you must use `self.propertyName` to access the object's properties. A
 
 ```
 Dog.broken = function
-    print name     // WRONG: looks for local/global variable "name"
+    print name       // WRONG: looks for local/global variable "name"
     print self.name  // RIGHT: accesses this object's name property
 end function
 ```
@@ -2593,7 +2599,7 @@ f.close
 
 In **Mini Micro**, file paths are relative to the virtual filesystem. Common paths include:
 - `/usr/` — user files
-- `/sys/` — system files
+- `/sys/` — system files (read-only)
 
 ```
 file.writeLines "/usr/mydata.txt", ["apple", "banana", "cherry"]
@@ -2656,33 +2662,33 @@ print factorial(5)   // prints 120
 A couple of things to keep in mind:
 
 - Always include a base case that returns without calling itself again
-- MiniScript has a limit on how deep recursion can go, so it works well for reasonable depths but isn't ideal for problems that recurse thousands of levels deep; for those cases, consider rewriting with a `while` loop instead
+- Recursion isn't ideal for problems that recurse thousands of levels deep, or recurse multiple times per call; for those cases, consider rewriting with a `while` loop instead
 
 ## What is Mini Micro?
 
 **User:** What is Mini Micro?
 
-**Assistant:** Mini Micro is a virtual computer (sometimes called a "fantasy console") that uses MiniScript as its built-in programming language. It provides a complete, self-contained environment for writing and running MiniScript programs.
+**Assistant:** Mini Micro is a virtual computer (sometimes called a "fantasy console" or "fantasy computer") that uses MiniScript as its built-in programming language. It provides a complete, self-contained environment for writing and running MiniScript programs.
 
 Key features of Mini Micro include:
 
 - A built-in code editor, so you can write and run code without any external tools
-- A 960x640 pixel display with 8 layers that can each independently be one of four types: text display, pixel (bitmap) display, sprite layer, or tile map — this layered system makes it easy to build games and visual applications
-- Keyboard and mouse input support
+- A 960x640 pixel display with 8 layers that can each independently be one of five types: text display, pixel (bitmap) display, sprite layer, tile map, or solid color — this layered system makes it easy to build games and visual applications
+- Keyboard, mouse, and gamepad input support
 - Sound capabilities for playing and synthesizing sounds
 - A virtual filesystem for saving and loading files, including code and data
 
-Mini Micro is designed to be an approachable environment for learning programming and making small games. Because MiniScript emphasizes readability and simplicity, and Mini Micro provides everything you need in one package, beginners can start creating interactive programs right away without dealing with complex development tool setup.
+Mini Micro is designed to be an approachable environment for learning programming and making games. Because MiniScript emphasizes readability and simplicity, and Mini Micro provides everything you need in one package, beginners can start creating interactive programs right away without dealing with complex development tool setup.
 
 You can download Mini Micro for free from https://miniscript.org/MiniMicro/. It runs on Mac, Windows, and Linux. There is also a web-based version you can try directly in your browser.
 
 ## Mini Micro basics
 
-**User:** What are the basic commands for working in Mini Micro (load, run, save, edit)?
+**User:** What are the basic commands for working in Mini Micro?
 
 **Assistant:** Mini Micro has a built-in command-line environment where you can type commands directly. Here are the essentials:
 
-**`edit`** — Opens the built-in code editor where you write your program. Press Control-W or click the Close button to return to the command line.  Optionally, you may give `edit` a file name to load.
+**`edit`** — Opens the built-in code editor where you write your program. Press Control-W or click the Close button to return to the command line.  Optionally, you may give `edit` a file name to load and then edit.
 
 **`run`** — Runs the program currently in the editor.  Like `edit`, you make give `run` a file name to load and run.
 
@@ -2691,16 +2697,18 @@ You can download Mini Micro for free from https://miniscript.org/MiniMicro/. It 
 save "/usr/myProgram.ms"
 ```
 
-You may omit the filename when saving a previously loaded or saved program.
+You may omit the filename when saving a previously loaded or saved program.  When you supply a file name, it may be a full path as shown here, or just the name of a program in the current directory.  The ".ms" extension is optional in both cases.
 
-**`load "filename"`** — Loads a program from a file into the editor:
+**`load "filename"`** — Loads a program from a file into memory, making it the current program:
 ```
 load "/usr/myProgram.ms"
 ```
 
+Again you may supply a full or partial path, with or without ".ms".
+
 **`dir`** — Lists files in the current directory.
 
-**`cd "path"`** — Changes the current directory.
+**`cd "path"`** — Changes the current directory.  `cd` by itself takes you back to "/usr".
 
 You can also type and run MiniScript code directly at the command prompt without using the editor:
 
@@ -2717,8 +2725,8 @@ Common workflow:
 2. Write your program
 3. Press Control-W to exit the editor
 4. Type `run` to execute it
-5. Type `save "/usr/myProgram.ms"` to save
-6. Later, `load "/usr/myProgram.ms"` to load it back
+5. Type `save "myProgram"` to save
+6. Later, `load "myProgram"` to load it back
 
 The `/usr/` directory is the main place to save your files. The `/sys/` directory contains system files and libraries, and is read-only.
 
@@ -2871,12 +2879,6 @@ print "Score: 100"
 text.clear
 ```
 
-Or clear with a specific background color:
-
-```
-text.clear color.navy
-```
-
 **Writing a single character at a position:**
 
 ```
@@ -2956,7 +2958,7 @@ gfx.fillRect 0, 0, 960, 200, color.green
 gfx.fillEllipse 750, 500, 80, 80, color.yellow
 // House
 gfx.fillRect 300, 200, 200, 150, color.brown
-gfx.fillPoly [300, 350, 400, 450, 500, 350], color.red
+gfx.fillPoly [[300, 350], [400, 450], [500, 350]], color.red
 // Door
 gfx.fillRect 370, 200, 60, 100, color.maroon
 ```
@@ -2972,16 +2974,15 @@ The screen is 960x640 pixels by default, with (0,0) at the bottom-left corner.
 **Loading and drawing an image:**
 
 ```
-img = file.loadImage("/usr/myPicture.png")
-gfx.drawImage img, 100, 100
-// Arguments: image, x, y
+img = file.loadImage("/sys/pics/Wumpus.png")
+gfx.drawImage img, 300, 100  // draw with lower-left corner at x=300, y=100
 ```
 
 **Drawing at a specific size:**
 
 ```
 gfx.drawImage img, 100, 100, 200, 150
-// Arguments: image, x, y, width, height (scales the image)
+// Arguments: image, left, bottom, width, height (scales the image)
 ```
 
 **Getting image info:**
@@ -2995,13 +2996,13 @@ print img.height   // height in pixels
 
 ```
 gfx.drawImage img, 100, 100, 64, 64, 0, 0, 32, 32
-// Draws a 32x32 portion (from top-left of image) scaled to 64x64 on screen
+// Draws a 32x32 portion (from bottom-left of image) scaled to 64x64 on screen
 ```
 
 **Using images with sprites (more common for games):**
 
 ```
-img = file.loadImage("/usr/hero.png")
+img = file.loadImage("/sys/pics/animals/cat.png")
 sp = new Sprite
 sp.image = img
 sp.x = 480
@@ -3009,58 +3010,57 @@ sp.y = 320
 display(4).sprites.push sp
 ```
 
-Mini Micro supports PNG files with transparency. Images in the `/sys/pics/` directory are included with Mini Micro and can be loaded directly:
-
-```
-img = file.loadImage("/sys/pics/animals/Cat.png")
-gfx.drawImage img, 400, 300
+Mini Micro supports PNG files with or without transparency, as well as JPEG files.
 ```
 
 ## Display layers in Mini Micro
 
 **User:** How do Mini Micro's display layers work?
 
-**Assistant:** Mini Micro has 8 display layers, numbered 0 through 7, stacked from back (0) to front (7). Each layer can be independently configured as one of several display types.
+**Assistant:** Mini Micro has 8 display layers, numbered 0 through 7, stacked from front (0) to back (7). Each layer can be independently configured as one of several display types.
 
 **The default layer setup:**
 
-- `display(0)` — SolidColor (background)
-- `display(1)` — SolidColor
-- `display(2)` — SolidColor
-- `display(3)` — PixelDisplay (`gfx` — where `gfx.fillRect`, etc. draw)
+- `display(0)` — off
+- `display(1)` — off
+- `display(2)` — off
+- `display(3)` — TextDisplay (`text` - where `print` and `input` go)
 - `display(4)` — SpriteDisplay (where sprites live)
-- `display(5)` — PixelDisplay (`gfx` — the default `gfx` target)
-- `display(6)` — TextDisplay (`text` — where `print` outputs)
-- `display(7)` — TextDisplay (`text`)
-
-**Changing a layer's mode:**
-
-```
-display(3).mode = displayMode.tile     // set layer 3 to TileDisplay
-display(2).mode = displayMode.pixel    // set layer 2 to PixelDisplay
-display(1).mode = displayMode.sprite   // set layer 1 to SpriteDisplay
-display(0).mode = displayMode.solidColor
-```
+- `display(5)` — PixelDisplay (`gfx` — the default drawing target)
+- `display(6)` — off
+- `display(7)` — SolidColor (background)
 
 **Accessing a specific layer:**
 
 ```
-layer = display(3)
+layer = display(5)
 layer.clear color.black
+```
+
+**Changing a layer's mode:**
+
+You can change the display mode of any layer by assigning to its `.mode` property:
+```
+display(4).mode = displayMode.pixel
+```
+
+Note that this actually changes the object that `display(n)` returns.  So, if you're going to get and keep a reference to a display for future use, you should always do this _after_ setting the mode:
+
+```
+display(4).mode = displayMode.pixel
+gfx2 = display(4)
 ```
 
 **Pointing `gfx` or `text` to a specific layer:**
 
+`gfx` and `text` are global variables automatically set on boot (or by the `clear` command) to point to display 5 and 3, respectively.  But you can reassign them as you wish:
+
 ```
-gfx = display(3)    // now gfx commands draw on layer 3
+display(6).mode = displayMode.text
 text = display(6)    // now text commands output on layer 6
+display(3).mode = displayMode.pixel
+gfx = display(3)    // now gfx commands draw on layer 3
 ```
-
-**Controlling visibility:**
-
-Each layer has a `.visible` property you can toggle to show or hide it.
-
-Higher-numbered layers are drawn on top of lower-numbered ones, so layer 7 is always in front. This layering lets you put backgrounds behind sprites, sprites behind UI text, etc.
 
 ## Mouse input in Mini Micro
 
@@ -3092,7 +3092,7 @@ while true
 end while
 ```
 
-`mouse.button` returns `1` (true) when the left mouse button is held down, and `0` (false) otherwise.
+`mouse.button` returns `1` (true) when the left mouse button is held down, and `0` (false) otherwise.  To check other buttons, supply a button number; for example, `mouse.button(1)` reports whether the right mouse button is currently pressed.
 
 **Detecting clicks (press and release):**
 
@@ -3120,7 +3120,7 @@ while true
 end while
 ```
 
-Remember to include `yield` in your loop to give the system time to update.
+Remember to include `yield` in your loop to give the system time to update.  Press Control-C to break out of the infinite loop.
 
 ## The `import` command
 
@@ -3131,17 +3131,18 @@ Remember to include `yield` in your loop to give the system time to update.
 **Basic usage:**
 
 ```
-import "stringUtil"
-```
-
-This looks for a file named `stringUtil.ms` in the standard library paths. After importing, any globals defined in that file are available:
-
-```
-import "listUtil"
 import "mathUtil"
 ```
 
+This looks for a file named `stringUtil.ms` in the standard library paths. After importing, any globals defined in that file are available in a map named `mathUtil`
+
+```
+print mathUtil.dice(6, 2)  // returns the sum of two six-sided die rolls
+```
+
 **Where Mini Micro looks for imports:**
+
+The search path for imports is determined by `env.importPaths`, which by default is:
 
 1. The current directory
 2. `/usr/lib/`
@@ -3152,7 +3153,7 @@ Mini Micro comes with several useful libraries in `/sys/lib/`, including:
 - `listUtil` — extra list functions like `list.init2d`
 - `mathUtil` — extra math functions
 - `mapUtil` — extra map functions
-- `qa` — unit testing framework
+- `qa` — quality assurance functions (`assert`, etc.)
 - `json` — JSON parsing and generation
 
 **Importing your own files:**
@@ -3166,8 +3167,8 @@ import "myHelpers"
 **Important notes:**
 - You don't include the `.ms` extension in the import string
 - `import` runs the file, so any top-level code in the imported file will execute
-- If the same file is imported more than once, it only runs the first time
-- This is a Mini Micro feature — the base MiniScript language doesn't have `import`
+- If the same file is imported more than once, it runs every time
+- `import` is a feature of the Mini Micro environment (and some others), not a feature of the MiniScript language itself
 
 ## Playing sounds in Mini Micro
 
@@ -3185,7 +3186,7 @@ snd.play
 **Controlling volume and speed:**
 
 ```
-snd = file.loadSound("/sys/sounds/jump.wav")
+snd = file.loadSound("/sys/sounds/twinkle.wav")
 snd.play 0.5    // play at half volume (0 to 1 range)
 snd.play 1, 2   // full volume, double speed (higher pitch)
 ```
@@ -3209,7 +3210,7 @@ snd.stop
 **Playing background music:**
 
 ```
-music = file.loadSound("/usr/myMusic.wav")
+music = file.loadSound("/usr/myMusic.ogg")
 music.loop     // plays the sound on repeat
 // Later:
 music.stop     // stop the music
@@ -3219,72 +3220,39 @@ Mini Micro includes some built-in sounds in `/sys/sounds/`. You can also load yo
 
 **Quick beep (without loading a file):**
 
-You can also synthesize sounds on the fly using `Sound.init` — see the sound synthesis documentation for more on that approach.
+Mini Micro has a built-in "terminal bell" that plays whenever you print `char(7)`, for example:
+```
+print "ERROR!" + char(7)
+```
+
+**Synthesized sounds**
+
+Mini Micro has a sophisticated system for synthesizing sounds on the fly.  You can import "/sys/lib/sounds" for a built-in selection of synthesized sounds, and examine that code to see how they are made.  The demo at "/sys/demo/soundLab" is another good way to develop synthesized sounds.
 
 ## Sound synthesis
 
 **User:** How do I create sounds from scratch (synthesis) in Mini Micro?
 
-**Assistant:** Mini Micro can generate sounds programmatically using `Sound.init`, which creates a sound from a list of audio samples.
+**Assistant:** Mini Micro can generate sounds programmatically using `Sound.init`, which takes four parameters:
 
-**Creating a simple tone:**
+1. Duration: how long the sound should be, in seconds
+2. Frequency: how many times the waveform should repeat per second
+3. Envelope: how the volume of the sound should change over its duration
+4. Waveform: what one cycle of the sound looks like
 
-```
-samples = []
-freq = 440  // Hz (A4 note)
-sampleRate = 22050
-duration = 1  // seconds
+Frequency and envelope can be a single value, or a list of values; in the latter case, the frequency or amplitude is interpolated over the given values.  Waveform is typically one of the built-in `Sound.sineWave`, `Sound.squareWave`, etc., but can also be individual samples as a list.  Moreover, sounds can be mixed (with the `.mix` method, allowing you to build up complex layered sounds.
 
-for i in range(0, sampleRate * duration - 1, 1)
-    t = i / sampleRate
-    samples.push sin(2 * pi * freq * t)
-end for
-
-tone = new Sound
-tone.init samples
-tone.play
-```
-
-Each sample is a value from -1 to 1. The default sample rate is 22050 Hz.
-
-**Creating a square wave:**
+Here's an example:
 
 ```
-samples = []
-freq = 220
-for i in range(0, 22050 - 1, 1)
-    t = i / 22050
-    if sin(2 * pi * freq * t) > 0 then
-        samples.push 1
-    else
-        samples.push -1
-    end if
-end for
-
-buzz = new Sound
-buzz.init samples
-buzz.play 0.3   // play at reduced volume (square waves are loud!)
+bounce = new Sound
+bounce.init 0.3, [100,1000], [1,0], Sound.sawtoothWave
+bounce.play
 ```
 
-**Adding a fade-out to avoid clicks:**
+This makes a sound 0.3 seconds long, with a frequency that starts at 100 Hz and rises to 1000 Hz by the end of the sound.  The amplitude starts at 1 (full volume) and fades to 0 by the end, and it uses a sawtooth wave, which gives a retro, 8-bit feel to the sound.
 
-```
-samples = []
-freq = 440
-duration = 0.5
-total = floor(22050 * duration)
-for i in range(0, total - 1, 1)
-    t = i / 22050
-    envelope = 1 - (i / total)  // linear fade-out
-    samples.push sin(2 * pi * freq * t) * envelope
-end for
-
-snd = new Sound
-snd.init samples
-snd.play
-```
-
-You can create any waveform you like — sine, square, sawtooth, noise, or complex combinations — by calculating the appropriate sample values.
+A good way to learn to make your own synthesized sounds is to load "/sys/lib/sounds", run it to hear what the provided sounds sound like, and then `edit` to see the code that creates them.  Another good tool is "/sys/demo/soundLab", which provides a graphical interface for building your own synthesized sounds, and then provides the corresponding MiniScript code.
 
 ## Subclasses and `super`
 
@@ -3362,18 +3330,18 @@ The `__isa` chain is: `myDog` → `Dog` → `Pet` → `Animal`.
 
 **User:** What does `yield` do in MiniScript, and when should I use it?
 
-**Assistant:** `yield` pauses execution momentarily to let the host environment process events and update the display. It's essential in Mini Micro for game loops and animations.
+**Assistant:** `yield` pauses execution momentarily to let the host environment process events and update the display.  In Mini Micro, it also waits until the start of the next display frame (which happens 60 times per second).  It's essential in Mini Micro for game loops and animations.
 
 **Why you need it:**
 
-Without `yield`, a tight loop will run as fast as your machine can make it go, which will vary from machine to machine, making the result unpredictable.  Also, the display updates at no more than 60 frames per second, so your processing would be out of sync with the display.  With `yield` in your main loop, your code runs at the same rate as the display updates, and at the same speed on all machines.
+Without `yield`, a tight loop will run as fast as your machine can make it go, which will vary from machine to machine, making the result unpredictable.  Also, the display updates at no more than 60 frames per second, so your processing would be out of sync with the display.  With `yield` in your main loop, your game runs at the same rate as the display updates, and at the same speed on all machines.
 
 **Basic game loop pattern:**
 
 ```
 while true
-    // update game state
     yield
+    // update game state
 end while
 ```
 
@@ -3382,10 +3350,10 @@ end while
 ```
 x = 0
 while x < 960
+    yield
     gfx.clear
     gfx.fillEllipse x, 320, 30, 30, color.red
     x += 3
-    yield
 end while
 ```
 
@@ -3395,7 +3363,7 @@ The `wait` function pauses for a specific amount of time (in seconds). `yield` i
 
 ```
 wait 2.0    // pause for 2 seconds
-yield       // pause for one frame (~1/60s)
+yield       // pause for the rest of the frame (~1/60s)
 ```
 
 **In command-line MiniScript:**
@@ -3414,7 +3382,7 @@ yield       // pause for one frame (~1/60s)
 
 ```
 sp = new Sprite
-sp.image = file.loadImage("/sys/pics/animals/Cat.png")
+sp.image = file.loadImage("/sys/pics/animals/cat.png")
 sp.x = 480
 sp.y = 320
 display(4).sprites.push sp
@@ -3445,23 +3413,24 @@ sp.rotation = 45    // rotate 45 degrees
 sp.tint = color.red   // tint the sprite red
 ```
 
-**Simple example — move a sprite with arrow keys:**
+**Simple example — move a sprite around the screen:**
 
 ```
+clear
 sp = new Sprite
-sp.image = file.loadImage("/sys/pics/animals/Dog.png")
+sp.image = file.loadImage("/sys/pics/animals/dog.png")
 sp.x = 480
 sp.y = 320
 display(4).sprites.push sp
 
 while true
-    if key.pressed("left") then sp.x -= 3
-    if key.pressed("right") then sp.x += 3
-    if key.pressed("up") then sp.y += 3
-    if key.pressed("down") then sp.y -= 3
+    sp.x += key.axis("Horizontal") * 3
+    sp.y += key.axis("Vertical") * 3
     yield
 end while
 ```
+
+(Note that `key.axis` allows you to use WASD, arrow keys, or a gamepad.)
 
 **Removing a sprite:**
 
@@ -3483,11 +3452,9 @@ Sprites are drawn in order — later sprites in the list appear in front of earl
 Load multiple frames and cycle through them:
 
 ```
-// Load animation frames
 frames = []
-for i in range(0, 3)
-    frames.push file.loadImage("/usr/walk" + i + ".png")
-end for
+frames.push file.loadImage("/sys/pics/KP/KP-run1.png")
+frames.push file.loadImage("/sys/pics/KP/KP-run2.png")
 
 sp = new Sprite
 sp.image = frames[0]
@@ -3510,8 +3477,9 @@ end while
 **Movement animation:**
 
 ```
+clear
 sp = new Sprite
-sp.image = file.loadImage("/sys/pics/animals/Cat.png")
+sp.image = file.loadImage("/sys/pics/animals/cat.png")
 sp.x = 100
 sp.y = 320
 display(4).sprites.push sp
@@ -3534,8 +3502,8 @@ sp.y = 320
 display(4).sprites.push sp
 
 while true
-    sp.rotation += 2   // rotate 2 degrees per frame
     yield
+    sp.rotation += 2   // rotate 2 degrees per frame
 end while
 ```
 
@@ -3561,51 +3529,44 @@ The key idea is to update sprite properties (`.image`, `.x`, `.y`, `.rotation`, 
 
 **User:** How do I detect collisions between sprites in Mini Micro?
 
-**Assistant:** Mini Micro provides a `Bounds` class for axis-aligned bounding box (AABB) collision detection between sprites.
+**Assistant:** Mini Micro provides a `Bounds` class for axis-aligned bounding box (AABB) collision detection between sprites.  To use this, set up `localBounds` on each sprite with a `Bounds` reflecting the sprite's collision box.
 
 **Basic collision check using `overlaps`:**
 
 ```
+clear
 sp1 = new Sprite
-sp1.image = file.loadImage("/sys/pics/animals/Cat.png")
+sp1.image = file.loadImage("/sys/pics/animals/cat.png")
 sp1.x = 200; sp1.y = 300
+sp1.localBounds = new Bounds
+sp1.localBounds.width = sp1.image.width
+sp1.localBounds.height = sp1.image.height
 display(4).sprites.push sp1
 
 sp2 = new Sprite
-sp2.image = file.loadImage("/sys/pics/animals/Dog.png")
+sp2.image = file.loadImage("/sys/pics/animals/dog.png")
 sp2.x = 400; sp2.y = 300
+sp2.localBounds = new Bounds
+sp2.localBounds.width = sp2.image.width
+sp2.localBounds.height = sp2.image.height
 display(4).sprites.push sp2
 
 while true
-    if key.pressed("right") then sp1.x += 3
-    if key.pressed("left") then sp1.x -= 3
-
-    if sp1.overlaps(sp2) then
-        text.row = 25
-        text.column = 0
-        print "Collision!"
-    end if
-    yield
+	sp1.x += key.axis("Horizontal") * 5
+	sp1.y += key.axis("Vertical") * 5
+	
+	if sp1.overlaps(sp2) then
+		text.row = 25
+		text.column = 0
+		print "Collision!"
+	else
+		text.clear
+	end if
+	yield
 end while
 ```
 
 The `overlaps` method on a sprite checks if its bounding box intersects another sprite's bounding box.
-
-**Using Bounds directly:**
-
-You can also create `Bounds` objects manually for custom collision areas:
-
-```
-b1 = new Bounds
-b1.x = sp1.x; b1.y = sp1.y
-b1.width = 40; b1.height = 40
-
-b2 = new Bounds
-b2.x = sp2.x; b2.y = sp2.y
-b2.width = 40; b2.height = 40
-
-if b1.overlaps(b2) then print "Hit!"
-```
 
 **Point containment:**
 
@@ -3617,9 +3578,11 @@ if sp1.contains(mouse.x, mouse.y) then
 end if
 ```
 
+This requires you to have set up `localBounds`, as above.
+
 **Tips:**
-- `overlaps` uses the sprite's image size by default for the bounding box
-- For more precise collision, you can adjust the sprite's `.localBounds` property
+- You must always set `.localBounds` for `.overlaps` and `.contains` to work
+- You can also do your own collision checking, for example, by computing the distance between two round sprites
 - For pixel-perfect collision, you would need to check individual pixels, which is more complex
 
 ## Weighted random selection
@@ -3721,16 +3684,10 @@ print rex isa map      // 1 (true — all objects are maps)
 
 ```
 x = null
-print x isa null       // error — null is not a type you can check with isa
+print x isa null       // equivalent to: print x == null
 
 f = @print
 print f isa funcRef    // 1 (true)
-```
-
-To check for null, just use `== null`:
-
-```
-if x == null then print "It's null"
 ```
 
 **Practical use — type-safe function:**
@@ -3756,8 +3713,9 @@ end function
 **Setting up a TileDisplay:**
 
 ```
-display(3).mode = displayMode.tile
-td = display(3)
+clear
+display(4).mode = displayMode.tile
+td = display(4)
 
 // Load a tile set image
 td.tileSet = file.loadImage("/sys/pics/TileShapes.png")
@@ -3765,25 +3723,27 @@ td.tileSetTileSize = 64   // each tile is 64x64 pixels in the tile set
 td.cellSize = 64           // each cell on screen is 64x64 pixels
 
 td.extent = [15, 10]       // grid is 15 columns by 10 rows
-```
+td.clear 16  // clear all cells to tile 16```
 
 **Setting tiles in cells:**
 
 ```
-td.setCell 0, 0, 1    // column 0, row 0, tile index 1
-td.setCell 5, 3, 4    // column 5, row 3, tile index 4
+td.setCell 0, 0, 1    // set column 0, row 0 to tile index 1
+td.setCell 5, 3, 4    // set column 5, row 3 to tile index 4
+td.setCell 3, 0, null // clear the tile in column 3, row 0
 ```
 
-Tile index 0 is typically empty/transparent. Indices count left-to-right, top-to-bottom across the tile set image.
+Setting a cell to null makes it empty/transparent. Indices count left-to-right, top-to-bottom across the tile set image.  The `view` command provides a quick way to look up tile indexes:
+
+```
+view td.tileSet
+```
 
 **Filling a grid:**
 
+The `setCell` method accepts a list of coordinates for both X and Y, which can be combined to fill a rectangular range of cells all at once:
 ```
-for col in range(0, 14)
-    for row in range(0, 9)
-        td.setCell col, row, floor(rnd * 10)
-    end for
-end for
+td.setCell range(4, 14), range(0, 9), 22
 ```
 
 **Getting a tile value:**
@@ -3824,9 +3784,9 @@ Tiles are numbered starting from 0, reading left-to-right, top-to-bottom across 
 **Setting up the tile set:**
 
 ```
-display(3).mode = displayMode.tile
-td = display(3)
-td.tileSet = file.loadImage("/usr/myTiles.png")
+display(4).mode = displayMode.tile
+td = display(4)
+td.tileSet = file.loadImage("/sys/pics/SimplePlatformTiles.png")
 td.tileSetTileSize = 32   // each tile is 32x32 in the image
 td.cellSize = 32           // each cell on screen is 32x32
 ```
@@ -3836,7 +3796,7 @@ td.cellSize = 32           // each cell on screen is 32x32
 ```
 td.setCell 0, 0, 1    // place tile #1 at column 0, row 0
 td.setCell 1, 0, 3    // place tile #3 at column 1, row 0
-td.setCell 2, 0, 0    // tile 0 = empty/first tile
+td.setCell 2, 0, null // tile 0 = empty/blank
 ```
 
 **Building a map from data:**
@@ -3844,8 +3804,8 @@ td.setCell 2, 0, 0    // tile 0 = empty/first tile
 ```
 mapData = [[1, 1, 1, 1, 1],
            [1, 0, 0, 0, 1],
-           [1, 0, 2, 0, 1],
            [1, 0, 0, 0, 1],
+           [1, 0, 2, 0, 1],
            [1, 1, 1, 1, 1]]
 
 for row in mapData.indexes
@@ -3855,7 +3815,7 @@ for row in mapData.indexes
 end for
 ```
 
-Note: row 0 in TileDisplay is at the bottom of the screen, so you may need to flip your data if you define it top-to-bottom.
+Note: row 0 in TileDisplay is at the bottom of the screen, so you may need to flip your data if you define it top-to-bottom, as shown above.
 
 **Tile tinting:**
 
@@ -3876,26 +3836,27 @@ This lets you reuse the same tile with different colors.
 **Setting up a hex grid (offset rows):**
 
 ```
-display(3).mode = displayMode.tile
-td = display(3)
-td.tileSet = file.loadImage("/usr/hexTiles.png")
-td.tileSetTileSize = 64
-td.cellSize = 64
+display(4).mode = displayMode.tile
+td = display(4)
+td.tileSet = file.loadImage("/sys/pics/hextiles-55x64.png")
+td.tileSetTileSize = [55, 64]
+td.cellSize = [55, 64]
 td.extent = [10, 8]
+td.clear 0
 td.oddRowOffset = 0.5    // offset odd rows by half a cell width
-td.rowSpacing = 0.75     // rows overlap vertically for hex packing
+td.overlap = [0, 16]   // overlap vertically for tight packing
 ```
 
 The key properties:
 - `oddRowOffset` — shifts odd-numbered rows by this fraction of a cell width (0.5 for hex grids)
-- `rowSpacing` — controls vertical spacing between rows (0.75 is typical for hex tiles that are taller than wide)
+- `overlap` — controls spacing between cells; for hex tiles that are taller than wide, an overlap of 1/4 the cell height is typical
 
 **Filling the hex grid:**
 
 ```
-for col in range(0, 9)
-    for row in range(0, 7)
-        td.setCell col, row, floor(rnd * 5) + 1
+for col in range(td.extent[0] - 1)
+    for row in range(td.extent[1] - 1)
+        td.setCell col, row, floor(rnd * 6)
     end for
 end for
 ```
@@ -3919,7 +3880,7 @@ The cell addressing still uses column and row numbers just like a regular grid �
 ```
 import "listUtil"
 
-grid = list.init2d(5, 3, 0)   // 5 columns, 3 rows, filled with 0
+grid = list.init2d(5, 3, 0)   // 5 rows, 3 columns, filled with 0
 grid[2][1] = 42
 print grid[2][1]   // 42
 ```
@@ -3946,31 +3907,25 @@ rows = 3
 cols = 5
 grid = []
 for r in range(1, rows)
-    row = []
-    for c in range(1, cols)
-        row.push 0
-    end for
-    grid.push row
+    grid.push [0] * cols
 end for
 ```
 
 **Iterating a 2D array:**
 
 ```
-for row in range(0, grid.len - 1, 1)
-    for col in range(0, grid[row].len - 1, 1)
-        // do something with grid[col][row] or grid[row][col]
+for row in grid.indexes
+    for col in grid[row].indexes
+        // do something with grid[row][col]
     end for
 end for
 ```
-
-Note: with `list.init2d(cols, rows, val)`, you access elements as `grid[col][row]` (column first).
 
 ## Factory methods on classes
 
 **User:** What's a good pattern for creating objects with specific initial values in MiniScript?
 
-**Assistant:** Since MiniScript has no constructors, the idiomatic approach is to define a **factory method** (often called `make` or `init`) on the prototype.
+**Assistant:** Since MiniScript has no constructors, the idiomatic approach is to define a **factory method** (often called `Make` or `Create`) on the prototype.  This method can use `new self` to create the new instance of the correct type even when it has been subclassed.
 
 **Factory method pattern:**
 
@@ -3979,8 +3934,8 @@ Vector = {}
 Vector.x = 0
 Vector.y = 0
 
-Vector.make = function(x, y)
-    v = new Vector
+Vector.Make = function(x, y)
+    v = new self
     v.x = x
     v.y = y
     return v
@@ -3990,7 +3945,7 @@ Vector.magnitude = function
     return sqrt(self.x^2 + self.y^2)
 end function
 
-v = Vector.make(3, 4)
+v = Vector.Make(3, 4)
 print v.x              // 3
 print v.magnitude      // 5
 ```
@@ -4003,16 +3958,16 @@ Enemy.name = "unknown"
 Enemy.hp = 100
 Enemy.speed = 1
 
-Enemy.make = function(name, hp=100, speed=1)
-    e = new Enemy
+Enemy.Make = function(name, hp=100, speed=1)
+    e = new self
     e.name = name
     e.hp = hp
     e.speed = speed
     return e
 end function
 
-goblin = Enemy.make("Goblin", 30, 2)
-dragon = Enemy.make("Dragon", 500)
+goblin = Enemy.Make("Goblin", 30, 2)
+dragon = Enemy.Make("Dragon", 500)
 ```
 
 **Why not just set properties after `new`?**
@@ -4027,10 +3982,10 @@ goblin.hp = 30
 goblin.speed = 2
 
 // With factory method — clean and concise:
-goblin = Enemy.make("Goblin", 30, 2)
+goblin = Enemy.Make("Goblin", 30, 2)
 ```
 
-**Naming convention:** `make` is the most common name for factory methods in MiniScript, but `create`, `init`, or any clear name works.
+**Naming convention:** `Make` is the most common name for factory methods in MiniScript, but `Create`, `Init`, or any clear name works.  (By convention, methods intended to be invoked on the prototype, rather than on an instance, are capitalized.)
 
 ## Debugging infinite loops
 
@@ -4088,57 +4043,60 @@ Fix: use `while x > 0` instead of `while x != 0`.
 **Off-by-one with `range`:**
 If you're not in an infinite loop but getting unexpected behavior, remember `range` is inclusive — `range(0, n)` produces n+1 values.
 
-**4. Use `yield` in long loops:** Even if your loop is correct, adding `yield` ensures the display updates and you can interrupt with Ctrl+C:
+**4. Use `yield` in long loops:** Even if your loop is correct, adding `yield` ensures the display updates and runs at a steady speed:
 
 ```
 while processing
-    // heavy work here
     yield
+    // heavy work here
 end while
 ```
 
 ## Turtle graphics
 
-**User:** How do I use turtle graphics in Mini Micro?
+**User:** How do I use t graphics in Mini Micro?
 
-**Assistant:** Mini Micro includes a turtle graphics module. Import it to get started:
+**Assistant:** Mini Micro includes a t graphics module. Import it to get started:
 
 ```
 import "turtle"
+t = new Turtle  // create a drawing t
 
-// Move forward and turn
-turtle.penDown
-turtle.forward 100
-turtle.right 90
-turtle.forward 100
-turtle.right 90
-turtle.forward 100
-turtle.right 90
-turtle.forward 100
+// Move forward and turn, four times, making a square
+t.penDown
+t.forward 100
+t.right 90
+t.forward 100
+t.right 90
+t.forward 100
+t.right 90
+t.forward 100
 ```
-
-This draws a square.
 
 **Key turtle commands:**
 
-- `turtle.forward n` — move forward n pixels
-- `turtle.backward n` — move backward n pixels (or `turtle.back n`)
-- `turtle.right degrees` — turn right
-- `turtle.left degrees` — turn left
-- `turtle.penUp` — stop drawing
-- `turtle.penDown` — start drawing
-- `turtle.penColor = color.red` — set the pen color
-- `turtle.penSize = 3` — set the pen width
-- `turtle.goTo x, y` — move to a specific position
-- `turtle.heading = 90` — set the direction (0=up, 90=right)
+Assuming you have imported "turtle" and done `t = new Turtle`:
+
+- `t.forward n` — move forward n pixels
+- `t.backward n` — move backward n pixels
+- `t.right degrees` — turn right
+- `t.left degrees` — turn left
+- `t.penDown = false` — stop drawing
+- `t.penDown = true` — resume drawing
+- `t.color = color.red` — set the pen color
+- `t.penSize = 3` — set the pen width
+- `t.goTo x, y` — move to a specific position (while drawing)
+- `t.jumpTo x, y` — move to a specific position (without drawing)
+- `t.heading = 90` — set the direction (0=right, 90=up)
 
 **Drawing a circle:**
 
 ```
 import "turtle"
+t = new Turtle
 for i in range(1, 360)
-    turtle.forward 2
-    turtle.right 1
+    t.forward 2
+    t.right 1
 end for
 ```
 
@@ -4146,10 +4104,11 @@ end for
 
 ```
 import "turtle"
-turtle.penColor = color.yellow
+t = new Turtle
+t.color = color.yellow
 for i in range(1, 5)
-    turtle.forward 150
-    turtle.right 144
+    t.forward 150
+    t.right 144
 end for
 ```
 
@@ -4157,14 +4116,15 @@ end for
 
 ```
 import "turtle"
-turtle.penColor = color.lime
+t = new Turtle
+t.color = color.lime
 for i in range(1, 200)
-    turtle.forward i
-    turtle.right 91
+    t.forward i
+    t.right 91
 end for
 ```
 
-The turtle starts at the center of the screen (480, 320), facing up. It draws on the `gfx` layer.
+The turtlre starts at the center of the screen (480, 320), facing right. It draws on the `gfx` layer.
 
 ## Recursive drawing algorithms
 
@@ -4176,30 +4136,29 @@ The turtle starts at the center of the screen (480, 320), facing up. It draws on
 
 ```
 import "turtle"
+t = new Turtle
 
 kochCurve = function(length, depth)
     if depth == 0 then
-        turtle.forward length
+        t.forward length
     else
         kochCurve length/3, depth-1
-        turtle.left 60
+        t.left 60
         kochCurve length/3, depth-1
-        turtle.right 120
+        t.right 120
         kochCurve length/3, depth-1
-        turtle.left 60
+        t.left 60
         kochCurve length/3, depth-1
     end if
 end function
 
 // Draw a Koch snowflake (3 sides)
-turtle.penUp
-turtle.goTo 200, 200
-turtle.penDown
-turtle.penColor = color.aqua
+t.jumpTo 200, 500
+t.color = color.aqua
 
 for i in range(1, 3)
     kochCurve 400, 3
-    turtle.right 120
+    t.right 120
 end for
 ```
 
@@ -4207,58 +4166,56 @@ end for
 
 ```
 import "turtle"
+t = new Turtle
 
 drawTree = function(branchLen, depth)
     if depth == 0 then return
-    turtle.penSize = depth
-    turtle.penColor = color.rgb(50, depth*30, 0)
-    turtle.forward branchLen
-    turtle.left 30
+    t.penSize = depth
+    t.color = color.rgb(50, depth*30, 0)
+    t.forward branchLen
+    t.left 30
     drawTree branchLen * 0.7, depth - 1
-    turtle.right 60
+    t.right 60
     drawTree branchLen * 0.7, depth - 1
-    turtle.left 30
-    turtle.backward branchLen
+    t.left 30
+    t.backward branchLen
 end function
 
-turtle.penUp
-turtle.goTo 480, 50
-turtle.heading = 0
-turtle.penDown
-drawTree 120, 8
+t.jumpTo 480, 50
+t.heading = 90
+drawTree 120, 10
 ```
 
 **Sierpinski triangle:**
 
 ```
 import "turtle"
+t = new Turtle
 
 sierpinski = function(length, depth)
     if depth == 0 then
         for i in range(1, 3)
-            turtle.forward length
-            turtle.left 120
+            t.forward length
+            t.left 120
         end for
     else
         sierpinski length/2, depth-1
-        turtle.forward length/2
+        t.forward length/2
         sierpinski length/2, depth-1
-        turtle.backward length/2
-        turtle.left 60
-        turtle.forward length/2
-        turtle.right 60
+        t.backward length/2
+        t.left 60
+        t.forward length/2
+        t.right 60
         sierpinski length/2, depth-1
-        turtle.left 60
-        turtle.backward length/2
-        turtle.right 60
+        t.left 60
+        t.backward length/2
+        t.right 60
     end if
 end function
 
-turtle.penUp
-turtle.goTo 180, 100
-turtle.penDown
-turtle.penColor = color.lime
-sierpinski 500, 4
+t.jumpTo 180, 100
+t.color = color.lime
+sierpinski 500, 6
 ```
 
 The key pattern: the recursive function draws a simpler version at smaller scale, calling itself for sub-parts.
@@ -4267,22 +4224,22 @@ The key pattern: the recursive function draws a simpler version at smaller scale
 
 **User:** How do I make a copy (clone) of a map and then modify it without affecting the original in MiniScript?
 
-**Assistant:** Maps, like lists, are reference types in MiniScript. Assigning a map to a new variable doesn't copy it. To make an independent shallow copy, add it to an empty map with `+`:
+**Assistant:** Maps, like lists, are reference types in MiniScript. Assigning a map to a new variable doesn't copy it. To make an independent shallow copy, add an empty map to it with `+`:
 
 ```
 original = {"name": "Alice", "age": 30}
-clone = {} + original
+clone = original + {}
 
 clone.name = "Bob"
 print original.name   // Alice (unaffected)
 print clone.name      // Bob
 ```
 
-**Why `{} + original`?** The `+` operator on maps merges the right map into the left, producing a new map. Adding `{}` gives you a fresh copy.
+**Why `original + {}`?** The `+` operator on maps merges the right map into the left, producing a new map. Adding `{}` gives you a fresh copy.
 
 **Deep copy for nested maps:**
 
-If your map contains lists or other maps, `{} + original` only makes a shallow copy — nested objects are still shared. For a deep copy:
+If your map contains lists or other maps, `original + {}` only makes a shallow copy — nested objects are still shared. For a deep copy:
 
 ```
 deepCopyMap = function(m)
@@ -4308,7 +4265,7 @@ print clone.scores      // [90, 85, 95, 100]
 
 **Quick reference:**
 - Shallow copy of a list: `copy = original[:]`
-- Shallow copy of a map: `copy = {} + original`
+- Shallow copy of a map: `copy = original + {}`
 - For simple maps (no nested collections), shallow copy is sufficient
 
 ## Where to get MiniScript help
@@ -4320,25 +4277,26 @@ print clone.scores      // [90, 85, 95, 100]
 **Official resources:**
 - **MiniScript website:** https://miniscript.org — documentation, tutorials, and reference
 - **MiniScript wiki:** https://miniscript.org/wiki — detailed language reference with examples
-- **Quick Reference:** https://github.com/JoeStrout/miniscript/blob/master/QuickRef.md — concise syntax reference
+- **Quick Reference:** https://miniscript.org/files/MiniScript-QuickRef.pdf
 
 **Community:**
 - **MiniScript Discord:** Active community where you can ask questions and share projects
 - **GitHub:** https://github.com/JoeStrout/miniscript — source code, issues, and discussions
 
 **Mini Micro specific:**
-- **Mini Micro wiki:** https://miniscript.org/MiniMicro — Mini Micro-specific documentation
+- **Mini Micro resources:** https://miniscript.org/MiniMicro/#learn
+- **Mini Micro Cheat Sheet:** https://miniscript.org/files/MiniMicro-CheatSheet.pdf
 - **Built-in demos:** Mini Micro comes with example programs in `/sys/demo/` — load and study them:
   ```
-  load "/sys/demo/circles"
+  load "/sys/demo/ticTacToe"
   run
   ```
 
 **Learning tips:**
-- Start with the MiniScript Quick Reference for syntax basics
+- Start with the Mini Micro Cheat Sheet for basic and APIs
 - Explore the `/sys/demo/` programs in Mini Micro to see working examples
 - The wiki has pages for every built-in function with usage examples
-- Try the interactive command line — type expressions directly to experiment
+- Use the interactive command line — type expressions directly to experiment
 
 ## String concatenation and mixing types
 
@@ -4369,7 +4327,7 @@ s = str(x)
 print s        // "42" (but it's a string now)
 ```
 
-You can also use `str` for more control, but usually `+` handles it automatically. Just make sure the left side of your first `+` is a string if you want concatenation:
+Use of `str` gives you explicit control, but usually `+` handles it automatically. Just make sure the left side of your first `+` is a string if you want concatenation:
 
 ```
 x = 10
@@ -4385,12 +4343,13 @@ print x + " and " + y    // 10 and 20 (string in the middle forces concatenation
 
 **Assistant:** Yes! MiniScript supports several unusual but useful string operators.
 
-**String subtraction (`-`):** Removes the last occurrence of the right string from the left string:
+**String subtraction (`-`):** Removes the right string from the end of the left string, if it exists.
 
 ```
-print "Hello World" - "o"       // Hello Wrld (removes last "o")
-print "banana" - "na"           // bana (removes last "na")
-print "abcabc" - "abc"          // abc (removes last "abc")
+print "banana" - "na"           // bana (removes "na" from the end)
+print "abcabc" - "abc"          // abc (removes "abc")
+print "myFile.txt" - ".txt"     // myFile (removes the ".txt" extension)
+print "Hello World" - "o"       // Hello World (no change; string does not end in "o"
 ```
 
 **String multiplication (`*`):** Repeats the string the given number of times:
@@ -4409,23 +4368,11 @@ print "  Title"
 print "=" * 40
 ```
 
-**String division (`/`):** Counts how many times the right string appears in the left string:
+**String division (`/`):** Cuts a string down, just like multiplying by the inverse of the right-hand side.
 
 ```
-print "banana" / "a"    // 3
-print "hello" / "l"     // 2
-print "abcabc" / "abc"  // 2
-```
-
-These operators make common string tasks more concise:
-
-```
-// Remove all occurrences of a substring:
-s = "banana"
-while s.indexOf("a") != null
-    s -= "a"
-end while
-print s   // bnn
+print "banana" / 3         // "ba"
+print "hello world!" / 2   // "hello "
 ```
 
 ## Order of operations
@@ -4446,7 +4393,6 @@ print s   // bnn
 
 ```
 print 2 + 3 * 4       // 14 (not 20 — multiplication first)
-print 2 ^ 3 ^ 2       // 512 (right-to-left: 3^2=9, then 2^9=512)
 print 10 - 3 + 2       // 9 (left-to-right for same precedence)
 print 10 % 3 * 2       // 2 (modulo first: 10%3=1, then 1*2=2)
 ```
@@ -4455,15 +4401,13 @@ print 10 % 3 * 2       // 2 (modulo first: 10%3=1, then 1*2=2)
 
 ```
 print (2 + 3) * 4      // 20
-print 2 ^ (3 ^ 2)      // 512 (same as default, but clearer)
 print (10 - 3) + 2      // 9
 
-// More practical examples:
+// More practical example:
 average = (a + b + c) / 3
-isInRange = (x >= 0) and (x <= 100)
 ```
 
-**Tip:** When in doubt, use parentheses. They make your intent clear even if they're not strictly necessary:
+**Tip:** When in doubt, use parentheses to explicitly group parts of an expression. They make your intent clear even if they're not strictly necessary:
 
 ```
 // Both produce the same result, but the second is clearer:
@@ -4478,8 +4422,9 @@ result = (a * b) + (c / d)
 **Assistant:** They do the same thing — both return `5`. MiniScript lets you call many built-in functions either way: as a traditional function call or using dot syntax.
 
 ```
-print len("Hello")     // 5
-print "Hello".len      // 5
+s = "Hello"
+print len(s)     // 5
+print s.len      // 5
 ```
 
 The dot syntax (`.len`) is generally preferred as more idiomatic MiniScript. It reads more naturally and chains well:
@@ -4490,21 +4435,21 @@ myList = [1, 2, 3, 4, 5]
 print myList.len       // 5
 s = "Hello World"
 print s.upper          // HELLO WORLD
-print s.indexOf("W")   // 6
+print s.upper.indexOf("L")   // 2
 
 // Function syntax (also works):
 print len(myList)      // 5
 print upper(s)         // HELLO WORLD
-print indexOf(s, "W")  // 6
+print indexOf(upper(s), "L")  // 2
 ```
 
-Note that with dot syntax, the value before the dot becomes the first argument. So `s.indexOf("W")` is equivalent to `indexOf(s, "W")`.
+Note that with dot syntax, the value before the dot becomes the "self" argument. So `s.indexOf("W")` is equivalent to `indexOf(s, "W")`.  This works only for functions where the first parameter is named "self".
 
 This applies to many built-in functions: `len`, `val`, `str`, `code`, `char`, `indexOf`, `replace`, `split`, `join`, `upper`, `lower`, `trim`, `hasIndex`, `remove`, `push`, `pop`, `pull`, `sort`, `shuffle`, `sum`, `indexes`, `values`, and more.
 
 **When you must use function syntax:**
 
-For functions that don't operate on a specific value, like `rnd`, `time`, `print`, or `floor`, you use the normal function call syntax:
+For functions that don't operate on a specific value, like `rnd`, `time`, or `print`; and on most numeric functions, like `abs`, `cos`, or `floor`, you use the normal function call syntax:
 
 ```
 print floor(3.7)    // 3
@@ -4515,17 +4460,18 @@ print rnd            // random number 0-1
 
 **User:** How do I generate a random integer between 1 and 100 in MiniScript?
 
-**Assistant:** Use the `rnd` function with `ceil`:
+**Assistant:** Use the `rnd` function with `floor`, and add one:
 
 ```
-n = ceil(rnd * 100)
+n = floor(rnd * 100) + 1
 print n   // random integer from 1 to 100
 ```
 
 How it works:
 - `rnd` returns a random number from 0 (inclusive) to 1 (exclusive)
 - Multiplying by 100 gives a range of 0 to 99.999...
-- `ceil` rounds up to the nearest integer, giving 1 to 100
+- `floor` rounds down to the nearest integer, giving 0 to 99
+- adding 1 bumps this into the desired range, 1 to 100
 
 **General formula for a random integer from `a` to `b`:**
 
@@ -4536,16 +4482,18 @@ n = floor(rnd * (b - a + 1)) + a
 Examples:
 
 ```
-die = floor(rnd * 6) + 1        // 1 to 6 (dice roll)
+die = floor(rnd * 6) + 1         // 1 to 6 (die roll)
 coin = floor(rnd * 2)            // 0 or 1 (coin flip)
 percent = floor(rnd * 101)       // 0 to 100
 ```
 
 **Picking a random element from a list:**
 
+List indexing ignores the decimal part, doing `floor` implicitly.  So you can just do:
+
 ```
 colors = ["red", "blue", "green", "yellow"]
-pick = colors[floor(rnd * colors.len)]
+pick = colors[rnd * colors.len]
 print pick   // random color
 ```
 
@@ -4624,14 +4572,14 @@ print null                       // null
 print true                       // 1
 ```
 
-**Printing without a newline:** There's no built-in way to suppress the newline from `print`. However, in Mini Micro you can use `text.print` with a trailing parameter, or build up a string and print it all at once:
+**Printing without a newline:** `print` takes a second parameter, which is the separator to print after the given string.  By default this is a newline, but you can specify anything else, including an empty string if you just want to suppress the newline.
 
 ```
-line = ""
 for i in range(1, 5)
-    line += str(i) + " "
+    print i, ""
 end for
-print line    // 1 2 3 4 5
+print "!"
+// Output: 12345!
 ```
 
 **Printing multiple values:** Concatenate them with `+`:
@@ -4642,6 +4590,8 @@ score = 95
 print name + " scored " + score + " points"
 // Alice scored 95 points
 ```
+
+Or, if you need to use multiple `print` calls (e.g. because you are iterating over some collection), use the second parameter as in the previous example.
 
 **Note:** Parentheses are not needed (and discouraged) around the argument to `print`:
 
@@ -4666,13 +4616,13 @@ This applies to all keywords and built-in functions in MiniScript — they are a
 ```
 // Wrong (capital letters):
 For i In Range(1, 5)    // errors!
-If x > 5 Then          // errors!
+If x > 5 Then           // errors!
 While True              // errors!
 
 // Correct (all lowercase):
 for i in range(1, 5)    // good
 if x > 5 then           // good
-while true               // good
+while true              // good
 ```
 
 The same goes for built-in functions like `floor`, `ceil`, `abs`, `rnd`, `str`, `val`, `len`, etc. — always lowercase.
@@ -4715,12 +4665,6 @@ billion = 1e9
 ```
 
 MiniScript uses double-precision floating point numbers, which gives you about 15-17 significant digits and a range of roughly ±1.8e308.
-
-**Very large results display in scientific notation:**
-
-```
-print 2^100   // 1.267651E+30
-```
 
 **Converting strings with scientific notation:**
 
@@ -4773,7 +4717,7 @@ print "42" isa string   // 1 (true)
 This distinction is especially important with `input`, which always returns a string:
 
 ```
-x = input("Enter a number: ")   // x is a STRING
+x = input("Enter a number: ")     // x is a STRING
 print x + 10                      // concatenates! ("510" if you typed 5)
 print x.val + 10                  // adds! (15 if you typed 5)
 ```

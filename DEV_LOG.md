@@ -113,4 +113,5 @@ I used Claude to go through all 30 chapters of _Learn to Code in 30 Days_ and ge
 
 We now have 100 questions and answers.  However, I need to go over and manually verify the answers -- a quick scan showed some errors or misunderstandings on Claude's part.
 
+...That took a while!  But I believe all the answers are correct now.
 
