@@ -14,6 +14,9 @@ import argparse
 import json
 import re
 
+from transformers import AutoTokenizer
+
+MODEL_NAME = "Qwen/Qwen2.5-Coder-7B-Instruct"
 SYSTEM_PROMPT = "You are a helpful assistant specializing in MiniScript programming."
 INPUT_FILE = "qa_corpus.md"
 OUTPUT_FILE = "train_data.jsonl"
@@ -53,6 +56,30 @@ def parse_corpus(path):
     return examples
 
 
+def report_token_stats(examples):
+    """Tokenize every example with the real chat template and print stats."""
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    lengths = []
+    for ex in examples:
+        text = tokenizer.apply_chat_template(
+            ex["messages"], tokenize=False, add_generation_prompt=False
+        )
+        token_count = len(tokenizer.encode(text))
+        lengths.append(token_count)
+
+    lengths.sort()
+    print(f"\nToken stats ({MODEL_NAME} tokenizer):")
+    print(f"  min:    {lengths[0]}")
+    print(f"  median: {lengths[len(lengths)//2]}")
+    print(f"  max:    {lengths[-1]}")
+    print(f"  mean:   {sum(lengths)/len(lengths):.0f}")
+
+    # Flag examples that might cause OOM
+    long = [i for i, n in enumerate(lengths) if n > 1024]
+    if long:
+        print(f"  >1024 tokens: {len(long)} examples")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Convert qa_corpus.md to JSONL")
     parser.add_argument("--preview", action="store_true",
@@ -78,6 +105,7 @@ def main():
             f.write(json.dumps(ex) + "\n")
 
     print(f"Wrote {len(examples)} training examples to {OUTPUT_FILE}")
+    report_token_stats(examples)
 
 
 if __name__ == "__main__":

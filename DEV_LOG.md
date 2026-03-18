@@ -115,3 +115,37 @@ We now have 100 questions and answers.  However, I need to go over and manually 
 
 ...That took a while!  But I believe all the answers are correct now.
 
+## Mar 10, 2026
+
+Retraining our LoRA with the larger Q&A set.
+
+$ python prepare_data.py 
+Wrote 100 training examples to train_data.jsonl
+$ python train_sft.py 
+Loading tokenizer from Qwen/Qwen2.5-Coder-7B-Instruct ...
+...
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 498.00 MiB. GPU 0 has a total capacity of 23.49 GiB of which 125.25 MiB is free. Process 35284 has 14.71 GiB memory in use. 
+
+Oops.  Changing the batch size back to 1... but it still OOMs.  Updating prepare_data to report the number of tokens actually used by the longest example...
+
+Wrote 100 training examples to train_data.jsonl
+
+Token stats (Qwen/Qwen2.5-Coder-7B-Instruct tokenizer):
+  min:    128
+  median: 391
+  max:    735
+  mean:   389
+
+So dropping the max_length in train_sft.py to 1024.  This worked for a few iterations and then died.  I guess it's time to update the script to sample a portion of the queries on each batch.  We'll start with 64 per batch (randomly selected each batch).
+
+Oh!  But it turns out that I still had inference running in another terminal window, and had forgotten about it.  That is the "Process 35284" mentioned in the error message.  
+
+With that fixed, it ran for 20 epochs, but the loss did not get down below 1.2.  It only took a few minutes, so I'm going to try --epochs 200 and see if we can do better.  (Not really concerned about overfitting in this case.)
+
+Ah, but I was using a cosine schedule which reset every epoch, and it never made substantial progress.  Trying again with a constant learning rate (of 2e-4).
+
+...This did somewhat better; final loss was 0.999.  But it's still failing basic questions about how to iterate (over maps, or even over a range of numbers) in MiniScript.  It was able to correctly explain how MiniScript's `range` differs from Python, but then utterly failed at explaining the single-line `if` syntax (hallucinating a ternary operator instead).
+
+
+
+
