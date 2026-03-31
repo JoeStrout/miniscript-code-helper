@@ -1,0 +1,303 @@
+{chapterHead: "Day 20: Sounds & Music", startingPageNum:237}
+
+{width: "50%"}
+![](Chapter20.svg)
+
+Q> There is no recipe, there is no one way to do things — there is only your way. And if you can recognize that in yourself and accept and appreciate that in others, you can make magic.
+Q>— Ara Katz (co-founder of Seed Health, Spring, and BeachMint)
+
+A> **Chapter Objectives**
+A> - Load and play digitized sounds from files on disk.
+A> - Learn how to synthesize sounds from scratch.
+A> - Use your new audio skills to create music from code.
+
+So far, working with Mini Micro has been like watching a silent movie.  Unless you happen to have printed `char(7)` at some point, your programs have not made a peep.  Grab your earbuds or apologize to your neighbor, because that's going to change today!
+
+## Playing Sound Files
+
+There are two ways to make sounds in Mini Micro.  The first one involves loading a digitized sound from disk, and simply playing it.
+
+Mini Micro comes with a bunch of sound files in `/sys/sounds`.  `cd` to that directory, then use `dir` to list them.  Use the `view` command to hear what they sound like (remember to put quotes around the file name!).  Many of the sounds are musical instruments, and we'll cover how to use these to make music in the last part of this chapter.  Others are sound effects, like *bonus.wav*, *pickup.wav*, and *pop.wav*.
+
+To play these sounds from code is easy: load the sound, and then play it.
+
+```terminal
+]snd = file.loadSound("/sys/sounds/bonus.wav")
+]snd.play
+```
+
+{i:"`Sound` class"}
+The result of `file.loadSound` is a `Sound` object, another built-in class in Mini Micro.  This class has some properties that don't apply to file-based sounds, so for now let's just consider the following:
+
+{caption:"Properties and methods for digitized sounds.  *snd* is any `Sound` object.", colWidths:"150,*"}
+|`snd.duration`|length of the sound, in seconds|
+|`snd.loop`|if true, repeat the sound indefinitely until stopped|
+|`snd.play` *volume=1*, *pan=0*, *speed=1*|play this sound|
+|`snd.stop`|stop playing this sound|
+|`snd.isPlaying`|returns 1 (true) if sound is playing, 0 (false) if not|
+|`Sound.stopAll`|stop all currently playing sounds|
+
+The `play` method is the only one with any parameters, though they are all optional.  The parameters are:
+
+- *volume*: how loud to play, from 0 (silent) to 1 (full volume).
+- *pan*: adjusts the left/right stereo balance, from -1 (left speaker only) to 1 (right speaker only).  0 means to play in both speakers equally.
+- *speed*: a factor that controls payback speed and pitch.  1 is normal speed, 0.5 is half speed, 2 is double speed, and so on.  Faster speeds produce a higher pitch.
+
+As an example, try this `for` loop:
+
+{caption:"How to play the guitar."}
+```miniscript
+snd = file.loadSound("/sys/sounds/elecGuitarC4.wav")
+for x in range(1, 2, 0.25)
+	snd.play 1, 0, x
+	wait snd.duration
+end for
+```
+
+This plays the sound five times, at a different speed each time.  Notice that when you play a sound at double speed, it sounds exactly one octave higher.
+
+Of course you are not limited to the sounds that ship with Mini Micro.  You can import your own sounds, in WAV or OGG format.  The easiest way to do this is to click on the lower disk slot, use "Mount Folder..." to mount a folder in the host OS containing your sound files, and then access these in Mini Micro under the       `/usr2` directory.  When you find a sound file you want to use in your own programs, copy it onto your *user.minidisk* file for easy access.
+
+
+## Synthesizing Sounds
+
+Loading a sound file is one way of making sounds.  The other way is to create sounds from scratch, using Mini Micro's sophisticated synthesizer.
+
+To understand how synthesized sounds work, we first have to talk a bit about how sound works in general.  Sound is repeated, tiny changes in air pressure over time.  These air pressure variations cause little receptors in your ear to vibrate.  Each receptor is tuned to a different *frequency*, which is how many times the air pressure goes up and down per second.  Humans can typically hear frequencies between 20 and 20,000 cycles per second or so.  (The shorthand for "cycles per second" is a unit called Hertz, and abbreviated Hz.)  
+
+Low frequencies, like 20 Hz, sound like very deep, low sounds, while high frequencies are high-pitched sounds.  The relationship between frequency and pitch is not linear; to go up one octave in pitch, you must double the frequency.  Conversely, to go down one octave in pitch, you would cut the frequency in half.
+
+Speakers are simply hardware that produce these changes in air presure, by moving the speaker cone back and forth according to an electronic signal.  Microphones do the reverse, responding to changes in air pressure by producing a signal that a computer can read.  This is known as *digitizing* the sound, and is how most of those sound files in `/sys/sounds/` were created.
+
+If you were to take the signal from a microphone and graph it, to represent the air pressure changes visually, you would often see some pattern that repeats over and over, hundreds or thousands of times per second.  That pattern is called the *waveform*.
+
+waveform
+: one cycle of a sound wave, representing the air pressure changes that are repeated *frequency* times per second
+
+frequency
+: how many times per second the waveform is repeated to produce a sound
+
+Note that in the context of Mini Micro, *waveform* refers to just *one* cycle of the air pressure changes, which is repeated many times per second.  In other contexts, people may use "waveform" to refer to a graph of the entire sound, from beginning to end.
+
+So to define a simple sound, we need to know:
+
+1. What the waveform looks like.
+2. How many times per second that waveform should be repeated (i.e. the frequency).
+3. How long the sound should last.
+4. How the volume should change over the course of the sound.
+
+That third one, how long the sound should last, is called the *duration* of the sound; and that last one is called the *envelope*.
+
+envelope
+: how the amplitude (volume) of a sound varies from the beginning to the end of the sound
+
+And now you have all the background you need to understand sound synthesis in Mini Micro.  The `Sound` class has some additional properties that correspond to the concepts above.
+
+{caption:"Properties and methods related to synthesizing sounds from scratch.", colWidths:"120,*"}
+|`snd.duration`|length of the sound, in seconds|
+|`snd.freq`|frequency (repeats of `waveform` per second)|
+|`snd.envelope`|how the sound amplitude varies over the course of the sound|
+|`snd.fadeIn`|length of fade-in period when sound begins, in seconds|
+|`snd.fadeOut`|length of fade-out period when sound begins, in seconds|
+|`snd.init` *duration, freq, envelope, waveform*|shortcut for setting the four key properties|
+|`snd.mix` *sound2, level|add another synthesized sound into this one|
+
+Let's begin, as usual, by experimenting on the REPL command line.
+
+```terminal
+]s = new Sound
+]s.duration = 1
+]s.freq = 440
+]s.envelope = 1
+]s.waveform = Sound.sineWave
+]s.play
+```
+
+You should hear a clean, pure note (for the musically inclined, this is A above middle C) that lasts for 1 second.  Let's go over each of these properties in turn.
+
+First, `duration`.  This one is easy enough: it's how long the sound lasts, in seconds.  Try changing it and hear the difference.
+
+```terminal
+]s.duration = 1.5
+]s.play
+]s.duration = 0.5
+]s.play
+```
+
+Next, frequency.  You probably have a good idea of this by now, but go ahead and play with it a bit to be sure.
+
+```terminal
+]s.freq = 220
+]s.play
+]s.freq = 880
+]s.play
+```
+
+However, you aren't limited to a single, constant frequency for the whole sound.  If you give Mini Micro a list of frequencies, it will smoothly interpolate between them.  Try these:
+
+```terminal
+]s.duration = 2
+]s.freq = [220, 880]
+]s.play
+]s.freq = [880, 220]
+]s.play
+]s.freq = [220,300] * 8
+]s.play
+```
+
+That last one is using list replication; go ahead and print out `s.freq` to make sure you understood that correctly.  And you can hear what it does to the sound: the pitch varies between 220 and 300 Hz, 8 times over the 2-second duration of the sound.
+
+Envelope is a little trickier.  Here, Mini Micro is expecting either 1, which indicates a constant amplitude for the sound; or a list of values between 0 and 1, which indicate how the amplitude should vary over the course of the sound.  For example, if you use an envelope of `[0,1]`, then the sound will start at an amplitude of 0 (silent) and ramp up te full volume by the end of the sound.  An envelope of `[1,0]` would do the opposite.  Try it!
+
+```terminal
+]s.freq = 440
+]s.envelope = [0,1]
+]s.play
+]s.envelope = [1,0]
+]s.play
+]s.envelope = [0,1,0]
+]s.play
+]s.envelope = [1,0,1]
+]s.play
+```
+
+You can use as many values in your `envelope` list as you like; the synthesizer will evenly space these amplitude changes over the length of the sound.  And of course you don't have to stick to only values of 0 and 1; you can use any values in between.  For example, using list replication again:
+
+```terminal
+]s.envelope = [1, 0.25] * 8
+]s.play
+```
+
+It should be noted that the envelope isn't the *only* factor that affects the amplitude of the sound over time; there are also `fadeIn` and `fadeOut` properties.  These are a simple way to make the sound fade in (go from zero to full amplitude) at the start of the sound, and fade out (go from full amplitude down to zero) at the end of the sound.  This is an important feature in digital sounds, because without some fade-in and fade-out, you may hear an unpleasant click when the sound begins or ends.  If you don't specify a value for one of these, a value of 0.01 seconds is used by default.
+
+Finally, let's consider the waveform.  In the examples so far we've been using a sine wave, which is a pure, smooth variation in air pressure over time.  Such a smooth waveform strongly excites only one of the frequency detectors in your ear, producing a sound that is clean and pure (and so rather boring).
+
+You can specify a waveform as a list of values from -1 to 1, and Mini Micro will interpolate over that list for each cycle of the sound.  But the `Sound` class also has five common waveforms built right in, as shown below.
+
+{width:"97%"}
+![Waveforms available on the `Sound` class.](SoundWaves.svg)
+
+We've been using `Sound.sineWave`.  Try `Sound.triangleWave` next, which is pretty close to a sine wave, but not quite so pure.
+
+```terminal
+]s.waveform = Sound.triangleWave
+]s.play
+```
+
+It's the same pitch as before, but now a little richer, less pure.  (If you need to compare again, switch back to `Sound.sineWave` and play that again.)  Next try `Sound.sawtoothWave`.  (I'm not showing the commands for that — you know what you're doing by now — but please try it, since you can't really know what it sounds like until you try!)  A sawtooth wave is substantially buzzier than the triangle wave.  Finally, try `Sound.squareWave`, which has a nice retro "8-bit" sound to it.
+
+There is one more waveform which we haven't tried yet: `Sound.noiseWave`.  This one is different from all the others; while the others have a fairly simple shape, this one looks like complex, random gibberish.  And that's pretty much what it is.  Random, chaotic air pressure changes like that don't sound like tones to us at all; they sound like noise.  But if you repeat this noisy waveform hundreds or thousands of times per second, our ears will *still* detect the repeating pattern and hear a tone.  So when you want to make pure noise, use it with a very low frequency, like so:
+
+```terminal
+]s.waveform = Sound.noiseWave
+]s.freq = 5
+]s.play
+```
+
+Of course you may want to try other frequencies too, and there's certainly no harm in using high frequencies with noise if you like the sound.  It's totally up to you.  With the right choice of parameters, you can approximate the sound of footsteps, impacts, wind, waves, and so on.
+
+The `init` method is a shorthand for setting `duration`, `freq`, `envelope`, and `waveform` all at once, in that order.  For just playing around on the REPL, assigning (or changing) these properties one at a time is probably nicer.  But in code, you might want to do more of it at once, something like:
+
+```terminal
+]s = new Sound
+]s.init 0.5, [2000,50], [1,0.25]
+{"__isa": Sound, "duration": 0.5, "freq": [2000, 50], "waveform": [1
+, -1], "envelope": [1, 0.25], "fadeOut": 0.01, "fadeIn": 0.01, "_han
+dle": null}
+]s.play
+```
+
+Note that each of the parameters to `Sound.init` has a default value; in the example above, we omitted the last one (waveform), and it used `Sound.sawtoothWave` by default.
+
+The last topic to cover in synthesizing sounds is the `mix` method.  This lets you take a second synthesized sound, and add it to the first, so that when you play them you essentially get both at once.  For example:
+
+```terminal
+]pew = new Sound
+]pew.init 0.5, [2000,10], [1,0]
+]pew.play
+]psh = new Sound
+]psh.init 0.2, 5, [1,0], Sound.noiseWave
+]psh.play
+]pew.mix psh
+]pew.play
+```
+
+In lines 1-3 above, we synthesize and test a "pew" sound (a rapid falling tone).  Then in lines 4-6, we synthesize and test a noisy burst sound.  Line 7 mixes the noisy burst into the pew sound.  Now when we play that sound, we hear the noisy burst at the beginning.
+
+I think you can see by now that Mini Micro's sound synthesizer is very versatile.  With only a few lines of code, you can make a wide variety of sounds.  You could make the audio for a game entirely with synthesized sounds, especially if you're going for a retro feel; or you could use synthesized sounds as stand-ins until you find the digitized sounds you need.  Synthesized sounds also have a lot of flexibility to respond to what's going on in the program, changing any of their parameters according to user input or other data.  In this way, they have the potential to provide endless variation, and avoid that repetitive feeling that often results from digitized sounds.
+
+## Making Music
+
+One use for both digitized and sythesized sounds is making music.  Of course if you just want a background score, you could load a sound file in OGG format and simply play it.  But if you want to use synthesized sounds, or make music on the fly from code, then you will need to know what frequency to use for each note.
+
+{i:"`noteFreq`"}
+Mini Micro has an intrinsic global function just for that, called `noteFreq`.  It takes a *note number*, and returns the proper frequency for that note.
+
+note number
+: a standard way of identifying notes over a 9-octave range, with each note assigned a unique number
+
+Middle C (also known as C4, i.e. note C in octave 4) is note number 60, and the next highest note, C sharp, is note 61.  After that is 62 (D), 63 (D sharp or E flat), and so on.  When you include all the sharps and flats, there are 12 notes per octave, so high C (also known as C5) is note 72, and low C (i.e. C3) is note 48.
+
+![Note names and numbers for octaves 3 through 5 of the musical scale.](NoteNumbers.svg)
+
+By passing these note numbers to the `noteFreq` function, you can get the right frequency to make any note.
+
+```terminal
+]snd = new Sound
+]snd.init 1, noteFreq(60)
+{"__isa": Sound, "duration": 1, "freq": 261.625549, "waveform": [1,
+-1], "envelope": 1, "fadeOut": 0.01, "fadeIn": 0.01, "_handle": null
+}
+]snd.play
+]snd.freq = noteFreq(67)
+]snd.play
+```
+
+The above plays a sawtooth wave middle C (note 60) followed by middle G (note 67).
+
+With digitized sounds, the procedure is a little different.  You first need to know what pitch the sound was recorded as.  All of the digitized instruments in         `/sys/sounds` were recorded at note 60 (C4).  Then, divide the desired frequency by the original note frequency, and use this ratio as the `speed` parameter to `Sound.play`.
+
+```terminal
+]snd = file.loadSound("/sys/sounds/celloLongC4.wav")
+]snd.play  // plays as note 60 (C4)
+]snd.play 1, 0, noteFreq(67)/noteFreq(60)  // plays as note 67 (G4)
+```
+
+Here's a little program from the Mini Micro Cheat Sheet that illustrates how to make a little song.  The notes are defined by a list, where each element is a note number and duration.
+
+{caption:"Playing a song with code. Charge!"}
+```miniscript
+// notes defined as: [note, duration]
+notes = [[60, 0.1], [64, 0.1], [67, 0.1],
+         [72, 0.2], [67, 0.1], [72, 0.4]]
+snd = new Sound
+for n in notes
+	snd.init n[1], noteFreq(n[0])
+	snd.play
+	wait snd.duration
+end for
+```
+
+**Challenge:** modify the above program to use a digitized horn sound (`/sys/sounds/hornC4.wav`).  You will need to remove the `snd.init` call, and change the `snd.play` line to calculate the correct pitch for each note as shown above.  Finally, the `wait` command will need changing to use `n[0]` as the wait time.
+
+It's worth noting that computers and music have a long and beautiful history together.  In recent years the practice of "live coding" has become an increasingly popular form of performance art, where a composer/programmer/performer writes code to create music in real-time, in front of an audience.  Who knows, perhaps your own practice creating music in Mini Micro will lead to performing on stage one day!
+
+## Exploring the Demos
+
+{i:"`/sys/demo`,`drumMachine`"}
+The poster child for sound and music is certainly `drumMachine.ms` (in the          `/sys/demo` folder).  It uses a display type (tile) that you haven't learned about yet, but you should be able to understand how it is loading and playing sounds.  It's also a fun program to play with.  Feel free to load a different set of sounds, and get your jam on!
+
+{i:"`sounds` module;Mini Micro, `sounds` module;`/sys/lib`,`listUtil`"}
+Most of the other game demos use sounds of either sort, but for synthesized sounds, the best place to look might actually be the import module `/sys/lib/sounds.ms`.  This defines a handful of generally useful sounds.  To use these in your own program, you can `import "sounds"` and then simply call (for example) `sounds.ding.play`.  But today you should actually `load` this as a program, `run` it (it goes into a demo mode when run this way), and then study the source code.
+
+A> **Chapter Review**
+A> - You learned how to load and play digitized sounds from WAV and OGG files.
+A> - You synthesized sounds from scratch, using nothing but code and ingenuity.
+A> - You created music with the help of the `noteFreq` function.
+
+
+{gap:50}
+{width:"28%"}
+![](chinchilla-06-note.svg)
+
+

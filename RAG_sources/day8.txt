@@ -1,0 +1,372 @@
+{chapterHead: "Day 8: Command-Line MiniScript", startingPageNum:75}
+
+{width: "50%"}
+![](Chapter8.svg)
+
+Q> Ah, the command line.  This is the interface of a Programmer.
+Q> Not as clumsy or random as a GUI... 
+Q> An elegant interface for a more civilized age.
+Q>— Obi-wan Codonly
+
+A> **Chapter Objectives**
+A> - Install command-line MiniScript on your computer.
+A> - Learn about a Read-Eval-Print Loop, and how it makes coding even more fun and interactive.
+A> - Learn how to represent and work with a list of data.
+A> - Realize that a programming language may be used in different environments, but your knowledge still applies.
+
+For many readers, all code written this point has been run in the MiniScript *Try-It!* web page.  However, that is only one way to run MiniScript code; there are many others.
+
+In the beginning it is very easy to confuse the *programming language* with the *development environment* you are using.
+
+programming language
+: A formal language used to specify a computer program, e.g., MiniScript
+
+development environment
+: A software application that provides a programming language and related tools, such as a code editor and libraries of extra intrinsic functions.  E.g., the Try-It! web page, command-line MiniScript, and Mini Micro
+
+The great thing is, your knowledge of the language from one environment applies equally well in other environments.  Yet each one provides unique new capabilities.  Today you're going to add a second MiniScript environment to your tool set.
+
+
+## Command-Line MiniScript
+
+{i: "MiniScript, command-line;command-line MiniScript"}
+Today's computers use a graphical user interface (GUI) of buttons, menus, and other widgets, manipulated more with a mouse or touch screen than by typing.  However, on desktop computers at least, there is still a command line available to power users such as yourself.
+
+command line
+: a user interface based around typing commands and getting interactive results
+
+To someone raised on a GUI, the command line might seem old-fashioned.  But there are many power users today who rely on it heavily.  With practice, complex operations can be carried out efficiently with a command line that would take much longer (or in some cases be impossible to do at all) with pointing and clicking.  The command line is especially important (and useful) to a programmer.  So this week, let's install and explore the command-line version of MiniScript.
+
+Unfortunately, the details of how to find and use the command line are a bit different depending on what kind of computer you use.  We'll cover here the three main varieties of desktop platforms: Windows, Mac OS, and Linux.
+
+{pageBreak}
+### Windows
+
+On a Windows computer, the standard command line is called `cmd` (short for "Command Prompt").  The easiest way to get to it is probably: (1) click on `Start` in the lower-left corner of your screen; (2) type `cmd` and press Enter.
+
+If you type "Windows command line" or "how to use Windows cmd" into your favorite web search engine, you will probably find some great introductory resources.  The main commands you should pay attention to are `dir` (directory, i.e. list files for the folder you are in) and `cd` (change directory, i.e. move to a different folder).
+
+Once you have mastered those, you are ready to download and use command-line MiniScript.  Point your web browser to <https://miniscript.org/cmdline/>, and click the link for "miniscript-win.zip".  This should download the zip archive, probably into your Downloads folder.  Find that file in Windows Explorer, select it, and press the "Extract All" button.  This should result in a file called `miniscript.exe` (though in Explorer, file extensions are normally hidden, so it may appear as simply "miniscript").
+
+Now go back to Command Prompt, navigate to that directory using the "cd" command, and run miniscript by typing `miniscript.exe` and pressing Enter.  If all goes well, you should see the word "MiniScript" followed by some version information, and a ">" prompt, as shown in the image below.
+
+{width:"75%"}
+![Command-Line MiniScript on Windows](cmdline-windows.png)
+
+Chances are good, however, that all will *not* go well, and Windows will instead decide that MiniScript is a "threat" (because it can execute commands), and quarantine the file, removing it from the folder where you had it and tucking it away in some hidden location.  The exact steps you follow to fix this may vary slightly depending on what version of Windows you're running, but here's the procedure for Windows 10:
+
+1. Open **Windows Security** (again from the Start menu).
+2. Click on **Virus & threat protection**, and then on **Protection history** (or **Threat history**).
+3. In the filter pop-up, select **Quarantined items**.
+4. Click miniscript.exe, and then click **Restore**.
+
+This should both restore the file, and tell Windows that this particular file is OK and not actually a threat.
+
+Once you've done all that, you should be able to run `miniscript.exe`, and get a result like the above.  Once you see that MiniScript header and version info, you're ready to go!
+
+Finally, it should be noted that there are alternatives to the built-in Command Line app for Windows.  Terminal is a popular one, as is the somewhat older PowerShell; both are from Microsoft and available in the Microsoft Store.  If you're already using one of these alternatives, feel free to continue using it with MiniScript.  Otherwise, Command Line is perfectly adequate for now, and you can always move to something else if you feel the need later.
+
+### MacOS
+
+The procedure on a Mac is similar to on Windows.  The app you'll want to use is called Terminal, and can be launched via Spotlight, or directly from Applications/Utilities.  If you're new to Terminal, do a search for "mac useful terminal commands," and read an article or two.  There are plenty of good resources on this very useful tool.
+
+Now you're ready to download and use command-line MiniScript.  Point your web browser to <https://miniscript.org/cmdline/>, and click the link for "miniscript-mac.zip".  This should download the zip archive, probably into your Downloads folder.  Find that file in Finder, and double-click it to unzip.  This should result in a file called `MiniScript`.  Finally, double-click that new MiniScript file to launch it in Terminal.
+
+At this point, chances are Finder is going to get cranky, with a message along the lines of "MiniScript can't be opened because it is from an unidentified developer."  If that happens, click OK to dismiss the alert, then right-click MiniScript and choose "Open" from the contextual menu.  You'll get a similar alert, but this time there will be an "Open" button.  Click that, and Finder will remember that it's OK to run this program.
+
+The result should look similar to the image below.
+
+{width:"75%"}
+![Command-Line MiniScript on macOS](cmdline-mac.png)
+
+Note that double-clicking the executable is not the only way to launch it; you can also open a Terminal window yourself, use `cd` to navigate to the folder containing MiniScript, and then enter `./MiniScript` to run it.  This does essentially the same thing.
+
+
+### Linux
+
+If you're a Linux user, chances are extremely high that you don't need me telling you how to use the command line — you probably know more about it than I do!  Just download the gzipped Linux binary from <https://miniscript.org/cmdline/>, unpack it, and put it somewhere in your search path.  Then invoke it by name, like any other command-line tool.
+
+Some Linux users prefer to build their software from the source code.  If that describes you, you can find a link on the MiniScript home page to the source code repository.  The build process is pretty straightforward, and explained in the README file in the MiniScript-cpp directory.
+
+### Trouble-Shooting
+
+For many readers, this will be the first time you have ever tried to install and run a command-line program.  With all the variations on operating systems out there, and these systems' (quite justified) concern for security, doing this can be tricky, and it's possible something has gone wrong.  But this is an important step, so if you've run into a roadblock, don't give up!
+
+You may have someone in your home or office who has more experience with this sort of thing; show them what you're trying to do, and they may be able to help.  Or, failing that, come to the MiniScript forums or Discord server (both reachable via <https://miniscript.org/>).  We'll work together to get you unstuck.  Command-line MiniScript, and for that matter the command line itself, are powerful tools you will want in your toolbox.
+
+
+## The Read-Eval-Print Loop
+
+{i:"prompt"}
+Once you've got MiniScript running, you should be looking at a blinky cursor next to a ">" prompt.  Now what?  ...Now the fun begins!
+
+{i:"REPL, defined"}
+That prompt and cursor represent something called a read-eval-print loop, or REPL for short.  That's a fancy way of saying that you can type and run code here interactively, as MiniScript itself will
+
+- **Read** input from the user,
+- **Evaluate** the expression or command entered,
+- **Print** the results, and
+- repeat (i.e. **Loop**) until told to quit.
+ 
+Try it!  At the prompt, type
+
+```terminal
+> 6*7
+```
+
+and press Return or Enter.  (Note that when examples are shown with a faint REPL prompt, like the `>` above, you don't type that; only type what comes after.) MiniScript immediately responds with
+
+```repl
+42
+```
+
+and then displays the ">" prompt again, waiting for your next command.  That `6*7` you typed in was MiniScript code.  You didn't need to use `print` here because that's a built-in function of the read-eval-print loop; it evaluated your MiniScript expression, `6*7`, and printed the result automatically.
+
+Prove that this is more than just a calculator by trying something a little more complex:
+
+```terminal
+> ceil(6*rnd) + ceil(6*rnd)
+```
+
+This simulates rolling two dice.  I can't say exactly what the output will be, except that it will be between 2 and 12, and most likely closer to 7!  Here's your first power-user trick on the command line: *press the up-arrow key*, and the previous command should reappear on the prompt, with the cursor at the end.  You can just press Enter or Return at this point to execute the same command again.  Do this up-arrow/return trick several times, rolling the dice multiple times to confirm that the result really is random (and more importantly, to learn how to repeat previous commands).
+
+The command-line environment supports all the same MiniScript powers you know from the Try-It page, and then some.  This includes variables, `print` and `input`, `wait`, loops, and so on.  Carefully type in the following:
+
+```miniscript
+for i in range(10, 1)
+  print i + "..."
+  wait   
+end for
+```
+
+But hold on — something different happened after the "for" line, didn't it?  The prompt changed from ">" to ">>>".  This is the REPL's way of acknowledging that your input is not yet finished (because you have started a `for` loop, but not yet ended it).  As you're typing this code, it actually looks like this:
+
+```terminal
+> for i in range(10, 1)
+>>> print i + "..."
+>>> wait   
+>>> end for
+```
+
+You may also notice that the statements inside the loop, `print` and `wait` in this example, don't do anything as soon as you type them.  Only after you finish with the `end for` does the whole loop run and do whatever it does.
+
+Now, let's see what happens if things get out of control.  Here's an infinite loop.  Don't panic!
+
+```miniscript
+i = 0
+while true
+  i = i + 1
+  print i
+end while
+```
+
+{i:"control-C"}
+Woo!  MiniScript starts printing numbers very fast, with no sign of stopping.  Fortunately *you* are the programmer; you are in charge!  Hold the Control key down and then press the C key (i.e., the key combination called control-C).  MiniScript stops and exits.  This leaves you either at the command prompt, or (if you launched MiniScript directly from Finder) back in Finder.  Just relaunch it the same way you did before, and you'll have a fresh clean REPL, ready to continue.
+
+It can sometimes happen that you make a mistake in entering some code in the REPL, and don't catch it until you've already pressed Return.  There's no going back to edit something already entered; but you can often just replace a previous result with a new one (i.e., assign a new value to a variable if you made a mistake on a previous assignment).  If you make a mistake inside a `for`, `while`, or `if` block, you can usually just enter the corresponding `end` statement to finish the block and get back to a ">" prompt where you can try again.  But if all else fails, Control-C will always bail out and let you start over.
+
+Obviously the REPL is not a great way to enter long programs.  We'll be learning tomorrow how to use command-line MiniScript with programs stored in text files, which is better for writing more than a few lines of code.  What's great about a REPL is that it is a very fast, very *interactive* way of experimenting with code.  When you put this book down, stretch your wings, and start to fly on your own, you will very often pause and say, "I *think* I know how to do that, but does that actually work?"  At those times, if you have the MiniScript REPL at hand, you can very quickly try out your idea and see if it works.  If it does not, you can try a slightly different variation, often using up-arrow to recall and modify a previous command.  This process is extremely fast, even more so than the Try-It! page... and it is also a lot of fun.
+
+So, for the rest of this chapter, let's work exclusively in the REPL, while we learn about lists.
+
+## Lists
+
+You know that there are several different types of data in MiniScript.  So far, we've talked about numbers (e.g. 42) and strings (e.g. "Hello World").  It's time to introduce a third data type: lists.
+
+{i:"data type, list"}
+list
+: a data type that is an ordered sequence of other data
+
+Lists in MiniScript appear in square brackets, with their elements separated with commas.  You can assign these to variables, pass them into functions, and generally handle them just like you would numbers and strings.
+
+{caption:"List Example 1"}
+```terminal
+> a = [1, 2, "x"]
+> b = ["foo", 42]
+> c = a + b
+> print c
+[1, 2, "x", "foo", 42]
+```
+
+In this example, line 1 creates a list with three elements — the numbers 1 and 2, and the string "x" — and assigns this to variable `a`.  Line 2 creates a similar list `b` with two elements.  Then line 3 adds these together and stores the result in `c`.  Lists support addition (`+`), replication (`*`), and division (`/`) in the same way as strings.  That is, `+` joins two lists together; `*` repeats a list some number of times; and `\\` cuts a list down to some fraction of its former length.
+
+At this point, you should put the book down for a moment and go play with this using the command-line REPL.  Experiment!  Can you put a list inside another list?  Does it matter whether you put a space after each comma?  Can you make a list with no elements at all?  Lists are a really important type of data that will come up again and again in your programming, so it's worth making sure you understand them.
+
+Of course just being able to create a list and print it isn't very useful.  You also need to be able to pull an element out of a list.  We can do this with *list indexing*.
+
+list index
+: a numeric value, starting at 0, that indicates a particular element of a list
+
+You use a list index by simply putting it in square brackets after a variable that contains a list.  The first element is index 0, so you can print just the first element of a list this way:
+
+{i:"list indexing;indexing, list"}
+{caption:"List Indexing"}
+```miniscript
+a = ["foo", 42, "XYZZY"]
+print a[0]
+```
+
+D> Counting in MiniScript, and most other modern languages, generally starts at 0.  Just think of the index as "how many elements come *before* the one I want" and you'll be fine.
+
+Experiment with that last example, too.  Make sure you can print out any element you want.  If you try to use an index that doesn't exist, such as 7 when there are only three elements, MiniScript will report the problem as a "MiniScript::IndexException".
+
+There's one more trick with list indexing that is super handy: by using negative numbers, you can count backwards from the end of the list.  The last element is -1, the second-to-last is -2, and so on.
+
+{caption:"List Indexing, Backwards!"}
+```miniscript
+a = ["foo", 42, "XYZZY"]
+print a[-1]
+```
+
+Again, experiment with this, and see that if you go too far, you get an `IndexException`.
+
+Just as there are a number of intrinsic (built-in) functions for working with numbers and strings, there are intrinsic functions for lists, too.  These are shown in the table on the next page.
+{gap:12}
+
+{i:"functions, list;list functions"}
+{caption:"Intrinsic list functions", colWidths:"170,*"}
+| `.hasIndex(i)` | 1 if i is a valid list index; otherwise 0 |
+| `.indexes` | a list with numbers from 0 to `self.len-1` |
+| `.indexOf(x, after=null)` | 0-based position of first element matching x in `self`, or null if not found; optionally begins the search after the given position |
+| `.insert index, value` | inserts value into `self` at the given index (in place) |
+| `.join(delimiter=" ")` | builds a string by joining elements by the given delimiter |
+| `.len` | length (number of elements) of `self` |
+| `.pop` | removes and returns the last element of `self` (like a stack) |
+| `.pull` | removes and returns the first element of `self` (like a queue) |
+| `.push x` | appends the given value to the end of `self`; often used with pop or pull |
+| `.shuffle` | randomly rearranges the elements of `self` (in place) |
+| `.sort key=null` | sorts list in place, optionally by value of the given key (e.g. in a list of maps) |
+| `.sum` | total of all numeric elements of `self` |
+| `.remove i` | removes element at index i from `self` (in place) |
+| `.replace oldval, newval, maxCount=null` | replaces (in place) up to maxCount occurrences of oldval in the list with newval (if maxCount not specified, then all occurrences are replaced) |
+| `slice(list, from, to)` | equivalent to list[from:to] |
+
+This is the complete set of list intrinsics, and it includes some stuff we haven't talked about yet.  So just as on Day 2, please don't worry about understanding everything in this table today.  Let's just highlight a few of the most important functions:
+
+- `a.len` gives you the length (number of elements) in list a.
+- `a.push "x"` adds a new element "x" to the end of the list.
+- `a.insert 2, "y"` inserts a new element "y" after the first 2 elements in the list.
+- `a.remove 1` removes element 1 (that is, the item with 1 element to its left).
+
+With these four functions, you have ways to find out how big a list is, and modify it in various ways: add a new item to the end, insert a new item at any position, and remove any item.  You're probably beginning to see why lists are so important in programming; they let you hold and work with any amount of data.
+
+{pageBreak}
+Let's exercise these important list functions with an example.
+
+{caption:"List Example 2"}
+```miniscript
+a = []
+while a.len < 5
+    a.push input("Next item?")
+end while
+print "You entered: " + a
+print "Element 2 is " + a[2]
+print "But I can change that..."
+a[2] = "HAHA!"
+print "Now we have: " + a
+print "But I feel bad.  Let's just get rid of it."
+a.remove 2
+print "Now it's just: " + a
+```
+
+That's one of the longer examples, but go ahead and type it in.  It's going to ask you to enter five strings; enter the names of the numbers in Spanish, or your favorite pizza toppings, or whatever.  The program then does some shenanigans with the middle element (which, in list of length 5, is element 2).  As always, play with the code to gain deep understanding.  See if you can make it change the first element instead, or the last one.
+
+{i:"string indexing;indexing, string;immutable"}
+D> You can index into strings, too!  The elements of a string are characters.  `s[2]` is a perfectly cromulent way to get character 2 (the one with 2 characters to its left) of a string.  The main difference is, strings are *immutable*, which means you can't assign a new value to an element of a string, nor can you insert or remove characters, the way you can with lists.  We'll explore this more in the next chapter.
+
+## `range` and `for` revisited
+
+A `for` loop assigns a variable — often called `i` in our examples — to each element of a list or string, in turn.  It stops looping after it has done this with all elements.  It's equivalent to:
+
+{caption:Life in a world without `for` loops}
+```miniscript
+myList = [1, 2, "hey", "you"]
+index = 0
+while index < myList.len
+    i = myList[index]
+    print i
+    index = index + 1
+end while
+```
+...but as you can see, the `for` loop is considerably shorter and easier:
+
+{i:"`for` loop"}
+{caption:"`for` loops make life easy"}
+```miniscript
+myList = [1, 2, "hey", "you"]
+for i in myList
+    print i
+end for
+```
+
+{i:"`range` function"}
+In previous chapters, we used `for` loops with the `range` function, which I glossed over without properly explaining.  But now it's time to revisit that.  `range` is an intrinsic function that takes three parameters: a starting value, an ending value (which defaults to zero), and a step size (which defaults to one).  It returns a list with elements that begin at the start value, and count towards the end value, in increments of the given step.
+
+{caption:"Examples of the `range` function", hpad:8}
+| `range(1, 10)` | `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]` |
+| `range(10, 1)` | `[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]` |
+| `range(1,10,3)` | `[1, 4, 7, 10]` |
+| `range(1,10,4)` | `[1, 5, 9]` |
+| `range(10,1,4)` | `Runtime Exception: range() error` |
+| `range(10,1,-4)` | `[10, 6, 2]` |
+| `range(10)` | `[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]` |
+
+It's quite possibly the most commonly used function in MiniScript, apart from print, and in some code it surpasses even that.  So take some time with the REPL to play with it.  Type in each of the examples in the left column on the previous page, and you should see the output shown on the right.
+
+Notice that `range` can count both ways: if the start value is less than the end, it counts up; otherwise it counts down.  Also notice that the start value is always included as the first element of the resulting list, but the end value might not be included at all, if it is not hit by the combination of start and step.  Finally, notice that the step size, if given, must be negative if counting down, or positive if counting up; otherwise you get an error.
+
+Experiment a bit more and make sure that `range` is a tool you are comfortable using.  Now that you understand this, you can really understand all those `for` loops we glossed over before.  When we write something like
+
+```miniscript
+for i in range(10, 1)
+  print i + "..."
+  wait   
+end for
+```
+
+...that `for` statement is really just iterating over the list returned by `range`.  We could have instead written
+
+```miniscript
+for i in [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+  print i + "..."
+  wait   
+end for
+```
+
+and this would do the exact same thing.
+
+D> In programming, there are often many ways to do the same thing.  You should always pick whichever way seems clearest and easiest to read and understand.  This is usually (but not always) the way that is shortest.
+
+{i:`indexes`}
+We'll end the day with one more tip related to lists and `for` loops.  It sometimes happens that you need to iterate over not the elements of a list, but the indexes of those elements.  For example, suppose you want to write a loop that converts every element of a list of strings to upper case.  You might do it like this:
+
+{caption:"Uppercasing a list, the slightly less easy way"}
+```miniscript
+data = ["Billy", "and", "the", "boingers"]
+for i in range(0, data.len - 1)
+	data[i] = data[i].upper
+end for
+data
+```
+
+(We left out `print` on the last line because I assume you're typing this into a REPL, where simply naming a variable is enough to print its contents.)  So this isn't too bad; `i` here will go from 0 to the last index (which is one less than the length of the list), and then we use that to reassign `data[i]` with the uppercase version.
+
+But there is a better way to do it, and that is the `.indexes` method.  This returns a list of all the valid indexes for a list or string (or map, which you'll learn about in a couple days).  If you did the above in your REPL, then type `data.indexes` now to see what it returns in this case.  The `.indexes` method is commonly used with `for`, like this:
+
+{caption:"Uppercasing a list, the slightly easier way"}
+```miniscript
+data = ["Billy", "and", "the", "boingers"]
+for i in data.indexes
+	data[i] = data[i].upper
+end for
+data
+```
+
+Same loop, but slightly shorter and clearer code.
+
+{pageBreak}
+A> **Chapter Review**
+A> - You installed command-line MiniScript for your platform.
+A> - You learned how to do use a REPL to work with code interactively.
+A> - You discovered that your knowledge of the MiniScript language may apply in very different environments.
+A> - You explored the list datatype, and in the process, gained deeper understanding of `for` loops.

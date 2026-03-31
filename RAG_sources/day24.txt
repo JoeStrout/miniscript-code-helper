@@ -1,0 +1,270 @@
+{chapterHead: "Day 24: Word-Find Game", startingPageNum:293}
+
+{width: "50%"}
+![](Chapter24.svg)
+
+Q> When to use iterative development? You should use iterative development only on projects that you want to succeed.
+Q>— Martin Fowler (software developer and author)
+
+A> **Chapter Objectives**
+A> - Finish the word game we started yesterday.
+A> - Get practice at making sprites interact with the mouse.
+A> - Learn techniques for debugging with a Read, Eval, Print Loop.
+
+Yesterday we made a solid start on our word-finding game: we prepared the word list, wrote code to randomly select letters in the same proportions as real words, made a `Sprite` subclass named `Tile`, and animated a grid of tiles sliding into place.  Today we're going to finish the game, with selection of letters to make a word, checking these against the word list, calculating a score, and a timer to make it exciting.
+
+## Tile selection
+
+Start by adding the code in Listing 1 to the program you began yesterday.
+
+{caption:"Listing 1 (tile selection with the mouse).", number-from: 131}
+```miniscript
+tileUnderMouse = function()
+	for s in spriteDisp.sprites
+		if not s isa Tile then continue
+		if s.contains(mouse) then return s
+	end for
+end function
+
+wordInProgress = ""
+addToWord = function(tile)
+	globals.wordInProgress = wordInProgress + tile.letter
+	if lastTile != null then
+		overlay.line lastTile.x, lastTile.y, tile.x, tile.y, "#88FF8888", 5
+	end if
+	globals.lastTile = tile
+	tile.tint = color.aqua
+	tile.selected = true
+end function
+
+trackMouseOnTiles = function()
+	while mouse.button
+		updateTime
+		yield
+		tile = tileUnderMouse
+		if tile == null or tile.selected then continue
+		if mathUtil.distance(tile, lastTile) > 150 then continue
+		addToWord tile
+	end while
+end function
+```
+
+{i:"`isa` operator;operator, `isa`"}
+We've added several new functions here.  The `tileUnderMouse` function is responsible for figuring out which `Tile` instance, if any, is under the mouse.  It does this by iterating over all sprites in the display, skipping any that is not actually a `Tile`.  It checks whether each sprite `s` is a `Tile` by using MiniScript's `isa` (pronounced "is a") operator.
+
+D> `isa` is the operator used to check data types in MiniScript; it returns 1 (true) if the operand on the left matches the type on the right, and 0 (false) otherwise.  Built-in types can be identified as `number`, `string`, `list`, `map`, and `funcRef`.  In the case of a class, `isa` returns true if the object on the left is the class on the right, or any subclass of it.
+
+The `tileUnderMouse` function then uses the `Sprite.contains` method to check whether each tile contains the mouse.  (Recall that this works because we assigned the `localBounds` of the `Tile` class.)
+
+The next function, `addToWord`, adds a given tile to the growing word, stored in the `wordInProgress` global variable.  Then it draws a line in the overlay display (a `PixelDisplay` we prepared at the top of the program), and highlights the given tile by tinting it aqua.
+
+Finally, the `trackMouseOnTiles` function is a loop that continues as long as the mouse is down.  It's meant to be called after the first tile has been clicked, and it handles dragging of the mouse over subsequent tiles.  Lines 154 avoids any problems when the mouse is between tiles.  Line 155 prevents users from cheating by snaking the mouse in between tiles to reach some farther-away tile.  Neighboring tiles are always less than 150 pixels away, so if we find the mouse is over some tile farther away than that, we just ignore it.
+
+To test this code requires a little bit of work: we need to first initialize our grid, and then wait for the user to click the mouse.  Then we need to update `lastTile` and call `addToWord` before we can finally call that `trackMouseOnTiles` function.  Add the following test code to your program so you can try it out and make sure it works.
+
+{caption:"Test code for Listing 1.", number-from: 160}
+```miniscript
+// test code:
+updateTime = null // (we'll fill this in later)
+for i in range(1000); Tile.updateAll; end for
+while not mouse.button; yield; end while
+lastTile = tileUnderMouse
+addToWord lastTile
+trackMouseOnTiles
+print wordInProgress
+```
+
+It's worth pointing out the trick on line 161: if you assign `null` to a variable, you can use that like a do-nothing function with no parameters.  That's needed in this case because  `trackMouseOnTiles` calls `updateTime` to update a timer, but we haven't gotten to that code yet.
+
+With this test code in place, run your program.  Tiles should settle very quickly into place, and then if you click any tile and drag, you can construct a word (or a string of random gibberish).  Run it a few times.  What's the longest word you can find?  (Mine was "FILET"... but I bet you can do better!)
+
+## Clearing tiles
+
+To turn this word-selection functionality into a game, we'll need at least two more things.  First, if the word is valid, then we need to clear out the tiles used, move any higher-up tiles down, and add new tiles to fill the columns.  Second, in the case where the letters traced do not make a valid word, we need to just deselect those tiles so the player can try again.
+
+The code in Listing 2 below provides these functions.  Insert this code *before* your existing test code, as you'll still need that to test.
+
+{caption:"Listing 2 (Tile clearing and deselection).", number-from: 160}
+```miniscript
+clearUsedTiles = function()
+	for col in range(0, kCols-1)
+		// first iterate top-down, deleting any selected tiles
+		for row in range(kRows-1, 0)
+			tile = grid[col][row]
+			if tile == null or not tile.selected then continue
+			spriteDisp.sprites.removeVal tile	// remove sprite
+			grid[col].remove row		// remove used tile
+			grid[col].push null		// add empty spot to column
+		end for
+		// then iterate again bottom-up, adding new tiles
+		for row in range(0, kRows-1)
+			if grid[col][row] == null then
+				newTile col, row
+			else
+				grid[col][row].goToGridPos col, row
+			end if
+		end for
+	end for
+	overlay.clear
+	globals.lastTile = null
+end function
+
+deselectTiles = function()
+	for col in range(0, kCols-1)
+		for row in range(0, kRows-1)
+			tile = grid[col][row]
+			tile.selected = false
+			tile.tint = Tile.tint
+		end for
+	end for
+	overlay.clear
+	globals.lastTile = null
+end function
+```
+
+Let's discuss how these functions work.  The `clearUsedTiles` function iterates over the columns of the grid.  For each column, it iterates over the rows twice.  First it goes top-down, deleting any selected tiles from the list of tiles in that column, and pushing an empty entry (`null`) onto the end of the list.  Then it goes bottom-up, telling each tile to go to (i.e. set its target position to) the proper place on screen, and creating new tiles for any `null` entries it finds.  The net effect of all this is to take out the selected tiles, shift the ones above it down, and create new tiles as needed.
+
+The `deselectTiles` function is simpler.  It just iterates over all rows and columns, turning off the `selected` flag, and setting the tint back to the standard `Tile` tint.  Then it clears the `overlay` display where the tracing line is drawn, and while we're at it, also clears the global `lastTile` variable that keeps track of the last tile clicked.
+
+After inserting that code, run the program again, and then use the mouse to trace out some letters.  Then enter `deselectTiles` at the command prompt.  The selected tiles should go back to normal, and the tracing overlay should disappear.
+
+Then run the program again, and again select a sequence of tiles.  This time call `clearUsedTiles`, and you should see the selected tiles disappear.  The surrounding tiles (and new tiles, currently off the top of the screen) have had their targets set, but they need an animation loop in order to reach those targets.  Let's give them one:
+
+```terminal
+]while true; Tile.updateAll; yield; end while
+```
+
+This should cause the tiles to slide down into place.  Press Control-C to break the loop once that is done.
+
+## Adding a score and history
+
+Now let's add some more functions to handle when a word has been entered.  We want to draw the word near the top of the screen, above the tile grid; and then score it based on whether it's in the dictionary, and how long it is.  Long words are much harder to find than short ones, so we want to really reward the player for finding these.  So we'll define the score for a word with `n` letters as `2 ^ n`, that is, 2 to the `n`th power.  That gives us 2 points for a 1-letter word, 4 points for 2-letter words, 8 points for 3-letter words, and so on.
+
+In addition to the total score, we'll also keep a history of all the words found in the course of the game.  This will be displayed on the left side of the screen, so when you find some really amazing word like EVACUATE, you can show people even if it's not the last word in the game.
+
+Again insert the new code (in Listing 3 this time) above your existing test code.
+
+{caption:"Listing 3 (Word drawing and scoring functions).", number-from: 195}
+```miniscript
+drawWord = function(word, valid)
+	if valid then c = color.aqua else c = color.teal
+	gfx.clear
+	gfx.print word, 480 - word.len/2*20.5, 550, c, "large"
+end function
+
+score = 0
+wordsFound = []  // each element will be [word, points]
+scoreWord = function(word)
+	valid = words.contains(word)
+	drawWord word, valid
+	if not valid then return false
+	points = 2 ^ word.len
+	wordsFound.insert 0, [word, points]
+	text.row = 21
+	for w in wordsFound
+		print (w[0] + " "*11)[:11] + (" "*5 + w[1])[-5:]
+		if text.row < 2 then break
+	end for
+	globals.score = score + points
+	text.row = 25
+	print "SCORE: " + score
+	return true
+end function
+```
+
+There are two functions in this chunk as well.  The `drawWord` function simply sets a color based on whether the word is valid, then clears the `gfx` PixelDisplay, and uses `gfx.print` to print the word in a large font.
+
+The `scoreWord` function is responsible for determining whether the word is valid, by checking whether our `words` list contains it.  (Recall that `contains` is a method added to the list type by the `listUtil` module.)  It calls that `drawWord` function, and then if the word is not valid, bails out on line 206.  Otherwise (that is, if the word is valid), it calculates the points, inserts the word and score at the front a `wordsFound` list, and then updates the text display.  Notice also that `scoreWord` returns `true` if the word was valid, and `false` if not; this lets the calling code do other things based on whether the word was good.
+
+To test this, go down to the last line of your test code.  If we've stuck together on all the blank lines and whatnot, it'll be line 227.  In any case, replace the `print` statement at the end of your test code with:
+
+{number-from: 227}
+```miniscript
+scoreWord wordInProgress
+```
+
+Now run the program.  First select a bunch of gibberish characters that do not make a valid word.  You should see the word drawn above the tiles, but no score appear.  Now run it again, but this time find some valid word.  You should see the word drawn in a brighter color, a score appear in the top-left corner of the screen, and the word plus its score appear to the left of the grid — a fairly redundant display when there's only one word, but nice once we start entering multiple words.
+
+## Wrapping up
+
+Almost done!  To finish the game, we're going to finally add that `updateTime` function, which puts a timer in the upper-right corner of the screen.  And finally, as in most games, we'll have a main loop.  Delete that test code at the end of your program, and enter the following.
+
+{caption:"Listing 4 (Timer and main loop).", number-from: 220}
+```miniscript
+endTime = time + 120
+updateTime = function()
+	timeLeft = ceil(endTime - time)
+	text.row = 25
+	text.column = 58
+	if timeLeft <= 0 then
+		print "TIME'S UP!"
+	else
+		mins = floor(timeLeft/60)
+		secs = ("00" + (timeLeft % 60))[-2:]
+		print "TIME: " + mins + ":" + secs
+	end if
+end function
+
+lastTile = null
+while true
+	while Tile.updateAll; updateTime; yield; end while
+	if time > endTime then break
+	while not mouse.button; updateTime; yield; end while
+	tileHit = tileUnderMouse
+	if tileHit == null or tileHit.selected then continue
+	addToWord tileHit
+	trackMouseOnTiles		
+	
+	if scoreWord(wordInProgress) then
+		sounds.daDing.play
+		clearUsedTiles
+	else
+		sounds.land.play
+		deselectTiles
+	end if
+	wordInProgress = ""
+end while
+
+s = "Final Score: " + score
+text.row = 2
+text.column = 34 - s.len/2
+print s
+sounds.wow.play
+```
+
+This code uses the `time` intrinsic method, which is the number of seconds that have passed since the start of the session, to calculate an `endTime` once, when the program first runs.  Then every time the `updateTime` method is called, we can calculate how much time is left, and print that at the top of the screen.  All that math on lines 228 and 229 is just a way to convert a number of seconds (`timeLeft`) into minutes and seconds, and ensure that the seconds always display as two digits so you get "1:08" instead of "1:8".
+
+The main loop, lines 235-252, is mostly just calling all the other functions you defined and tested yesterday and today.  It has a couple of smaller loops inside it.  The one on line 236 updates all the tiles, until they have all slid into place.  Line 237 checks for the timer running out, and breaks out of the main loop.  Then the little loop on line 238 waits for the user to click the mouse.  Both of those little loops update the timer while they wait.
+
+Once we know the user has clicked the mouse, we find the tile hit by calling `tileUnderMouse`, just like our old test code.  But now there's a check for the case where the user failed to hit any tile (line 240), which is something we ignored before.  Remember that `continue` jumps to the next iteration of the loop, skipping the rest of the loop body.
+
+If the user hit a valid tile, then we add it to the word (line 241), and track the mouse until it's released (line 242).  Then we call that `scoreWord` function, which both updates the display, and tells us whether the word was valid.  Depending on whether it was valid, we either clear the tiles used, or just deselect them (while also playing a sound).
+
+Finally, we reset our `wordInProgress` variable, end our main loop, repeating all of the above until the timer runs out.
+
+When that happens, the `break` on line 237 will jump down past the `end while`, where we print the final score, and play a "wow" sound to signal the end of the game.
+
+This is a pretty long program — great job hanging in there!  You should pause at this point and just play with it a bit.  Grab some friends or family and challenge them.  I got a score of 170 just now.  Can you beat that?
+
+## Taking it further
+
+This is a complete, fun game as it is.  But there are certainly ways you could extend it or modify it to make it your own, and I encourage you to try!
+
+You could very easily change the number of rows and columns, since these magic numbers were stored in constants at the top of the program.  I just changed mine from 5 columns to 6, and immediately found the word ANIME.  What can you find?
+
+One obvious change would be to the scoring formula.  Replace `2 ^ word.len` with something else.  It could be another formula based on the word length, or you could iterate over the letters of the word, and add a certain score for each letter, like in Scrabble.  How does this affect your strategy when you play?
+
+As written, the history (the words and scores previously obtained) always has the newest words at the top.  That made sense to me, but maybe you'd like it better if the newest words were at the bottom.  Can you figure out how to make that change?  (Hint: look for where a new entry is beeing added to the `wordsFound` list.)
+
+A somewhat more substantial change would be to add a feature that lets the player destroy letters without making them part of a word.  For example, maybe if the user right-clicks a letter, you clear that letter (select it and call `clearUsedTiles`), but subtract 50 points from the score.  This really enhances the strategy, since it makes it possible to connect much longer words, but there's a penalty for doing it.
+
+Or, consider giving the user some way to clear all the letters at once and get a fresh set, for those times when you feel like you've just gotten rotten luck on the draw.  Perhaps detect when a certain key has been pressed (with `key.available` and `key.get`), and in that case, select all tiles and call `clearUsedTiles`.
+
+A> **Chapter Review**
+A> - You finished a word game, your longest and most sophisticated program yet.
+A> - You probably got some practice debugging and tracking down typos.  This is an important skill and well worth practicing!
+A> - You considered ways to go beyond the code in the book, changing things and adding features to make it your own.
+
+
+
+

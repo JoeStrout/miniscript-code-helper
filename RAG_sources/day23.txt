@@ -1,0 +1,364 @@
+{chapterHead: "Day 23: Fun with Words", startingPageNum:279}
+
+{width: "50%"}
+![](Chapter23.svg)
+
+
+Q> Sometimes it's better to leave something alone, to pause, and that's very true of programming.
+Q>— Joyce Wheeler (Executive Director of Technology, LinkedIn)
+
+A> **Chapter Objectives**
+A> - Discover Mini Micro's built-in English word list.
+A> - Write some code to analyze data and generate random strings of letters.
+A> - Lay the foundation for a word game (to be completed tomorrow).
+
+
+{i:"`/sys/data`"}
+Today we're going to do something a bit different.  Mini Micro comes with a list of over 64,000 common English words, found in the file `/sys/data/englishWords.txt`.  We'll use this to explore how code can be used to answer questions about data that would be very hard to answer in any other way.  Then, we'll make a solid start on a fun word game, where the player tries to find words in a grid of random letters.  We'll get about halfway through that game today, then take a break and finish it tomorrow.
+
+## Exploring the Words File
+
+Let's begin by using the `view` command in Mini Micro to peek at the file:
+
+```terminal
+]view "/sys/data/englishWords.txt"
+```
+
+You should see a pageful of words in alphabetical order: *a*, *aah*, *aardvark*, and so on, followed by something like "64637 more".  You can press Return a few times to see more pages, but chances are good you'll lose interest before even getting out of the A's.  When that happens, press Q or the Escape key to exit `view`.
+
+You can see that the structure of this file is quite simple: one word per line.  So we can read all the words into a list by doing:
+
+```miniscript
+words = file.readLines("/sys/data/englishWords.txt")
+```
+
+I wouldn't suggest trying to print `words` at this point (but hey, go ahead and try if you want — it's not going to hurt anything, though it may take a while).  But print `words.len` to see how many words there are.
+
+This list of words is a data set, so put on your "data scientist" hat and let's ask some questions about it.  We've already seen the first few items, alphabetically.  What are the *last* few words?  Print out `words[-10:]` to see.
+
+We've also already seen one of the shortest words in the English language, "a".  Are there any other 1-letter words?  Let's use a simple `for` loop to find out.  It's a loop so short that, if you like, you can do it as a one-liner:
+
+```miniscript
+for w in words; if w.len==1 then print w; end for
+```
+
+In addition to "a", this also prints out "I" (the pronoun) and "O" (as in "O say can you see?").  It also prints out "x", which surprised me when I did this.  But finding surprises in data is part of the fun!  (And yes, if you look up "x" in many dictionaries, you will find it defined as a word meaning to cross out or indicate choice.)
+
+Now let's find the longest word in the set.  This is slightly bigger `for` loop.
+
+```miniscript
+biggest = ""
+for w in words
+	if w.len > biggest.len then biggest = w
+end for
+biggest
+```
+
+This loops over all words, comparing each one to the biggest word found so far.  Whenever it finds a new biggest word, it stores that in `biggest`, which we print out at the end.  What word did you find?  And, how many letters does it have?  (No fair counting them by hand — make MiniScript do that for you!)
+
+Next up is a question I actually needed an answer to.  I was pondering making a word-search game, where the user would try to make words out of randomly selected letters in a grid, and I wondered what to do with "Q".  Usually "Q" in English is followed by a "u", but is that always the case?  Maybe there are a bunch of exceptions we're not thinking of.  Let's find out!
+
+{i:"`/sys/lib`,`stringUtil`"}
+```miniscript
+import "stringUtil"
+for w in words
+	if w.contains("q") and not w.contains("qu") then print w
+end for
+```
+
+Notice that we had to import "stringUtil" before doing this `for` loop.  That's because `contains` is not a standard MiniScript intrinsic function; it is something added by the `stringUtil` module.  (The standard MiniScript solution would be to check whether `w.indexOf("q") != null`, but `contains` is a lot clearer.)
+
+So this loop prints out every word that contains a "q", but does not contain "qu".  Exactly three words popped out: "burqa", "burqas", and "qwerty".  Out of more than 64 thousand words, that's not too many!
+
+If we also import the "listUtil" module, we'll get some additional handy functions, like the `any` method that returns a random element of a list.
+
+```miniscript
+import "listUtil"
+for i in range(1,10); print words.any; end for
+```
+
+But enough playing!  Keep your data-scientist hat on a bit longer, but now balance your game-developer hat on top (programmers often have to wear many hats).  We're going to be making a game that involves a grid of random letters.  But we don't want to pick all letters with equal likelihood; that would result in a lot of Z's and X's that aren't terribly useful.  We want to pick more common letters more often, and less common letters less often.  But which letters are the most common, and by how much?
+
+## Letter Frequency Analysis
+
+That's another data analysis question we can answer with code.  This one requires a little more code than you probably want to do on the REPL command line, though.  So fire up the editor, and enter the following.
+
+{caption: "Letter frequency analysis program."}
+```miniscript
+import "mapUtil"
+import "listUtil"
+
+// load the word list
+words = file.readLines("/sys/data/englishWords.txt")
+
+// convert all words to uppercase
+for i in words.indexes
+	words[i] = words[i].upper
+end for
+
+// count the frequency of each letter
+print "Analyzing words..."
+counts = {}  // key: letter; value: count
+for word in words
+	for letter in word
+		counts[letter] = counts.get(letter, 0) + 1
+	end for
+end for
+print counts
+```
+
+This one takes a little longer to run, as it's iterating not only over the words, but the letters within the words.  But before too long, out pops the answer: the total number of times each letter occurs in the word list.  Save this program as `freqCount.ms` in case you need it later.
+
+Now we're going to do a trick.  Select that output by clicking and dragging over it with the mouse.  Now copy with Control-C (or on a Mac, you can use Command-C).  Use `reset` to clear the frequency-counting program, then `edit` to start a new one.  Finally, type "freq =", and then paste the output you copied before (using the Paste button or Control+V).  Adjust the line breaks, and voila!  The result should look something like this (though the order of the letters may be different — remember that when you print or iterate over a map, the order of the entries is undefined).
+
+{caption: "The start of our word game, with frequencies copied from the output of the previous program."}
+```miniscript
+freq = {"A": 40116, "H": 12329, "R": 38506, "D": 21334, 
+"V": 5427, "K": 5275, "S": 49034, "B": 10303, "C": 21554, 
+"I": 47047, "U": 17692, "E": 62155, "L": 27954, "O": 33150, 
+"N": 37001, "G": 16930, "M": 14495, "T": 36982, "Y": 8191, 
+"J": 941, "Z": 2090, "P": 15815, "F": 7635, "W": 5081, 
+"Q": 990, "X": 1487}
+```
+
+Save this as "wordGame.ms" and run it.  It doesn't generate any output, but once run you should be able to enter `freq` and see your frequency map.
+
+D> You just used code to write code.  Programs making programs.  Scary, or cool?  Maybe both!
+
+## Starting the Word Game
+
+Let's start building the rest of the game.  Edit your program, and insert some lines above your frequency table, so that it looks like this.
+
+{i:"`/sys/lib`,`mapUtil`;`/sys/lib`,`listUtil`;`/sys/lib`,`mathUtil`;`/sys/lib`,`sounds`"}
+{caption: "Listing 1 (Start of the actual game)."}
+```miniscript
+import "mapUtil"
+import "listUtil"
+import "mathUtil"
+import "sounds"
+
+clear
+text.color = color.silver
+
+display(2).mode = displayMode.pixel
+overlay = display(2)
+overlay.clear
+
+kRows = 5
+kCols = 5
+
+words = file.readLines("/sys/data/englishWords.txt")
+for i in range(0, words.len-1)
+	words[i] = words[i].upper
+end for
+
+freq = {"A": 40116, "H": 12329, "R": 38506, "D": 21334, 
+"V": 5427, "K": 5275, "S": 49034, "B": 10303, "C": 21554, 
+"I": 47047, "U": 17692, "E": 62155, "L": 27954, "O": 33150, 
+"N": 37001, "G": 16930, "M": 14495, "T": 36982, "Y": 8191, 
+"J": 941, "Z": 2090, "P": 15815, "F": 7635, "W": 5081, 
+"Qu": 990, "X": 1487}
+```
+
+{i:"`/sys/lib`"}
+The first four lines simply import some modules from `/sys/lib` that we will make use of elsewhere.  (When writing your own programs from scratch, you can add these as you need them, or just put your favorites at the top of any program you begin.  There's no harm in importing them even if you don't actually use them.)
+
+Lines 6-11 clear the screen and set up the displays.  That includes changing the text color to silver, so don't be surprised to see that happen when you run this code.
+
+Lines 13 and 14 define how many rows and columns we will use in our grid of random letters.  The "k" prefix is commonly used to identify a "constant" value, that is, a value that should not change throughout the life of the program.  (Yes, I know that "constant" does not start with a "k" in English.  Nonetheless this is a common convention.)
+
+Then lines 16-19 load the words file, and convert all the words to upper case.  That saves us from having to worry about mixed upper/lower case later on.
+
+Finally, after all that comes the frequency table you developed in the last section, with one little change: find the "Q" entry, and change it to "Qu".  Because we determined earlier that words that use a "q" without a "u" are extremely rare, our game will never use a "q" by itself; instead we'll always pick that as the "qu" combo.
+
+## Random Letters
+
+Now we need some code to generate a random letter, or a whole grid of random letters.  And we want to do this in a way that mirrors the normal frequency of letters in our word set, so that "E" is the most common letter picked, "J" is the least, and so on.  Add the listing below to your growing program.
+
+{caption: "Listing 2 (Selecting random letters).", number-from: 28}
+```miniscript
+totalFreq = freq.values.sum
+
+randomLetter = function()
+	i = floor(rnd * totalFreq)
+	for kv in freq
+		if i < kv.value then return kv.key
+		i = i - kv.value
+	end for
+end function
+```
+
+Run that, and again nothing happens.  But let's test the code out as we consider how it works.  Line 28 calculates the total of all the frequency values in our table, i.e., the total number of letters in our word set.  `freq.values` would give you a list of all the frequencies, and appending `.sum` adds them up.  Enter `totalFreq` to make sure it gives you a nice big number like 539514.  (Feel free to proudly tell your neighbor that your code processes over half a million letters without breaking a sweat.)
+
+The `randomLetter` function picks a random number `i` from 0 to this total frequency count.  Then it iterates over the frequency table (using `kv` to remind us that these are key/value pairs), checking whether `i` is less than the frequency value of each letter.  This will of course be more likely for numbers with big values (like E and S) than for numbers with small values (like X and J).  If our random `i` is in fact less than the value of the letter, we return that letter.  Otherwise, we subtract that letter's value from `i`, and go on to check the next letter.  This makes `i` smaller and smaller, and guarantees that by the time we reach the end of the frequency table, we *will* find some letter that fits — and the probability of each letter being chosen is exactly equal to their relative frequencies.
+
+D> This is an algorithm known as a *weighted random selection*, and it can be used any time you want to pick from a set of things, but with a different probability or "weight" for each thing.
+
+Enter `randomLetter` at the REPL prompt, and it should print out a letter (or in the case of "Qu", two letters).  Repeat it a few times (or maybe even use a `for` loop!), and convince yourself that the more common English letters are appearing more often.
+
+## Creating Letter Tiles
+
+Our game is going to involve a grid of letter tiles, much like the playing pieces in Scrabble.  These little tiles need to move around, detect mouse clicks, etc., so we'll make a Sprite subclass to represent them.
+
+D> Careful: we're using "tile" here just to describe the shape and usage of the sprites in this game.  Don't confuse it with "tile" as in `TileDisplay`, which we'll be learning about in Chapter 25.  In this chapter and the next, remember that our "tiles" are just ordinary sprites that happen to look like letter tiles.
+
+In most games, you load sprite images from picture files on disk.  But in this case, we're going to draw the tile images in a PixelDisplay, and then pull out that part of the display as an image to use for the sprite.  It's a neat trick to consider any time you can work out a way to draw your sprite images with code.
+
+{caption: "Listing 3 (Tile-drawing code, and Tile class).", number-from: 38}
+```miniscript
+blockPic = file.loadImage("/sys/pics/Block.png")
+drawBlock = function(letter, x=100, y=100)
+	gfx.drawImage blockPic, x, y, 40, 40
+	if letter.len < 2 then
+		gfx.print letter, x+8, y+4, color.black, "large"
+	else
+		gfx.print letter, x+6, y+8, color.black
+	end if
+end function
+
+Tile = new Sprite
+Tile.letter = ""
+Tile.scale = 2
+Tile.tint = color.yellow
+Tile.target = {"x":0, "y":0}
+Tile.speed = 100
+Tile.localBounds = new Bounds
+Tile.localBounds.width = 36
+Tile.localBounds.height = 36
+
+Tile.goTo = function(x,y, speed)
+	self.target.x = x
+	self.target.y = y
+	if speed != null then self.speed = speed	
+end function
+
+Tile.goToGridPos = function(col, row)
+	self.goTo 300 + col * 90, 135 + row * 90
+end function
+
+Tile.update = function(dt = 0.1)
+	mathUtil.moveTowardsXY(self, self.target, self.speed * dt)
+end function
+
+Tile.updateAll = function(dt = 0.1)
+	updatedAny = false
+	for s in spriteDisp.sprites
+		if not s isa Tile then continue
+		if s.x == s.target.x and s.y == s.target.y then continue
+		s.update
+		updatedAny = true
+	end for
+	return updatedAny
+end function
+
+Tile.selected = function()
+	return self.tint != Tile.tint
+end function
+```
+
+Add that to your program, then run it, and let's test it out on the command line.
+
+```terminal
+]drawBlock "E"
+]drawBlock "Qu", 140, 100
+```
+
+This should produce two tiles near the bottom of the screen: one "E", and one with a smaller "Qu".  
+
+{width:"50%"}
+![](WordGameEQu.png)
+
+Now let's try grabbing the first of these as the image for a Tile instance.
+
+```terminal
+]t = new Tile
+]t.image = gfx.getImage(100,100,40,40)
+]display(4).sprites.push t
+[t]
+]t.x = 200; t.y = 300
+```
+
+This should create a large (due to `Tile.scale`), yellowish (due to `Tile.tint`) letter "E" tile.  The `Tile` class includes some simple animation code, too.  Let's test it:
+
+```terminal
+]t.goTo 800, 600
+]while true; t.update; yield; end while
+```
+
+If you see your "E" tile slide up towards the upper-right corner of the screen, then you're ready to press Control-C and move on to the next code listing.  If not, go back and check your typing carefully.
+
+{caption: "Listing 4 (Letter grid storage and set-up).", number-from: 86)
+```miniscript
+// 2D array to keep track of the tiles that belong in each
+// row and column of the grid.  Indexed first by column,
+// and within a column indexed bottom-up, so within a column
+// we can easily remove something and the rest shift down.
+grid = list.init2d(kCols, kRows)
+
+makeSprite = function(letter)
+	gfx.fillRect 0, 0, 40, 40, color.clear
+	drawBlock letter, 0, 0
+	spr = new Tile
+	spr.image = gfx.getImage(0, 0, 40, 40)
+	spr.letter = letter
+	return spr
+end function
+
+letterSprites = {}  // key: letter; value: Tile
+for code in range("A".code, "Z".code)
+	gfx.clear
+	c = char(code)
+	if c == "Q" then c = "Qu"
+	letterSprites[c] = makeSprite(c)
+end for
+gfx.clear
+
+display(4).mode = displayMode.sprite
+spriteDisp = display(4)
+spriteDisp.clear
+
+newTile = function(col, row)
+	tile = new letterSprites[randomLetter]
+	tile.target = {"x":0, "y":0} // make sure tile has its own target map
+	spriteDisp.sprites.push tile
+	tile.goToGridPos col, row
+	tile.x = tile.target.x
+	tile.y = tile.target.y + 500 + 50 * rnd + 100*row
+	grid[col][row] = tile
+	return tile
+end function
+
+for col in range(0, kCols-1)
+	for row in range(0, kRows-1)
+		newTile col, row
+	end for
+end for
+```
+
+This code uses the `list.init2d` method from the `listUtil` module to initialize a two-dimensional array, that is, a list of lists.  It's stored in global variable `grid`, and to get to any particular Tile, you index into this twice: `grid[c][r]` gets you the Tile in column `c` and row `r`.  Columns start at 0 on the left and go up to 4 on the right; rows start at 0 on the bottom, and go up to 4 on top.  So the layout of these accessors is just like X and Y pixel positions, or column and row in a text display.
+
+The `makeSprite` function does what we did by hand earlier: it draws the given letter into the `gfx` PixelDisplay, then grabs that image and assigns it to a freshly created Tile.  To save time later on, we do this once for each letter in the loop on lines 102-107.  Also notice the special trick we do on line 105, where instead of making a "Q" tile, we make it "Qu".  All these sprites are stored in a map called `letterSprites`, so we can easily look up a sprite for any letter.
+
+Lines 110-112 just set up the sprite display, and the `newTile` function starting on line 114 creates a new tile, with a random letter (using the `randomLetter` function we made earlier), and stores it in `grid`.  It also tells the tile to go to its grid position, but then on lines 119-120, sets its *current* position to some spot much higher on the screen.  That's so that we can have all the tiles fall pleasingly into place when the game begins.
+
+Finally, the nested `for` loops at the end of Listing 4 call `newTile` for every row and column, creating our initial grid of tiles.  Our program does not yet have a main loop to make them animate, so after you enter all that and run it, let's test it out by manually entering, on the REPL command line:
+
+```terminal
+]while true; Tile.updateAll; yield; end while
+```
+
+PRINT>This should cause all the tiles to slide neatly down from the top of the screen.  The final result should look something like the image on the next page.
+EBOOK>This should cause all the tiles to slide neatly down from the top of the screen.  The final result should look something like the image below.
+
+{width: "80%"}
+![Things have fallen into place.](WordGameGridTest.png)
+
+{pageBreak}
+And we're going to stop there for today.  You've worked hard and made a great start on your most complex program yet — you deserve a break!
+
+A> **Chapter Review**
+A> - You explored the `englishWords.txt` file included with Mini Micro.
+A> - You learned how to use your coding powers to get answers about large datasets.
+A> - You wrote code to load the word set, draw tiles, turn those into sprites, and animate them into place.
+
+

@@ -1,0 +1,348 @@
+{chapterHead: "Day 28: Snowflakes Evolution", startingPageNum:347}
+
+{width: "50%"}
+![](Chapter28.svg)
+
+Q> Programming isn't about what you know; it's about what you can figure out.
+Q>— Chris Pine (programmer and author)
+
+A> **Chapter Objectives**
+A> - Build the *Snowflakes Evolution* app, which lets you guide the development of an endless variety of beautiful snowflakes.
+A> - Learn how to design a custom algorithm to tackle a complex computing problem.
+A> - Brush up on turtle graphics.
+
+In the previous chapter, you learned about algorithms, and how to convert a pseudocode description of an algorithm into working MiniScript code.  Today we're going to learn how to design your own algorithm from scratch!
+
+The context of this task will be a fun little program called *Snowflake Evolution*.  The program begins by generating six random snowflakes, as shown in the screen shot on the next page.  Then, when the user clicks one of them, it generates several variations of the selected snowflake.  This process can be repeated as many times as desired, allowing you to guide snowflakes through a process of directed evolution.
+
+![Four screen shots from the *Snowflake Evolution* app.](Snowflakes.png)
+
+But how do you write code to generate such complex shapes?  And not only that, but do it in a way that lets us generate variations of a particular shape?  That's not something for which you can easily find an off-the-shelf algorithm.  So let's roll up our sleeves and figure it out!
+
+
+## First Observations
+
+Looking at the snowflakes in the figure, the first thing we should notice is the sixfold symmetry.  Thinking in the step-by-step terms of algorithms, we should think of drawing the branches one at a time.  But all six branches are the same, so we can just use a loop.  In pseudocode, that would look something like this.
+
+```pseudo
+repeat 6 times
+	draw a branch
+	rotate 60°
+```
+
+This assumes that the *draw a branch* step does the same thing every time we do it, except pointed in a different direction.
+
+Of the many ways Mini Micro has to put graphics on the screen, this assumption — that we can draw the same thing, but rotated differently — leads us directly to turtle graphics, first introduced in Chapter 18.  To draw the same branch but rotated some number of degrees with only `gfx.line` and friends would take a *lot* of math!  But with turtle graphics, it is easy: just rotate the turtle, and then use turtle drawing commands that work with whatever direction it is facing.
+
+So we're already making progress on two levels: we have a very rough sketch of the algorithm, and we have made an important decision about the implementation.
+
+## Anatomy of a Snowflake Branch
+
+We still don't know how quite to do that *draw a branch* step.  So let's look more closely.  Consider the following snowflake.
+
+{width: "50%"}
+![](FlakeFull.png)
+
+We've already dealt with the fact that there are six identical branches, so let's focus now on just one branch.
+
+{width: "25%"}
+![](FlakeBranch1.png)
+
+{gap:30}
+How can we simplify this?  The first thing to notice is that there is some self-similarity going on.  Each of the two side branches coming off the main trunk, when viewed in isolation, look a lot like the whole branch.  And in fact if you were to break the main branch right where those two side branches come off, the smaller part of that looks a lot like the whole branch, too.
+
+{width: "25%"}
+![](FlakeBranch2.png)
+
+And then if you were to focus on any one of those branches, you could break it down into smaller bits the exact same way: a trunk, two smaller side branches, and one smaller forward branch.
+
+{width: "25%"}
+![](FlakeBranch3.png)
+
+## Our Custom Branch Algorithm
+
+So we've uncovered a recursive structure here: a branch is composed of a straight line, followed by three smaller branches.  In pseudocode, we might represent this as something like:
+
+```pseudo
+draw a branch = function(scale)
+	if scale is too small, return
+	draw a straight line proportional to scale
+	turn to the left
+	draw a branch (scale * 0.5)
+	turn to the right
+	draw a branch (scale * 0.5)
+	turn forward
+	draw a branch (scale * 0.6)
+```
+
+And now we have a detailed enough algorithm to convert this into MiniScript.
+
+{i:"`/sys/lib`,`turtle`"}
+{caption: "First stab at a program for drawing one branch of a snowflake."}
+```miniscript
+import "turtle"
+clear
+
+drawBranch = function(turtle, scale = 1)
+	if scale < 0.02 then return
+	// create a new turtle, so we don't move the one passed in
+	t = new turtle
+	// draw main branch
+	t.penSize = 20 * scale
+	t.forward 100 * scale
+	// draw sub-branches
+	t.left 70
+	drawBranch t, scale * 0.4
+	t.right 70 * 2
+	drawBranch t, scale * 0.4
+	t.left 70
+	drawBranch t, scale * 0.6
+end function
+
+drawBranch new Turtle
+```
+
+This is a pretty direct translation of the pseudocode.  The only "trick" here is on line 7, where we take the Turtle object that was passed in to our `drawBranch` function and create a `new` turtle derived from it.  That allows us to do whatever we like with this new turtle — move it, rotate it, change its pen size or color — without affecting the turtle that was passed in.  That's very handy since the turtle that was passed in has other work to do (i.e. drawing more branches), and our job is easier if we can assume that its state has not changed after drawing a branch.
+
+So type that in, if you haven't already, and give it a try.  The result should look like this:
+
+{width: "25%"}
+![](FlakeBranchMS.png)
+
+{gap:30}
+Looks pretty good!  And now we can make an entire snowflake by just drawing it six times, turning 60 degrees each time.  Just replace line 20 of the program above with:
+
+{number-from: 20}
+```miniscript
+t = new Turtle
+for i in range(1, 6)
+	drawBranch t
+	t.left 60
+end for
+```
+
+And now you have a beautiful snowflake!
+
+## Introducing Variation
+
+This code, of course, will draw the same snowflake every time you run it.  But there are lots of magic numbers in it, which could be varied to produce different results: the length and width of the main branch, the angle of the side branches, and the scale of the side and forward branches.  We could also tweak the color.  Go ahead and experiment with those numbers a while to see what you can create!
+
+For our *Snowflake Evolution* program, we're going to wrap up all those adjustable bits into a little class called `Step`.  And we'll go a little further: instead of strictly drawing the exact same branch at every level of the recursion, we'll keep a list of four different step variations, and switch to one of those when we recurse.
+
+This will all likely be clearer in MiniScript than in English, so `reset` your program, and dive right in.
+
+{i:"`/sys/lib`,`turtle`;`/sys/lib`,`mathUtil`"}
+{caption: "Listing 1 (Start of Snowflake Evolution program)."}
+```miniscript
+import "turtle"
+import "mathUtil"
+clamp = @mathUtil.clamp // (we'll be using this a lot)
+clear
+
+// randColor: return a random (bright) color, 155-255 in RGB.
+randColor = function()
+	return color.fromList([155+99*rnd, 155+99*rnd, 155+99*rnd])
+end function
+
+// Step class.  Draws one branch of a snowflake
+// (using recursion to draw sub-branches).
+Step = {}
+
+Step.newRandom = function()
+	result = new Step
+	result.penSize = round(5 + 10*rnd)
+	result.penColor = randColor
+	result.fwd = 25 + 50*rnd
+	result.sideAngle = 20 + 60*rnd
+	result.sideScale = 0.25 + 0.5*rnd
+	result.sideStepNum = floor(rnd * 4)
+	result.fwdScale = 0.25 + 0.5*rnd
+	result.fwdStepNum = floor(rnd * 4)
+	return result
+end function
+
+Step.draw = function(turtle, steps, scale=1)
+	if scale < 0.1 then return
+	t = new turtle
+	t.penSize = self.penSize * scale
+	t.color = self.penColor
+	t.forward self.fwd * scale
+	newScale = scale * self.sideScale
+	if self.sideAngle > 0 and steps.hasIndex(self.sideStepNum) then
+		t.left self.sideAngle
+		steps[self.sideStepNum].draw t, steps, newScale
+		t.right self.sideAngle * 2
+		steps[self.sideStepNum].draw t, steps, newScale
+		t.left self.sideAngle
+	end if
+	newScale = scale * self.fwdScale
+	if newScale > 0 and steps.hasIndex(self.fwdStepNum) then
+		steps[self.fwdStepNum].draw t, steps, newScale		
+	end if
+end function
+
+// Snowflake class: keeps four Steps, and uses them to
+// draw a complete snowflake.
+Snowflake = {}
+
+Snowflake.newRandom = function()
+	result = new Snowflake
+	result.steps = []
+	for i in range(1, 4)
+		result.steps.push Step.newRandom
+	end for
+	return result
+end function
+
+Snowflake.draw = function(x=480, y=320)
+	t = new Turtle
+	t.penDown = false
+	t.goTo x, y
+	t.penDown = true
+	for i in range(0,5)
+		self.steps[0].draw t, self.steps
+		t.left 60
+	end for
+end function
+
+flake = Snowflake.newRandom
+flake.draw
+```
+
+The recursive drawing algorithm from the previous section is now implemented in the `Step.draw` method.  It looks a little more complicated because the function takes a list of `Step` objects, each specifying a different set of properties for the branch.  So when it is time to draw one of the angled side branches, or the forward branch, it calls `draw` on some item from that list instead of on `self`.
+
+A `Snowflake` is just a collection of four different `Step`s.  It also has the `draw` method that kicks off the branch-drawing process six times in six different directions, making a complete snowflake.
+
+{pageBreak}
+D> Why four different `Step` objects?  I knew I wanted more than one, and ten seemed excessive, given the recursion rarely goes more than a few levels deep anyway.  Four seemed to work nicely, but you should feel free to try other numbers!  Be sure to change the `4`s in both `Step.newRandom`, and in `Snowflake.newRandom`.  Or better yet, store this value in a well-named global variable, and get rid of the magic value!
+
+Once you've entered the listing above, run it several times.  You should get a different snowflake each time!
+
+## Mutant Clones
+
+Our *Snowflake Evolution* app requires creating several variations of one snowflake.  So we will need some code to both *clone* a snowflake, and to *mutate* it.
+
+clone
+: to create a copy of an object
+mutate
+: to introduce (usually small) changes to an object
+
+Clear out the last couple of lines (test code) from your program, and continue with the code below.
+
+{caption: "Listing 2 (Cloning and mutation).", number-from: 72}
+```miniscript
+Step.mutate = function()
+	i = floor(rnd * 8)
+	if i == 0 then 
+		self.penSize = clamp(self.penSize + rnd*2-1, 1, 15)
+	else if i == 1 then 
+		self.fwd = clamp(self.fwd + rnd*20-10, 10, 100)
+	else if i == 2 then 
+		self.sideAngle = clamp(self.sideAngle + rnd*20-10, 0, 170)
+	else if i == 3 then
+		self.sideScale = clamp(self.sideScale + rnd/2-0.25, 0, 0.8)
+	else if i == 4 then
+		self.sideStepNum = floor(rnd * 4)
+	else if i == 5 then
+		self.fwdScale = clamp(self.fwdScale + rnd/2-0.25, 0, 0.9)
+	else if i == 6 then
+		self.penColor = randColor
+	else
+		self.fwdStepNum = floor(rnd * 4)		
+	end if
+end function
+
+Step.clone = function()
+	return {} + self
+end function
+
+Snowflake.cloneAndMutate = function()
+	result = new Snowflake
+	result.steps = []
+	for step in self.steps
+		result.steps.push step.clone
+		result.steps[-1].mutate
+	end for
+	return result
+end function
+
+flake = Snowflake.newRandom
+while true
+	clear
+	flake.draw
+	if key.get == char(27) then break
+	flake = flake.cloneAndMutate
+end while
+```
+
+This listing includes somewhat longer test code, which generates a single mutated clone every time you press a key (until you press Escape, which is `char(27)`; then it breaks the loop).
+
+Most of the work here is being done by the `Step.mutate` method, which picks a random attribute (`i`), and then randomly changes the corresponding property.  The `clamp` method being used here (imported from the `mathUtil` module) simply limits a value to a valid range.  This is especially important for the `sideScale` and `fwdScale` properties, which must always be less than 1.
+
+D> What if, say, `fwdScale` were *not* less than 1?  Remember that this controls how big the next section of the branch is, relative to the last section.  And also remember that the recursion stops when the branches get too small.  So if the next part of the branch were actually *bigger* than the previous part, what would happen?  If you're not sure, try it and see!
+
+## Main Program
+
+We're just about done now.  The rest of the program draws six flakes at a time, waits for the user to pick one with the mouse, and then generates five new ones — mostly mutant clones of the one selected.
+
+Delete the test code starting on line 107, and then type in the following to finish the program.
+
+{caption: "Listing 3 (Wrapping up *Snowflake Evolution*).", number-from: 107}
+```miniscript
+// Helper function to wait for a click.  Also watches
+// for the Escape key, and if pressed, exits the program.
+waitForClick = function()
+	// wait for mouse down, or escape key
+	while not mouse.button
+		if key.pressed("escape") then exit
+		yield
+	end while
+	// wait for mouse up
+	while mouse.button; yield; end while
+end function
+
+// Prepare six snowflakes.
+flakes = []
+for i in range(0,5)
+	flakes.push Snowflake.newRandom	
+end for	
+
+// Main loop.
+while true
+	// Draw our current six snowflakes.
+	clear
+	for i in range(0,5)
+		col = i % 3
+		row = floor(i/3)
+		flakes[i].draw 160 + col * 320, 160 + row*320
+	end for
+	
+	// Wait for a click, and figure out which flake was hit.
+	waitForClick
+	col = floor(mouse.x / 320)
+	row = floor(mouse.y / 320)
+	choice = row * 3 + col
+	
+	// Replace all the other flakes with new ones.
+	for i in range(0, 5)
+		if i != choice then 
+			// create either a mutant of the chosen one,
+			// or occasionally, a completely new one
+			if rnd < 0.8 then
+				flakes[i] = flakes[choice].cloneAndMutate
+			else
+				flakes[i] = Snowflake.newRandom				
+			end if
+		end if
+	end for
+end while
+```
+
+Before you call it a day, take some time to play with this program!  It's really fun trying to "breed" the perfect snowflake, guiding their evolution with judicious clicks of the mouse.  But don't be shy about hitting Escape and running again to get a fresh new batch of snowflakes to start from.
+
+A> **Chapter Review**
+A> - You developed an algorithm for drawing a snowflake, by recursively drawing the same (or similar) things at progressively smaller scales.
+A> - You implemented that algorithm first in a small program that draws a snowflake.
+A> - You elaborated that into a more sophisticated program that demonstrates cloning and mutation.
+
+

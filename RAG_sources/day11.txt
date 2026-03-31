@@ -1,0 +1,319 @@
+{chapterHead: "Day 11: Defining Functions", startingPageNum:115}
+
+{width: "50%"}
+![](Chapter11.svg)
+
+Q> You need to organize the code by breaking it into pieces.
+Q>— Barbara Liskov (2008 A. M. Turing award winner)
+
+A> **Chapter Objectives**
+A> - Learn how to define your own functions.
+A> - Start thinking about how to break big problems up into smaller, easier problems.
+A> - Learn the difference between local and global variables, and why these make your life easier.
+
+You've seen a lot of intrinsic (built-in) functions by now.  These are things like `rnd`, which returns a random number, and `ceil`, which returns the next integer greater than or equal to the number you give it, and `val`, which converts a string into a number.  Today you're going to learn how to add new functions of your very own!  This is a really important milestone, because it lets you break a big complicated problem up into a bunch of smaller, simpler problems, as we'll shortly see.
+
+Let's start by looking at an example: making a new function to help you calculate how much tip to leave at a restaurant in the United States.
+
+{caption:Tip example 1}
+```miniscript
+// Calculate the tip to leave at a restaurant.
+// Leave 20%, but never less than a dollar.
+tip = function(costOfMeal)
+    x = costOfMeal * 0.20
+    if x < 1 then x = 1
+    return round(x)
+end function
+
+print "Tip calculator!"
+print "$10 meal: $" + tip(10) + " tip"
+print "$30 meal: $" + tip(30) + " tip"
+cost = val(input("Cost of your meal? "))
+print "You should leave $" + tip(cost)
+```
+
+Run this code a few times, trying different amounts.
+
+D> Remember that you now know at least three ways to run MiniScript code: in the Try-It! page on the web; typed directly into the command-line REPL; and typed into a text file, which you then run with command-line MiniScript.  For this example, use whichever you like best!
+
+A function definition begins with `function` and ends with `end function` — similar to the `if`, `for`, and `while` blocks you already know.  After the `function` keyword must be parentheses, and then the name of any *parameters* you want to pass in to the function.  In the example above, there is one parameter, `costOfMeal`, which will get a number to use as the cost of the meal.
+
+parameter
+: a variable included as part of a function definition to hold a value passed in as argument
+
+argument
+: a value given as input to a function
+
+{i:"data type, function"}
+The complete function — everything from `function` to `end function` — is a value that normally gets assigned to a variable, which is `tip` in this example.  Functions are the fifth data type in MiniScript (after numbers, strings, lists, and maps).  If we didn't assign the newly created function to something, we would have no way to refer to it later.  So we assign it to (in this case) `tip`, and thereafter when we refer to `tip`, we are really calling this function.
+
+Between the `function` line and the `end function` line is any amount of MiniScript code, known as the *function body*.  That code will run every time the function is called.  In the example above, you probably noticed that we used the new `tip` function three times.  So that function body (lines 4-6) ran three times.
+
+This illustrates one of the important benefits of making a function: it allows you to do the same thing at several different places in your program, without having to actually repeat the code more than once.  In fact this is such a useful principle in programming, it has its own name: DRY.
+
+DRY (Don't Repeat Yourself)
+: The idea that a program should have no nontrivial lines of code that are repeated in more than one place.  When you find the need to repeat some code, you should instead move it into a function, and then call that function wherever you need.
+
+{i:"`return`"}
+The other thing to notice in this example is the `return` statement.  When the program reaches a `return` line, it immediately exits the function, and the value of that function (wherever it was called) is whatever value, if any, appears after `return`.  So in this example, we calculate the tip amount as `x`, and then `return x` — so whatever the value of `x` is at that point is what is *returned* to the caller as the output of the function.
+
+{gap:20}
+Let's look at another example.  
+
+{caption:Simple dice roller}
+```miniscript
+rollD6 = function()
+    return ceil(rnd * 6)
+end function
+
+die1 = rollD6
+die2 = rollD6
+total = die1 + die2
+print "You rolled " + die1 + " and " + die2 
+print "for a total of " + total
+```
+
+Here we defined a function called `rolld6`.  It doesn't need any parameters; each time you call it, it just returns a random number between 1 and 6, like a 6-sided die.  Notice that even though there are no parameters, we still need parentheses after the `function` keyword.  This is the only place in MiniScript where empty parentheses are ever needed!
+
+Once the `rolld6` function has been defined on lines 1-3, we call it two times on lines 5 and 6, each time assigning the result to a variable.  Then we report the value of each roll, along with the total.
+
+## Breaking Down Big Problems
+
+Programs can get pretty complicated.  Recall the programs you entered in Chapter 7.  They were only a few dozen lines long, but there was a lot going on, wasn't there?  To understand them, you pretty much had to grasp the whole program at once.  No one part of it made much sense without thinking about the rest at the same time.
+
+Most programs in the real world are much, much longer than the ones in Chapter 7.  How can anybody make sense of all that?  Here's the secret: we don't understand them all at once.  We break a big, complicated program down into a bunch of smaller, simpler subprograms (functions).  Each function is small and simple enough to understand on its own.  And then when we're reading the rest of the program, we'll see code that *uses* those small functions, but at that point we don't worry about how those functions work — we just assume they work and do what the function name suggests they do.  This is really no different from how you have been using built-in functions like `print` and `rnd` without worrying about how they work under the hood; you trust them to do their job, so you can focus on yours.
+
+So a big, complicated program is really just a bunch of little functions.  Indeed, if you ever find yourself writing a function that's more than about a page long, you should break it into smaller functions.  Each function should do just one thing, so it's easy to understand; and it should be assigned to a variable with a descriptive name, so readers of the code can correctly guess what it does without even looking at its code.  *That* is the magic trick that lets us write things like operating systems, massively multiplayer online games, weather simulations, flight control software, and anything else — they're written one small function at a time.
+
+You'll see this principle applied in all the programs in the rest of this book.  Never again will you see a long functionless code listing like those in Chapter 7.  We have a major power tool now, so we're going to use it!
+
+## Local and Global Variables
+
+It's time to introduce some important terminology.
+
+global scope
+: code or variables in a program that are not inside any function
+local scope
+: code or variables inside a function
+
+Before this chapter, everything we did was at the global scope (of course, since we hadn't learned about functions yet).  Code at the global scope starts executing at the top of the program, and proceeds line by line, of course honoring `if` blocks and `for`/`while` loops along the way.
+
+Code at the local scope, that is, inside a function, is not executed where it is defined in the program.  Instead MiniScript just tucks the function away until you actually call it.  You've seen this in the examples already.  In the dice program, for example, the `rollD6` function was defined at the top of the program (lines 1-3), but it wasn't executed until later code called it (lines 5-6).
+
+So that's one difference between local and global scope.  But there's an even more important difference that applies to variables in particular.
+
+global variable
+: a variable assigned at the global scope
+local variable
+: a variable assigned inside a function
+
+Local variables can only be accessed within the function where they were assigned.  They have no existence outside that function.  This sounds like a limitation, but it's a really useful limitation!  It means that you can use whatever variables you want inside a function, and not worry about whether some other function (or code at the global scope) might be using the same variable names.  Local variables are completely independent for every function call.
+
+Here's how it works: variables are actually stored in maps.  At the global scope, all the variables are stored in a special map called `globals`.  So when you do a simple assignment like
+
+```
+x = 42
+```
+
+this is really doing
+
+```
+globals["x"] = 42
+```
+
+D> Don't take my word for it -- *try it!*  Open up the MiniScript REPL and experiment: enter `x = 42`, then print `globals["x"]`.  Now try `globals["x"] = 123`, and print `x`.  What do you find?
+
+Inside a function, though, things are different.  Every time you make a function call, MiniScript creates a *new* map for the variables inside that call.  Since functions can call other functions (or even call themselves!), this can get pretty complicated, but don't worry, it's the sort of bookkeeping computers are good at.  So at the start of a function, there is a fresh new map, containing only the values of the parameters.
+
+Now inside a function, when you do an assignment, like
+
+```
+test = function()
+   y = "abc"
+end function
+```
+
+it is actually stored as the value for "y" in this local variables map.  That of course does not affect the globals map at all, nor does it affect the locals in any other function call.  And when the function exits — either via a `return` statement or by reaching the `end function` line — the local variables map is simply destroyed.  Poof!  Gone.
+
+So that's what happens when you assign to a variable: at the global scope, it stores the value in `globals`; and inside a function, it stores it in the local variables for that function call.  What about when you *use* the value of a variable?
+
+In that case, MiniScript first looks for that variable in the local variables map.  If it finds it, it returns that value and is done.  But if it doesn't find it, then it looks at the global variables.  And if it finds a matching variable, it returns you that value instead.  So global variables can always be accessed from anywhere in the program; that's why we call them "global."  But local variables can only be accessed inside the function where they were assigned; they're "local" to that function.  And if the same variable name is used as both a local and a global, you'll always get the local one, since locals are checked first.
+
+This is super important, and probably not completely clear if it's the first time you've encountered the concept.  Here's an example that will help.  Type this in carefully:
+
+```miniscript
+x = 0  // assign to x as a GLOBAL variable
+test = function()
+    print "Inside test: x is " + x  // read the GLOBAL variable x
+    x = 123  // assign to x as a LOCAL variable
+    print "Still inside test: x is now " + x  // read LOCAL x
+end function
+
+print "Here at the global scope, x is " + x  // read GLOBAL x
+test
+print "Back at global scope again, x is " + x // read GLOBAL x
+```
+
+When you run this, the output is:
+
+```terminal
+Here at the global scope, x is 0
+Inside test: x is 0
+Still inside test: x is now 123
+Back at global scope again, x is 0
+```
+
+Let's walk through it step by step.  Line 1 is code at the global scope, and it assigns to `x`, so that creates a global variable (actually the same as doing `globals["x"] = 0`).  Lines 2-6 define the function (and store it in another global variable called `test`).
+
+Line 8 runs next, and since it's at the global scope, it prints out the value of global variable `x`, which is 0.  Line 9 calls the `test` function.  So line 3 runs, and prints a variable called `x`... since there isn't a local variable with that name at this point, it prints out the value of the global variable again.
+
+Line 4 then assigns 123 to `x`.  This is inside a function, so it stores the value 123 in the local variables map under "x".  And on line 5, when we print the value of `x` again, it now finds this local variable, and prints out that value (123).  Notice that this assignment does nothing at all to the globals map.
+
+Then the function ends, and we pop back to where it was called.  Here on line 10, back at the global scope, we print out the value of `x` again, which prints out the global value — still 0.
+
+D> Almost all programming languages have a very similar concept of local and global variables, though they may differ in the details — in Lua, for example, assignment always creates a global variable by default, even inside a function.
+
+If that still seems confusing, don't let it worry you too much.  It will sink in as you use it.  As your programs get more complex, you'll discover that local variables are a wonderful invention; they give you a fresh sheet of scratch paper for every small task (function) you need to do, and then recycle that sheet completely when the task is done.  This keeps your workspace neat, and prevents your calculations in one place from messing up values somewhere else.
+
+## Building a Program, Piece by Piece
+
+Let's end the chapter with one more example — a shortish program that uses several functions.  But this time we're going to go through how you would actually write and test such a program.
+
+The task for this program is to convert normal text to Pig Latin — a word game in which the initial part of a word, up to the first vowel, is stripped off and then appended to the end of the word, followed by "ay".  Or for words that begin with a vowel, you just append "yay" to the end.
+
+Thinking about how to break this complex task down would go something like this:
+
+- Well, we want to operate on each word separately.
+- For a single word, we'll need to split it into the part before the first vowel, and everything after that point.
+- That requires knowing if a character is a vowel or not.
+
+The rest is pretty easy: just swapping the two parts and adding "ay" or "yay".  So now we have a plan; time to start coding!  And often the best way to begin is with the smallest, simplest function.  In this case, that would be a function to tell if a character is a vowel or not.  So we write that, and include some tests:
+
+{caption:Step 1 of our Pig Latin program}
+```miniscript
+// return true if c is a vowel, false if not
+isVowel = function(c)  
+    return "aeiou".indexOf(c) != null
+end function
+
+print isVowel("x")
+print isVowel("a")
+```
+
+We begin by writing a comment describing what we want to do.  Then we make a function, `isVowel`, that takes one character (`c`) as its parameter.  It uses `indexOf` to see whether that character is in the set of vowels.  `indexOf` returns `null` if the thing you're looking for is not found in the string you're searching; so if `"aeiou".indexOf(c)` is not equal to `null`, it means that `c` is one of those five letters. After the function, we put in a couple of tests — these should print 0 for "x" since that is not a vowel, and 1 for "a" since it is.
+
+(Type that in and verify that it works before moving on.)
+
+OK, that's a handy function that MiniScript didn't have before; now we have it.  Let's use it for the next bit: something to split a word into the part before the first vowel, and the part after.  Keep what you have above, and add this:
+
+{caption:Step 2 of our Pig Latin program}
+```miniscript
+// split a word into the part before the first vowel,
+// and the part from the first vowel to the end
+splitWord = function(word)
+    for i in word.indexes
+        if isVowel(word[i]) then return [word[:i], word[i:]]
+    end for
+    return [word, ""] // no vowel found!
+end function
+
+print splitWord("three")
+print splitWord("omlets")
+```
+
+Again, we begin with a comment.  That's always a good idea; it helps you focus on exactly what the function you're about to write should do, and when you come back to this code later, it reminds you what it does.
+
+Then we iterate over all the indexes in the given `word`.  If the word is five characters long, then `word.indexes` will be `[0, 1, 2, 3, 4]`.  The `if` statement uses our handy `isVowel` function to determine if character `i` of the word is a vowel; if it is, then we return a list containing the part of the word before that point, and the rest of the word.  Finally, after the for loop, we handle the unlikely case of no vowels at all.
+
+(Notice that our `for` loop here is using a local variable called `i`.)
+
+The test cases below the function should print out correct splits of the test words: `["thr", "ee"]` for the "three", and `["", "omlets"]` for "omlets" (since that one begins with a vowel).
+
+D> Testing as you go makes programming faster, better, and more fun!  Try to never write more than a handful of lines without testing them.
+
+Again make sure this is all working before the next part, in which we convert a single word into Pig Latin:
+
+{caption:Step 3 of our Pig Latin program}
+```miniscript
+// convert a single word into Pig Latin
+convertWord = function(word)
+    parts = splitWord(word)
+    if parts[0] == "" then return word + "yay"
+    return parts[1] + parts[0] + "ay"
+end function
+
+print convertWord("three")
+print convertWord("omlets")
+```
+
+I'm sure you're seeing the pattern by now, so we'll jump right into the meat of it: we call our own `splitWord` function to split the word into parts, which we store in local variable `parts`.  If the first part is empty, then we just return the word plus "yay"; otherwise we reverse the parts and append "ay", per the rules of the game.
+
+The two test cases here should print "eethray" and "omletsyay".
+
+Almost done!  Let's make a `convert` function that operates on a whole sentence.
+
+{caption:Step 4 of our Pig Latin program}
+```miniscript
+// convert a whole sentence into Pig Latin
+convert = function(sentence)
+    words = sentence.split
+    for i in words.indexes
+        words[i] = convertWord(words[i])
+    end for
+    return words.join
+end function
+
+print convert("this is a test")
+```
+
+Nothing too complicated here!  We split the sentence into words, and then run a `for` loop over their indexes.  (Note that we're using a local variable `i` here too — and this is completely unrelated to the other `i` used in `splitWord`.  They don't bother each other at all.)  Each word is converted and stored back into the list, and then we just join them back together.  The test case at the end should print "isthay isyay ayay esttay".
+
+And the program is now complete, apart from a main loop!  If you take out the test cases, and add a main loop to the end, it will look something like the complete program below.
+
+{caption:Complete Pig Latin program}
+```miniscript
+// return true if c is a vowel, false if not
+isVowel = function(c)  
+    return "aeiou".indexOf(c) != null
+end function
+
+// split a word into the part before the first vowel,
+// and the part from the first vowel to the end
+splitWord = function(word)
+    for i in word.indexes
+        if isVowel(word[i]) then return [word[:i], word[i:]]
+    end for
+    return [word, ""] // no vowel found!
+end function
+
+// convert a single word into Pig Latin
+convertWord = function(word)
+    parts = splitWord(word)
+    if parts[0] == "" then return word + "yay"
+    return parts[1] + parts[0] + "ay"
+end function
+
+// convert a whole sentence into Pig Latin
+convert = function(sentence)
+    words = sentence.split
+    for i in words.indexes
+        words[i] = convertWord(words[i])
+    end for
+    return words.join
+end function
+
+// main loop: convert sentences until empty input
+while true
+    inp = input("Plain sentence? ")
+    if inp == "" then break  // (enter empty string to exit)
+    print convert(inp)
+end while
+```
+
+And now you've seen how real programming is done!  A complex task was broken down into simpler tasks, and then written bottom up, starting with the tiniest, simplest function.  Each other function made use of the ones written before, so that none of them was particularly complex.
+
+A> **Chapter Review**
+A> - You learned how to define your own functions, with or without parameters.
+A> - You encountered the DRY (Don't Repeat Yourself) principle, and saw how to break big programs into lots of small functions.
+A> - You gained insight into how variables work under the hood, and the important difference between global and local variables.
+A> - You wrote a complex Pig Latin program by writing a bunch of simple functions that lean on each other to get the job done.

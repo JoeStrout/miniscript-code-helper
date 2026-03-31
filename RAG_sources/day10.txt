@@ -1,0 +1,205 @@
+{chapterHead: "Day 10: Maps", startingPageNum:105}
+
+{width: "50%"}
+![](Chapter10.svg)
+
+Q> Feeling a little uncomfortable with your skills is a sign of learning, and continuous learning is what the tech industry thrives on!
+Q>— Vanessa Hurst (founder and CEO, CodeMontage)
+
+A> **Chapter Objectives**
+A> - Learn about the *map* data type.
+A> - Get or set map values with square brackets or dot syntax.
+A> - Iterate over a map with a `for` loop.
+A> - Get an overview of intrinsic map functions.
+
+{i:"map;data type, map"}
+You've already learned about numbers, strings, and lists.  There is one more basic data type in MiniScript: maps.  A *map* is like a two-column table, where each unique value on the left column is associated with some other value on the right.
+
+{caption:"An example map: four fictional heroes and their ages", hPad:10, vpad:3}
+| key | value |
+| --- | ----- |
+| Buffy | 17 |
+| Willow | 16 |
+| Xander | 17 |
+| Oz | 18 |
+
+The values in the left column are "mapped" to values on the right.  In some languages, this is called a *dictionary*, because you can think of a dictionary as a book that maps each word to a definition (or list of definitions).
+
+{i:"map;dictionary"}
+map
+: a data type that contains a list of key/value pairs, with each unique key associated with one value
+
+The keys in a map must be unique; in the table above, you can see that "Buffy", "Willow", "Xander", and "Oz" are all unique.  The values, however do not need to be unique; both "Buffy" and "Xander" map to 17 in this example, and that's fine.
+
+In MiniScript, you can create a map by enclosing it in curly braces, with the key/value pairs separated by commas like in a list.  Within each pair, put a colon between the key and value, like this:
+
+```miniscript
+ages = {"Buffy":17, "Willow":16, "Xander":17, "Oz":18}
+```
+
+This defines a map called `ages` containing four key/value pairs.  Try it!  Type the above assignment into your command-line REPL.  Then type
+
+```miniscript
+ages
+```
+
+to see what `ages` contains.  You'll get back a representation of the map — but it may not be in exactly the same order you defined it in.  It might, for example, look like this:
+
+```repl
+{"Buffy": 17, "Xander": 17, "Oz": 18, "Willow": 16}
+```
+
+A> Maps pay no attention to the *order* of their key/value pairs.  Never depend on getting them out in any particular order.
+
+This is different from a list, which preserve the order of their items.  So what good are maps then?  They're good for looking up (or storing) values by key.  In the same REPL as the above, try this:
+
+```miniscript
+ages["Oz"]
+```
+
+This should print `18`.  Notice that the syntax is similar to getting an element of a list or map, except instead of putting a numeric index in the square brackets, we're giving the key (index value) that we want to look up.
+
+And while you can't tell from such a simple example, it turns out that maps are *really really good* at this sort of look-up.  It basically doesn't matter how many items you have stored in a map; a lookup like this will be just as fast.  And this too is different from a list, where the average time to find an element depends directly on how many items are in the list.
+
+Now let's suppose Willow has a birthday.  Let's update her age to 17:
+
+```miniscript
+ages["Willow"] = 17
+ages
+```
+
+You should see that the value associated with the key "Willow" has been updated.  You can add new key/value pairs to the map in exactly the same way:
+
+```miniscript
+ages["Cordelia"] = 18
+ages
+```
+
+Now the map contains five key/value pairs.  Assignment to a map entry will just update the value if the given key is already in the map; otherwise, it will add a new key/value pair.
+
+Keys and values can be any data type.  Try another example:
+
+```miniscript
+d = {}
+d[1] = "uno"
+d["life"] = "grand"
+d["primes"] = [1,2,3,5,7]
+d
+```
+
+The first line above creates an empty map, that is, a map containing no key/value pairs at all.  Then we added three keys, one at a time: a number (1) and two strings ("life" and "primes").  The values here include both strings and a list; and of course you previously saw an example where the values were numbers.  A value could also be another map, and you can even use lists and maps as keys, though that is rare.
+
+## Square Brackets vs. Dot Syntax
+
+So far we have assigned and looked up values by putting the key in square brackets, just like indexing into a list or string.  But with maps, there is an alternate syntax that will turn out to be really handy.  It applies only in the special case where the key is (1) a string, and (2) a valid identifier — meaning that it starts with a letter or underscore, and contains only letters, numbers, and underscores (just like a variable name).
+
+In this case, you can just put the key *without quotation marks* after the map reference, separated by a dot.  If you still have `ages` and `d` defined in your REPL from the examples above, then try this:
+
+```terminal
+> ages.Oz
+18
+> ages["Oz"]
+18
+> d["life"] = "sweet"
+> d.life = "sweeter"
+> d
+{"life": "sweeter", 1: "uno", "primes": [1, 2, 3, 5, 7]}
+```
+
+The first two commands do exactly the same thing: look up the value of the key "Oz" in map `ages`.  Lines 5 and 6 each assign a new value to the key "life" in map `d`.  So the dot syntax is just another way of storing and retrieving values in a map.
+
+So why is that useful?  In a very small program, you can get away without being very organized about your data, because there just isn't very much of it.  But as your programs get bigger, it would get really tricky to come up with meaningful, unique variable names for all the values you need to handle, and to write code that works with them all.  Maps let you group your data in whatever way makes sense for your program.
+
+(Maps are also the basis for object-oriented programming in MiniScript, but that's such a big topic, we'll spend a whole chapter on it a couple days from now.)
+
+## Iterating Over Maps
+
+You already know to write a `for` loop to iterate over elements of a list, or characters in a string.  It turns out you can do the same thing to iterate over key/value pairs in a map.  When you do, the loop variable is set to little mini-maps containing "key" and "value" entries.  An example will make it clearer:
+
+```miniscript
+ages = {"Buffy":17, "Willow":16, "Xander":17, "Oz":18}
+for kv in ages
+	print "I see the key " + kv.key + " goes with value " + kv.value
+end for
+```
+
+Try it!  You can skip the first line above if you still have `ages` defined in your REPL, and it's OK if your values are a little different from mine.  The important thing is to see what the for loop does: it sets the loop variable, `kv`, to each of the key/value pairs in turn.  And you access that data in `kv` using `kv.key` or `kv.value`.
+
+Of course, you could have called the loop variable anything; it doesn't have to be "kv".  Here's different example:
+
+```miniscript
+nums = {"one":"uno", "two":"dos", "three":"tres"}
+for n in nums
+	print n.key + " in Spanish is " + n.value     
+	print n.value + " in English is " + n.key
+end for
+```
+
+Iterating over the map directly like this is usually the right thing to do.  However, as noted before, you don't have any control over the order in which the data comes out this way.  So, there is another approach that is often used, and that is to iterate over just the indexes (i.e. keys) of the map, in sorted order.  Try this (again skipping the first line if you still have `ages` defined from before):
+
+```miniscript
+ages = {"Buffy":17, "Willow":16, "Xander":17, "Oz":18}
+for name in ages.indexes.sort
+	print name + " is " + ages[name] + " years old."
+end for
+```
+
+This prints out the age of each hero — but importantly, it prints them out in alphabetical order.  How does this work?  The `indexes` intrinsic function returns all the keys of a map, as a list.  And `sort` is another intrinsic function that sorts a list into alphabetical or numeric order.  So when we use them together, like `ages.indexes.sort`, we get all the keys of the map, in order.
+
+But now we're iterating over just the keys.  So inside the loop, if we also need the value, we just look up the value in the map using square brackets (like `ages[name]` in this example).
+
+D> Confused?  That's OK.  There's a lot of new stuff here, and it's a lot to keep track of.  Just take it slow, and break the example above into smaller parts, inspecting each one with the REPL: `ages`, then `ages.indexes`, then `ages.indexes.sort`.  Then try a `for` loop over the result of that last one.  Step by step, it will all make sense.
+
+{gap:40}
+## Map Intrinsic Functions
+
+It will come as no surprise to you by now that MiniScript has a number of built-in (intrinsic) functions that work with maps.  You've already seen `indexes`, but there are many others.  As before, we're going to present the complete set now, but you are not expected to memorize this list.  Just familiarize yourself with what's available, so you know where to look later.
+
+{i:"functions, map;map functions"}
+{caption:"Intrinsic map functions", colWidths:"145,*"}
+| `.hasIndex(k)` | 1 if k is a key contained in `self`; otherwise 0 |
+| `.indexes` | a list containing all keys in `self`, in arbitrary order |
+| `.indexOf(x, after=null)` | first key in `self` that maps to `x`, or null if none; optionally begins the search after the given key |
+| `.len` | length (number of key/value pairs) of `self` |
+| `.pop` | removes and returns an arbitrary key from `self` |
+| `.push k` | equivalent to `self[k] = 1` |
+| `.remove k` | removes the key/value pair where key=`k` from `self` (in place) |
+| `.replace oldval, newval, maxCount=null` | replaces (in place) up to maxCount occurrences of oldval in the map with newval (if maxCount not specified, then all occurrences are replaced) |
+| `.shuffle` | randomly remaps values for keys |
+| `.values` | a list containing all values in `self`, in arbitrary order |
+
+MiniScript tends to use functions that are named the same way for multiple data types.  That's why the function that checks whether a map contains a certain key is called `hasIndex` rather than `hasKey`; this same function also works for lists and strings, and the term "index" works for all three, whereas "key" would make sense only for maps.  You see this also in the `indexOf` function, which returns the key (index) associated with a given value.
+
+You're only likely to need a few of the functions on this table.  We discussed `.indexes` earlier, for getting all the indexes (keys) in the map; in some cases you might also want `.values`, which returns all the values in the map.  The `.hasIndex` function is very useful, since you often want to check whether the map contains a particular key (if you try to index into the map with a nonexistent key, MiniScript will print an error).  Finally, you might need `.remove` to take a key/value pair (specified by the key) out of the map.
+
+Let's wrap up this chapter with a slightly longer, more interesting example.  Type in the program on the next page carefully, run it, and then teach it some vocabulary words.  You can enter English words and their equivalents in some other language, or you can go the other way (French to English for example).  If you don't know any other language, make one up!  And be sure to sometimes repeat words you've entered before, so it can show off its knowledge.
+
+{caption:Language-learning program}
+```miniscript
+print "Teach me a new language!"
+print "(or enter ""quit"" to quit)"
+vocab = {}
+while true
+    word = input("Word? ")
+    if word == "quit" then break
+    if vocab.hasIndex(word) then
+        print "I know that one!  It's: " + vocab[word]
+    else
+        vocab[word] = input("OK, how do you say that? ")
+        print "OK, I'll remember!"
+    end if
+end while
+print "You taught me " + vocab.len + " words.  Thank you!"
+```
+
+
+Then pause to think what you've accomplished here: a program that *learns*.  It starts off knowing nothing, but the more you interact with it, the more it knows.  Unlike people, it will remember each fact perfectly after being told only once, and it will never forget — until, of course, you stop the program!
+
+{pageBreak}
+A> **Chapter Review**
+A> - You learned how to map keys to values in MiniScript.
+A> - You discovered the two different ways to access elements of a map: with square brackets, or with dot syntax.
+A> - You learned to iterate over the key/value pairs of a map... and an alternate way to do it in cases where you need them in sorted order.
+A> - You got an overview of the built-in map functions.
+A> - You made a program that learns vocabulary, growing ever smarter as it runs.
+

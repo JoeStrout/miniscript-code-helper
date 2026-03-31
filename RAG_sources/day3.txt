@@ -1,0 +1,158 @@
+{chapterHead: "Day 3: Variables and Comments", startingPageNum:27}
+
+{width: "50%"}
+![](Chapter3.svg)
+
+Q> Any fool can write code that a computer can understand. Good programmers write code that humans can understand.
+Q>— Martin Fowler (software developer and author)
+
+A> **Chapter Objectives**
+A> - Learn how *variables* are used to hold values in memory.
+A> - Use *comments* to leave notes for your future self (or others).
+A> - Start thinking about how to write code that is clear and easy to read.
+
+## Keeping values for later
+
+So far, every program you've written has created values right where they are used -- mainly on a `print` statement.
+
+```miniscript
+print "Hey " * 3
+```
+
+The example above multiplies `"Hey "` by three, resulting in `"Hey Hey Hey "`, and then immediately passes it to the `print` function.  This is like assembling a sandwich in the kitchen, and then immediately eating it.
+
+There's nothing wrong with that; in fact it's a perfectly fine way to eat a sandwich.  But sometimes your recipe is too complex to do all at once; some steps need to be done ahead of time.  Or sometimes you want to make your sandwich in the morning, and eat it at lunch.
+
+In such cases, you need to store your intermediate results somewhere.  Let's imagine you're more organized in the kitchen than most people (including me!).  You have a large number of tupperware containers, and a dry-erase marker you use to label each one whenever you put something in it.  So you might build a sandwich, put it in a tupperware, and write "hamOnRye" on it.  Then later, when you're hungry for a ham on rye, you can easily grab the right tupperware and retrieve the sandwich you stored earlier.
+
+In computer programming, we have a similar concept, but the tupperware containers are called *variables*.  A variable has a name (the label) and stores a value, so you can easily retrieve it later.  You store something in a variable by using the equals sign, called the *assignment operator* in this case.
+
+variable
+: a name associated with a storage location that can hold a value
+
+assignment
+: storing a value in a variable by use of the `=` operator
+
+It looks like this:
+
+```miniscript
+greeting = "Hey " * 3
+print greeting
+```
+
+Line 1 in this example also computes `"Hey Hey Hey "`, but then stores this result in a variable called `greeting`.  Line 2 then retrieves that value, passing the value of `greeting` to the `print` function.
+
+![Variables are like storage bins for data.](variableBins.svg)
+
+And that's all there is to it.  Variable names can be pretty much anything, as long as they start with a letter or underscore character, and contain only letters, numbers, and underscores.  In particular, this means that a variable name can't contain spaces.  So `hamOnRye` would be a perfectly fine variable name, but `ham on rye` would not.
+
+D> MiniScript uses spaces and punctuation to divide your program code into words, and expects each word to have some meaning.  That's why you can't use spaces, commas, or other punctuation in a variable name; it would look like multiple words.  A variable is a single thing, so it needs to be a single word as far as the computer's concerned.
+
+E> Does "hamOnRye" look strange to you?  This style of internal capital letters, known as "camel case," is common in computer programming, but not in normal English.  It's a way to let us humans see it as multiple words, while still appearing to the computer as a single word.
+
+The example above was admittedly a bit pointless.  Our greeting expression was very simple and used immediately, so we didn't really need a variable there -- it was like making a simple sandwich and eating it right away.  So let's look at a more realistic example.
+
+{caption: "Always-8 number trick"}
+```miniscript
+num = 42
+print "starting with: " + num
+x = num - 1
+print "- 1: " + x
+x = x * 3
+print "* 3: " + x
+x = x + 12
+print "+ 12: " + x
+x = x / 3
+print "/ 3: " + x
+x = x + 5
+print "+ 5: " + x
+result = x - num
+print "- " + num + ": " + result
+print "...it's always 8!"
+```
+
+This program encodes a little arithmatic trick I found somewhere.  You start with any number -- the listing above uses `42` -- and then do a series of simple math operations to it.  At the end, no matter what you started with, you end up with 8.
+
+Variables are handy in this program for several reasons.  First, it lets us take a complex series of steps and do them one at a time, which makes the code easier to write and understand.  Second, it lets us print out the result of each of those steps as we go.  Without variables, we could either print the result of a calculation, or use it as part of a larger calculation, but not both.  Finally, you'll notice that the last step is to subtract off the number we started with -- that would be impossible if we didn't store that original number away in `num`, keeping it intact while we did all our calculations in a different variable `x`.
+
+{pageBreak}
+D> Try it!  Enter the program on the previous page carefully, and run it several times, changing the value assigned to `num` in the first line each time.  Neat, huh?
+
+## Assignment Is Not Math
+
+Some mathematically-minded people may be disturbed by lines like
+
+```miniscript
+x = x + 12
+```
+
+from the above example.  If you think of this as algebra, it makes no sense at all!  In high-school math, this would be a statement that says, "there is a number x such that x is equal to x plus 12."  There can be no such number; this is an equation with no solution.
+
+But this isn't algebra, and the above line is not a declaration of equality.  It's computer programming, and this is an assignment.  The computer does this in two steps: first, it computes the value of whatever's on the right-hand side of the `=` sign.  And second, it stores that value under the label on the left-hand side.
+
+Going back to the kitchen analogy, this would be like having a container labeled "lunch".  In the morning, you store some bread in this container.  At your mid-morning break, you retrieve your "lunch" container, take out the bread, insert some ham, and then put it back into that same "lunch" container.  You've simply reused the same container.
+
+The same thing is going on with `x = x + 12`.  We first take out the value of `x`, whatever it is at this point, and add 12 to it.  Then we store this new value back into `x`, replacing the previous value.
+
+## Leaving Notes For Yourself
+
+The second (and last) concept for today is simple but important: leaving little messages in your programs, so that readers of the code (including your future self) will better understand what it's all about.  These messages are called *comments*.
+
+comment
+: a message left in a program, ignored by the computer, meant for human readers of the code
+
+A comment in MiniScript starts with two forward slashes, `//`, and continues until the end of the line.  So anywhere you see `//` in a MiniScript program, except of course inside a string, you are looking at a note left for you by whoever wrote the code.
+
+Here's an example program containing some comments:
+
+{caption: "Simple dice program"}
+```miniscript
+// Dice program
+// Rolls two 6-sided dice and prints the sum.
+
+// Note: rnd returns a number between 0 and 1.
+// So if we multiply by 6, we get a number between 0 and 6.
+// The ceil function then "rounds" this to a whole number 1-6.
+d1 = ceil(rnd * 6)  // get the first die
+d2 = ceil(rnd * 6)  // get the second die
+print "Rolled: " + d1 + " and " + d2
+print "Total: " + (d1 + d2) // parens needed here!
+```
+
+The comments at the top of the listing are sometimes called *header comments*, and are generally there to provide an overview of what the program does.  Those are lines 1-2 in the listing above.  Lines 4-6 are providing some implementation notes, explaining the calculation that follows.
+
+Those were all longer comments that got entire lines to themselves, but you can also put a shorter comment at the end of a line of code, as shown on lines 7, 8, and 10.  In this case the computer will execute the MiniScript up until `//`, and then ignore the rest of the line.  As a human, you may often do the opposite, especially when skimming the code; you'll look for the comments, and mostly ignore the code itself.  (Not that this is always advisable; remember that comments are written by humans, and not checked by the computer... and humans often make mistakes!)
+
+As a beginner, you will be tempted to skip writing comments.  You are juggling a lot of things in your head, and comments feel like just one more.  But this is a mistake.  On the contrary, as a beginner you should write *more* comments, and you should write most of them first, before you write the actual code.  Use the comments as a way to organize your thoughts and construct an outline of your program, before you get into the nitty-gritty details.  In most cases, this will produce a working solution faster, and result in a better program.
+
+## Writing Clear Code
+
+That brings us to possibly the most important lesson in this book, and it's well put by the quote at the start of this chapter.
+
+The computer programs you've written so far have been simple, no more than a dozen lines, and often much less.  It's simple enough to read through them and understand what they're doing.
+
+But that won't be the case much longer.  Even in a high-level language like MiniScript, nontrivial programs routinely take hundreds or thousands of lines of code.  Commercial games and other apps are often millions of lines of code.  No human can grasp all those details at once.
+
+Managing this complexity is the central business of programming.  There are many strategies for doing so, and they work great together.  But as a beginner, there are just two you should keep in mind:
+
+1. Pick good, descriptive names for your variables and functions.
+
+2. Write good comments.
+
+Both of these stem from the recognition that the person reading the code in the future -- quite likely yourself -- will not be able to know everything about it at once.  When reading a line of code that uses a variable, they may not see where it was assigned a value.  So it's important that the name itself provide a useful clue to what it contains.  And of course comments help explain what is going on when the variables and operations themselves are not obvious.  They're also important for relaying the *intent* of the code, that is, the big picture of what the programmer was trying to do.  This provides the context in which the details can make sense.
+
+The importance of all this can't be overstated.  Most big software projects that fail, fail not because the computer hardware or programming environment wasn't up to the task.  They fail because the code got harder and harder to understand, and it reached a point where any attempt to change anything -- even just fixing a bug -- caused more problems than it fixed.
+
+But this is not a cause for despair.  We have learned a lot in the last half-century about how to write code that is clear, easy to understand, and a pleasure to maintain.  Well-written code has a beauty to it that is very real, even though most people can't see it.  By the end of this book, you'll be well on your way to seeing that beauty yourself.
+
+{pageBreak}
+Now that we've introduced variables and comments, the rest of the example programs will make use of these in ways that hopefully make the code clear.  And when you write your own code from scratch (which, if you haven't already done, you will soon!), please try to do the same thing.
+
+
+A> **Chapter Review**
+A> - You learned how to store values in variables for future use.
+A> - You discovered how to leave comments in the code for human readers.
+A> - You've begun to think about how to write code that is not only correct, but clear and easy to understand.
+
+
+

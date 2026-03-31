@@ -1,0 +1,346 @@
+{chapterHead: "Day 19: Display Layers, Mouse, and Import", startingPageNum:225}
+
+{width: "50%"}
+![](Chapter19.svg)
+
+
+Q> In some ways, programming is like painting. You start with a blank canvas and certain basic raw materials. You use a combination of science, art, and craft to determine what to do with them.
+Q>— Andrew Hunt (software developer and author)
+
+A> **Chapter Objectives**
+A> - Learn about the 8-layer display system in Mini Micro.
+A> - Discover how to get the position of the mouse cursor and the state of its buttons.
+A> - Learn how to use `import` to load extra functionality into your program.
+
+PRINT>You've learned how to draw to the default graphics display with `gfx`, and how to print text to the screen with `text`.  But it turns out that the Mini Micro display system is more sophisticated than this.  It actually consists of eight layers, any of which can be set to any display mode.  The available display modes are shown in the table on the next page.
+EBOOK>You've learned how to draw to the default graphics display with `gfx`, and how to print text to the screen with `text`.  But it turns out that the Mini Micro display system is more sophisticated than this.  It actually consists of eight layers, any of which can be set to any display mode.  The available display modes are shown in the table below.
+
+{i:"display modes", "Mini Micro, display modes"}
+| 0 | off | no display |
+| 1 | solid color | displays one color over the whole screen |
+| 2 | text | 26 row, 68 column text display |
+| 3 | pixel | 960 by 640 (by default) pixel display |
+| 4 | tile | displays a rectangular grid of small images |
+| 5 | sprite | displays a set of scaleable, rotatable, resizable images |
+
+{pageBreak}
+The layers are numbered from 0 to 7, and stacked up with 0 in the front, and 7 in the back.  Display layers that are off, or have any transparent areas, let you see through to the next layer behind it, and so on all the way to the back.  (If all layers are off or see-through, the screen appears black.)
+
+When you start up Mini Micro, or use the `clear` command, the display layers are set up like this:
+
+{width:"75%"}
+![Default display modes.  (Displays without a label are off).](DisplayDiagram.png)
+
+So in the standard configuration, displays 0, 1, and 2 are off; 3 is text; 4 is sprites (which we'll learn about in a few days); 5 is pixel graphics; 6 is off; and 7 is a solid color (black).  You might have noticed yesterday that when you have overlapping pixel graphics and text on the screen, the text appears on top of the pixel graphics.  Now you can see why: the text is in display 3, which is layered in front of the graphics layer in display 5.
+
+But this is only the default configuration; as a programmer, you can change this however you like!  The eight display layers can be set to any configuration, including multiple displays of the same type if desired.  Let's prove it!  Try this:
+
+{caption:"Filling all 8 displays with random text."}
+```miniscript
+for layer in range(7, 0)
+	// set the layer to text mode, with a random text color
+	display(layer).mode = displayMode.text
+	display(layer).color = rgb(255*rnd, 255*rnd, 255*rnd)
+	display(layer).clear
+	// fill it with random characters
+	for row in range(0,25)
+		for col in range(0,67)
+			c = char(32 + rnd*64)
+			display(layer).setCell col, row, c
+		end for
+	end for
+	wait
+end for
+```
+
+Run this, and it should make an absolute mess of your Mini Micro screen.  Don't worry; entering `clear` will of course clean it up!  Each of the eight layers is set to text mode, and then filled with random text.  By the end, every text position on the screen contains eight overlapping characters.
+
+This program introduces several new things you can use in your own programs:
+
+- `displayMode`, which is a built-in map that lets you refer to the different display modes by name, for example `displayMode.text`, `displayMode.pixel`, and `displayMode.solidColor`.  These simply map to the mode numbers (0-5) shown in the table on the previous page.
+- `display(num)`, a function that returns a reference to the display object for the given layer number (0-7).
+- `mode`, a property on every display class that controls what mode that layer is.
+
+So in the listing above, line 3 uses the `display` function to get a reference to one of the layers (using the `layer` variable from the `for` loop); and then it changes it to text mode by assigning `displayMode.text` to its `.mode` property.
+
+Let's use the REPL to do this step by step.  Start by resetting your displays:
+
+```terminal
+]clear
+]text.color = color.orange
+```
+
+After the `clear` call, display 3 is text and display 2 is off.  Let's change display 2 so that it is *also* text, and print some overlapping text.
+
+```terminal
+]display(2).mode = displayMode.text
+```
+
+As soon as you enter this line, all that random text that was created from the program before suddenly appears!  The `clear` command turns display 2 off, but it does not actually clear the underlying text display.  So we'll do that next, and then set the color, and print some dashes on line 10.
+
+```terminal
+]display(2).clear
+]display(2).color = color.green
+]display(2).row = 10; display(2).print "-----"
+```
+
+Those dashes appear in display 2, which is in front of the default `text` display (3).  So now let's print some text behind the dashes:
+
+```terminal
+]text.row = 10; text.print "DONE!"
+```
+
+Below is a handy function to list what the current display types are.
+
+{caption:"Function to list the current mode of all eight display layers."}
+```miniscript
+dispDump = function()
+	for layer in range(0,7)
+		d = display(layer)
+		print layer + ". " + displayMode.str(d.mode)
+	end for
+end function
+
+dispDump
+```
+
+This uses the `displayMode.str` function to convert a mode number back into a string (basically doing the same thing as `displayMode.indexOf` in this case).  The `for` loop here has been wrapped in a function so that, once you've run this code, you can just call `dispDump` at any time to see how your displays are arranged.
+
+Before we move on, let's create a couple of functions to do a fade-out or fade-in effect.  This will work by setting the frontmost display (layer 0) to solid color, and then using a loop to gradually change that from clear to black or vice versa.  This acts like a sort of stage curtain, covering or revealing the other seven layers.
+
+{caption:"Display fade-out and fade-in functions."}
+{i:"fade out"}
+```miniscript
+// fade a black curtain from alpha0 to alpha1
+// (where 0 means clear and 1 means solid black)
+// over `duration` seconds.
+fade = function(alpha0, alpha1, duration=1)
+	// set the frontmost display to solid color
+	display(0).mode = displayMode.solidColor
+	t0 = time   // note the time
+	while true  // loop until done
+		t = (time - t0) / duration  // fraction done
+		if t > 1 then break  // done when t > 1
+		a = alpha0 + (alpha1 - alpha0) * t
+		display(0).color = color.rgba(0,0,0,a)
+		yield  // wait till next display frame
+	end while
+	display(0).color = color.rgba(0,0,0,alpha1)
+end function
+
+// fade to black over `duration` seconds
+fadeOut = function(duration=1)
+	fade 0, 255, duration
+end function
+
+// fade from black to clear over `duration` seconds
+fadeIn = function(duration=1)
+	fade 255, 0, duration
+	display(0).mode = displayMode.off
+end function
+```
+
+Notice how the `fadeOut` and `fadeIn` functions do very little work themselves, instead calling a `fade` function that does all the heavy lifting.  This follows the DRY (Don't Repeat Yourself) principle from Chapter 11; without this helper function, `fadeIn` and `fadeOut` would be almost identical.
+
+After running the above code to define the functions, try them out with:
+
+```terminal
+]fadeOut; key.get; fadeIn
+```
+
+Neat, huh?  You can use these functions any time you need a dramatic fade to black in your own programs.
+
+## Reading the Mouse
+
+Let's turn now to a different topic: detecting where the mouse cursor is, and the state of the buttons.  This is a very useful thing to do, since it lets us go beyond keyboard input and make programs that can be controlled with a mouse (or track pad or touch screen!).
+
+{i:"`mouse` module;Mini Micro, `mouse` module"}
+This is done in Mini Micro with a very simple built-in module called `mouse`.  It has two read-only properties, one read/write property, and one function:
+
+{i:"Mini Micro, `gfx` module;`gfx` module;graphics properties"}
+{caption:"Properties and function in the `mouse` module.  `x` and `y` are read-only; `visible` can be assigned true or false."}
+| `mouse.x` | horizontal position of the mouse pointer (0-959) |
+| `mouse.y` | vertical position of the mouse pointer (0-639) |
+| `mouse.visible` | true if mouse cursor can be seen; false if hidden |
+| `mouse.button(which=0)` | true when the given button is pressed |
+
+To start exploring the `mouse` module, position the mouse somewhere over the Mini Micro screen, and simply enter `mouse` at the prompt.  You'll see something like this:
+
+```terminal
+]mouse
+{"x": 417, "y": 166, "button": FUNCTION(which=0), "visible": FUNCTIO
+N()}
+```
+
+Note the `x` and `y` values shown — these vary with the mouse position.  Try moving the mouse, and then entering `mouse` again.  In fact, on some systems, you can even read the mouse position beyond the bounds of the screen; for example, if you move the mouse to the left of the Mini Micro window, you'll see a negative `x` value.
+
+Next, try setting `mouse.visible = false` at the prompt, and observe that the mouse pointer disappears.  This is useful for some kinds of games, where you might want to use a sprite (coming up in Chapter 22) in place of the standard mouse cursor.  Set `mouse.visible = true` to bring it back.
+
+Finally, let's look at the `button` method.  A gaming mouse can have up to seven buttons, numbered 0 through 6.  A more typical mouse has two buttons, with the main button as number 0 and the secondary or right-click button as number 1.  Often the scroll wheel can be pushed, which reads as button 3.
+
+When you don't supply the `which` parameter to `mouse.button`, it reports the state of button 0.  So try it: enter `mouse.button` at the prompt, without touching the mouse, and it should report 0, meaning that the button is not pressed.  Then enter it again (remember the up-arrow trick!), but this time,  hold down the primary mouse button while you press Enter or Return.  This time it reports 1.
+
+Now that you can get the mouse position and button state, you can do all sorts of neat things.  Try this simple drawing program:
+
+{caption:"A simple drawing program in Mini Micro."}
+```miniscript
+clear
+gfx.color = color.white
+prev = {}
+while not key.pressed("escape")
+	// The mouse might move within this loop, so let's grab a copy
+	// of it right away as "m", and use only that.
+	m = {"x": mouse.x, "y": mouse.y}
+	
+	// If the button is down, draw a line from 
+	// our previous mouse position.
+	if mouse.button then gfx.line prev.x, prev.y, m.x, m.y
+	// ...and then remember that as the previous position next time.
+	prev = m
+	
+	yield    // wait for next frame
+end while
+key.clear
+```
+
+Run that code, and then try drawing with the mouse.  Can you draw a house?  Can you use the mouse to draw a mouse?  (Fortunately this is not a *Learn to Draw* book, so random scribbles are also perfectly fine.)
+
+## Importing prewritten code
+
+{i:"`import`;Mini Micro, `import`"}
+As the last topic for this chapter, we're going to learn about the `import` command.  This very useful function loads a file of MiniScript code stored somewhere else on disk.  For example:
+
+{i:"`/sys/lib`,`chars`"}
+```terminal
+]import "chars"
+]print chars.heart
+♥
+```
+
+{i:"`/sys/lib`;`/usr/lib`"}
+The first line above tells Mini Micro to search for a MiniScript source file called `chars.ms` in the current directory, `/sys/lib`, or `/usr/lib`.  In computers, "lib" stands for "library," and refers to a place to find reusable code that may be useful to a variety of programs.  (You can also define other folders to check by assigning them to `env.importPaths`.)  All the standard, built-in import modules are in `/sys/lib`, so let's go there and check them out.
+
+```terminal
+]cd "/sys/lib"
+]dir
+```
+
+You'll find `chars.ms` in this directory.  Use `load "chars"` and `edit` to view this file.  You'll see that it looks like an ordinary MiniScript program, with some helpful comments and (in this case) a bunch of assignments to things like `left`, `upArrow`, `mu`, `emptyBox`, and `heart`.  That last one is the value you used above when you printed `chars.heart`.
+
+So here's how `import` works: the name file is found, and then run in a special way, such that any global variables created by that file become entries in a map with the name of the module.  That assignment to `heart` in `chars.ms` becomes accessible as `chars.heart`, and so on for all the other values assigned.  Explore the file and note a few others that you want to try, then exit the editor and try them.  For example:
+
+```terminal
+]chars.dieFace[3]
+⚂
+]chars.bullet
+•
+```
+
+D>Always read an import file to learn how to use it!  Unlike the MiniScript language or the built-in Mini Micro classes, which are documented in places like the MiniScript wiki, most import modules are documented only within their own source.
+
+{i:"`listUtil` module;Mini Micro, `listUtil` module"}
+Let's try another one.  There's a library module called `listUtil` ("util" here is short for "utilities").  As always with import modules, begin by reading the source:
+
+{i:"`/sys/lib`,`listUtil`"}
+```terminal
+]load "listUtil"
+356 lines loaded from /sys/lib/listUtil.ms
+]edit
+```
+
+This one looks a little different, because most of the assignments in this file are adding to the built-in `list` type.  For example, near the top of the file you should find something like this:
+
+```miniscript
+// contains: return true if this list contains the given element.
+list.contains = function(item)
+	return self.indexOf(item) != null
+end function
+```
+
+This assigns a function to `list.contains`.  The built-in list type does not have a `contains` method, but after importing this module, it does!  Try it out:
+
+```terminal
+]import "listUtil"
+]a = [2, 4, 6, 8]
+]a.contains 2
+1
+]a.contains 3
+0
+```
+
+Edit `listUtils` again to see what other goodies have been added.  Some of them are a bit complex, and it's OK if you don't understand everything in here just yet.  But many of them are easy to understand, and could be quite useful:
+
+```terminal
+]a.min
+2
+]a.max
+8
+]a.any
+6
+```
+
+Of course when you try it, you may get a different value for `a.any`, since the whole point of the new `list.any` method is to return a random element!
+
+One particularly useful function added by `listUtil` is `list.removeVal`.  You will of course find this in the `listUtil` source code, and it begins like this:
+
+```miniscript
+// removeVal: remove the first (or all) occurrences of a 
+// given value.
+list.removeVal = function(val, removeAll=false)
+```
+
+This is handy because the standard `list.remove` method takes an element *index* to remove, not a value.  You would pass `list.remove` an argument of 0 to remove the first element, 1 to remove the second element, and so on.  But in many cases, what you have is a particular *value* you want to remove, and you don't know its index.  You just want to take that value out of the list, wherever it is (if it's there at all).  After doing `import "listUtil"`, you can do exactly that:
+
+```terminal
+]a.removeVal 6
+]a
+[2, 4, 8]
+```
+
+Of course all this works not only on the REPL command line, but also in your own programs.  Now that you know about it, you'll notice `import` statements near the top of many of the demo programs.  You should take some time to explore what these `/sys/lib` modules have to offer.  Here's a quick summary of the most important ones.
+
+{i:"import modules;`/sys/lib`"}
+{caption:"Import modules found in `/sys/lib`."}
+|chars|defines names for various special characters|
+|grfon|functions to save and load data in GRFON format|
+|json|functions to save and load data in JSON format|
+|listUtil|adds additional methods to the `list` type|
+|mapUtil|adds additional methods to the `map` type|
+|mathUtil|additional math & geometry functions|
+|pathUtil|functions for working with 2D paths|
+|sounds|some predefined synthesized sounds|
+|spriteControllers|extra functionality for sprites|
+|stringUtil|handy string constants, and adds methods to the `string` type|
+|textUtil|functions related to drawing text|
+|tileUtil|functions related to tile displays|
+|tsv|functions to read tab-separated data|
+|turtle|defines a `Turtle` class, for doing turtle graphics|
+
+Finally, it should be noted that an import module is also a perfectly valid MiniScript program in its own right.  You can `load` an import module, and then `run` it like any other program.  When you do, it will often run some testing code or otherwise demonstrate its functionality.  This works via a special trick.  When a MiniScript file is being executed via `import`, assignments at the "global" scope do not actually go into `globals` (they go into an in-between scope we might call *module scope*).  You can tell when this is the case because `globals != locals`.  Conversely, when a program is being run normally (not via `import`), then `globals == locals`.  That's why you'll often see something at the bottom of an import module like
+
+```miniscript
+if globals == locals then runUnitTests
+```
+
+This says, if we're being run as a regular program (rather than imported), then call `runUnitTests`.
+
+At some point, you'll want to create your own modules of handy code that you like to use in multiple programs.  You can simply create your library directory with `file.makedir "/usr/lib"`, and put your own scripts there.  These will be found by `import` just like the ones in `/sys/lib`.
+
+## Exploring the Demos
+
+{i:"`/sys/demo`,`scribble`"}
+Going back to `/sys/demo`, you'll find one called `scribble.ms` that is just a slightly expanded version of the mouse-drawing program you made above.  That one is worth studying a bit to see how the mouse is used.
+
+{i:"`/sys/demo`,`forestFire`"}
+For an example of display layers, you might look at the `forestFire` demo.  This sets up layers 1 and 2 both in text mode, and then switches back and forth between them on each step of the simulation.  You could also look at the `wumpusTrap` game, which uses several display layers, though two of these are tile and sprite, which we haven't covered yet.
+
+{i:"`/sys/demo`,`theMatrix`;`/sys/demo`,`turtleDemo`"}
+If it's `import` you're looking for, you can find that in many of the demos.  The `balloons` demo imports both `mathUtil` and `pathUtil` to help move the balloons around the track.  The `chars` module we introduced first in this chapter is used in `theMatrix` demo.  And of course `turtleDemo`, which you first saw in the previous chapter, imports the `turtle` module to provide all that turtle graphics goodness.
+
+
+A> **Chapter Review**
+A> - You gained insight into Mini Micro's 8 display layers, and how to control them.
+A> - You learned how to use the `mouse` module to read the mouse position and buttons.
+A> - You came to grips with `import`, and explored the library of modules available to you in `/sys/lib/`.
+A> - You have begun to think about what sort of code you might want to put into your own import modules, to make your future programs shorter and simpler.
+

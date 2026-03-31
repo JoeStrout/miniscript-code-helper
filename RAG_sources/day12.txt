@@ -1,0 +1,223 @@
+{chapterHead: "Day 12: Object-Oriented Programming", startingPageNum:129}
+
+{width: "50%"}
+![](Chapter12.svg)
+
+Q> Controlling complexity is the essence of computer programming.
+Q>— Brian Kernigan (computer scientist, author)
+
+A> **Chapter Objectives**
+A> - Learn the basics of object-oriented programming.
+A> - Start thinking about how to make code that can be reused in different programs.
+
+By this point you've learned about all the important data types in MiniScript: numbers, strings, lists, maps, and functions.  That's it; there are no more data types to learn!  OK, technically `null` is its own data type, but it's a trivial one, and you already know about that too.
+
+So the rest of the book, including this chapter, is not going to teach you any more data types.  But we are going to look at a particular use of the map data type.  Maps are incredibly versatile, as we saw in Chapter 10.  By mapping keys to values, they can represent pretty much anything.  Now we're going to look at how you can use them to represent "classes" and "objects" to make your code simpler, more organized, and more reusable.
+
+## Classes and Objects
+
+{i:"OOP;object-oriented programming"}
+The terms *class* and *object* come from a long programming tradition called *object-oriented programming* (or OOP for short).  Let's define what they mean in MiniScript terms:
+
+class
+: a map that is used to represent a type or category of thing, such as a Person, a Sprite, a Projectile, etc.
+
+object
+: a map that is used to represent a particular thing; examples might be Bob (a Person), space invader #7 (a Sprite), a softball at a certain position (a Projectile), etc.
+
+Notice that both classes and objects are just maps, and indeed, there is very little technical difference between them as far as MiniScript is concerned.  The difference is in the intent of the programmer.  They are used in different ways: classes hold code and data that is common to lots of different things.  Objects are those individual things, which are instances of the class.
+
+
+All this is very abstract, so let's illustrate with an example.  Suppose you're writing a program to work with colored blocks.  And to make things simpler, imagine they're two-dimensional blocks, with only width and height and no depth — like what you might draw on a computer screen or graph paper.  Fire up your REPL (or the Try-It! page, or whatever other MiniScript context you prefer), and let's create a class called `Block`.
+
+```miniscript
+Block = {}
+Block.color = "white"
+Block.width = 1
+Block.height = 1
+```
+
+Line 1 here creates an empty map, and assigns it to `Block`.  Lines 2-4 stuff some values into that map, using dot syntax.  (Turn back to Chapter 10 if you need to review maps and dot syntax.)
+
+D> A common convention in the MiniScript world is to capitalize variable names that refer to a class.  We intend to use `Block` here as a class, so we write it with a capital "B".
+
+{i: "`new`"}
+Now let's create an instance of the `Block` class.  You do this using the `new` operator.  Continuing from the previous example:
+
+```miniscript
+b1 = new Block
+print b1.width
+```
+
+The first line also creates a map, but not just an empty map; it creates a map based on our previous `Block` map.  We say that `b1` "is a" `Block`, or you might say that `b1` "inherits from" `Block`.  These are all just ways of saying that `b1` was created from `Block` (or from some other map that itself *is a* `Block`).
+
+And that makes `b1` special, because it means that any time we look up a value in the `b1` map, if we don't find it there, we look at the map it inherits from.  That's how we are able to print `b1.width` above, even though we never assigned a "width" value to `b1`.  It's no problem; since `b1` doesn't have such a value itself, it returns the value from `Block` instead.
+
+D> Under the hood, what `new` does isn't all that complex: it creates a map, but sets the special key `__isa` to whatever value comes after `new`.  So in the example above, if you examine `b1`, you will find that `b1.__isa` is equal to `Block`.  This is how MiniScript keeps track of what a map was made from, and does all the OOP magic described in this chapter.
+
+EBOOK>Here's a diagram of how `Block` and `b1` are represented in memory.  Both are really just maps, but that special `__isa` entry in `b1` makes it an *instance* of class `Block`.
+
+{width:50%}
+![Memory diagram of class `Block` and instance `b1`.](BlockB1.svg)
+
+{i:"instance"}
+PRINT>A diagram of how `Block` and `b1` are represented in memory is at the top of the next page.  Both are really just maps, but that special `__isa` entry in `b1` makes it an *instance* of class `Block`.
+
+
+instance
+: another word for "object," used when you want to emphasize the object's class
+
+At this point you can get a glimmer of what makes OOP (object-oriented programming) so useful.  You may need a *lot* of blocks, and they probably have a lot of data and functions in common.  Instead of putting redundant copies of all those bits of data and code on every block, you can put it on their common base class (`Block`), and the individual blocks only need to store what makes them unique.
+
+Let's continue with the above example by giving Block a function or two.  Add this to your growing code:
+
+```miniscript
+Block.area = function()
+    return self.width * self.height
+end function
+
+Block.description = function()
+    return self.width + " x " + self.height + " " + self.color + " block"
+end function
+
+print b1.area
+print b1.description
+```
+
+{i: "`self`"}
+Here we added two functions to the `Block` class, `area` and `description`.  Each of these shows another OOP trick: the `self` keyword.  `self` is a special reference to the map a function was called on with dot syntax.  So if we call `b1.area`, then inside that `area` function, `self` refers to `b1`.  The example above should print `1` for the area, and "1 x 1 white block" for the description.
+
+So far we have only one object of type `Block`, which is a little pointless.  OOP becomes useful when there are many (or at least two) objects of the same kind.  So, let's create a second block and call it `b2`.  While we're at it, let's customize each of these blocks a bit so they're not boring 1-by-1 white squares.
+
+```miniscript
+b1.width = 3
+b1.color = "red"
+b2 = new Block
+b2.height = 5
+b2.color = "green"
+print b1.description
+print b2.description
+```
+
+{width:"50%", position:"bottom"}
+![Memory diagram of class `Block` with instances `b1` and `b2`.](BlockB1B2.svg)
+
+Now we're getting somewhere!  We changed our `b1` block so that it is red and has a width of 3.  We didn't change its height, so that's still 1.  Then we created another block, `b2`, with a height of 5 and a green color.  In this case we didn't change its width, so it gets 1 from `Block`.  Neither of them has a custom `description` method, so when we call `.description` on them, we're really calling `Block.description`, but with `self` referring to `b1` or `b2`, as appropriate.  That's why they each print out a correct description of themselves.  The first one (`b1`) should return "3 x 1 red block" while the second one (`b2`) prints "1 x 5 green block".
+
+That's the basics of OOP (object-oriented programming)!
+
+
+
+{gap:20}
+
+Let's reinforce it with a different example.  Suppose you're writing a program to keep track of cookies — it could be cookies baked, or cookies eaten; it's up to you!  But in any case your program will be dealing with a lot of cookies, and they are all pretty similar.  So it's a good idea to make a class to represent them.
+
+```miniscript
+Cookie = {}
+Cookie.radius = 3
+Cookie.area = function()
+    return pi * self.radius^2
+end function
+```
+
+Here we have created a class called `Cookie`.  Of course it's really just a map, but it's a map that we *think of* as a class; it's going to represent everything that's common about all cookies in our program.  That includes `radius`, which (unless we change it) is 3 centimeters, and an `area` function that can use that radius value to compute its area (using the standard formula for area of a circle).
+
+Now let's actually instantiate (make an instance of) the `Cookie` class by using `new`. 
+
+```miniscript
+c1 = new Cookie        
+print c1.area
+```
+
+This should print `28.274334`, which is the area of a cookie with a radius of `3`.  But let's suppose this is a somewhat larger cookie.  Change the radius to 4, and print its area again:
+
+```miniscript
+c1.radius = 4
+c1.area
+```
+
+This prints `50.265482`.  When we call the `area` method on `c1`, it invokes the code that's actually stored on `Cookie`, but the `Cookie.area` function uses `self.radius`.  In this case that is the radius of `c1`, which we just set to `4`.
+
+Let's make our `Cookie` class a little fancier.  We'll have it also keep track of how many chips are in the cookie, and use that (along with the area) to estimate how many calories the cookie has.  And while we're at it, let's also give our class a `description` method, similar to the one we had above for `Block`.  Just to show that there's nothing magic about the name `description`, we'll abbreviate it this time to just `desc`.
+
+```miniscript
+Cookie.chips = 0
+
+Cookie.calories = function() 
+    return 5 * self.area + 2 * self.chips
+end function
+
+Cookie.desc = function()
+    result = self.radius * 2 + " cm cookie"
+    result = result + " with " + self.chips + " chip"
+    if self.chips != 1 then result = result + "s"
+    result = result + " (" + round(self.calories) + " cal)"
+    return result
+end function
+```
+
+This assigns a new value (`chips`) and two new methods (`calories` and `desc`) to the Cookie class.  Because `c1` is a Cookie, it immediately gets to use this new stuff.  Add `print c1.desc`, and you should see "8 cm cookie with 0 chips  (251 cal)".
+
+Now instead of just creating a second cookie, let's create a whole batch of cookies!  And we'll make them all different, with a random radius and number of chips.
+
+```miniscript
+cookies = []
+for i in range(1, 9)
+    c = new Cookie
+    c.chips = floor(rnd * 10)
+    c.radius = 2 + 3 * rnd
+    cookies.push c
+end for     
+```
+
+This will create (and print) a list of ten random cookies.  If you examine this list carefully, you'll see that each has a radius, a number of chips, and an `__isa` key that points to `Cookie`.  But that list is hard to read; let's print them out a bit more nicely.
+
+```miniscript
+for item in cookies; print item.desc; end for
+```
+
+D> Tip: you can put several short statements on one line by separating them with semicolons.  This is especially handy in a REPL, since you can up-arrow to recall the whole multi-statement line at once, rather than having to repeat each statement one at a time.
+
+This should produce a result that looks something like this:
+
+```
+7.679863 cm cookie with 0 chips (232 cal)
+6.053417 cm cookie with 4 chips (152 cal)
+7.978822 cm cookie with 0 chips (250 cal)
+7.69492 cm cookie with 9 chips (251 cal)
+9.87915 cm cookie with 3 chips (389 cal)
+7.336143 cm cookie with 1 chip (213 cal)
+8.179308 cm cookie with 7 chips (277 cal)
+9.685048 cm cookie with 9 chips (386 cal)
+9.216735 cm cookie with 9 chips (352 cal)
+```
+
+{i:"`list.sort`;sorting;list, sorting"}
+Of course your numbers will be different, since they are random.  Just for fun, let's sort this list by radius.  The `list.sort` method takes an optional second parameter, which is the name of a key to sort by.  So we can do:
+
+```miniscript
+list.sort "radius"
+for item in cookies; print item.desc; end for
+```
+
+And now you should see the same batch of cookies, but ordered by radius.
+
+To review, in this example we created a class called `Cookie`, and then created a bunch of objects (which are also called instances of the class) and stored them in the list.  Each of our objects is a `Cookie`, and inherits all the properties and methods that `Cookie` defines.
+
+## Writing Reusable Code
+
+There are two reasons why object-oriented programming has become so popular in the last few decades.  One is that it helps keep big programs neat and organized, with all the functions for a particular kind of thing bundled together into classes.  The other is that it makes it easier to reuse code.
+
+Code reuse is kind of the holy grail of programming.  Faced with a need — say, drawing a little picture on the screen that can efficiently move, rotate, and change size — you only want to write code for that once, at most.  Then the *next* time you face that same need, you want to just pull that code off the shelf and use it again.  This is possible to do without OOP, but it's harder; you would have a collection of functions that might well conflict with other functions you already have in your program for other things.  And it would get even more difficult to manage as you start defining sub-kinds of objects, with behavior that is almost, but not quite, like the general kind.
+
+Conversely, with OOP, reusing code like that is substantially easier.  If you have a little picture-moving class — let's call it Sprite — then everything there is to managing sprites can be wrapped up in that class.  You can add that class to your program, and as long as you don't already have something called Sprite, it won't break anything.  (This, by the way, is why MiniScript is case-sensitive, and why we capitalize classes but not ordinary variables; it reduces the chance of conflicts, since `sprite` is not the same thing as `Sprite`.)  The Sprite class might have dozens of properties and methods, but they're all tucked neatly away under the Sprite class.
+
+Of course you could get *that* benefit just by stuffing a bunch of related methods into a map, without using any of the OOP features like `new` and `self`.  And in some cases that's all you need.  But when those methods operate on some cluster of data, like the block example above or the position, rotation, and size of a Sprite, then it becomes really handy to have those things defined as objects.
+
+As a new programmer, you may not see lots of opportunities to define your own classes right away, and that's OK.  You will, however, start *using* classes a lot after Chapter 14, because that's when we get into Mini Micro.  Mini Micro has a built-in Sprite class, along with other classes that represent sounds, files, displays, and so on.  You'll also see classes crop up here and there in the examples in the rest of this book.  (In fact some of the earlier examples could have been done more neatly using OOP, and believe me, it was a little painful to write them the old-fashioned way!)  
+
+
+A> **Chapter Review**
+A> - You learned about object-oriented programming (OOP), and how to do it in MiniScript using `new` and `self`.
+A> - You began thinking about how to write code that can be reused later (your future self will thank you).
+ 

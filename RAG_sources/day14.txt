@@ -1,0 +1,439 @@
+{chapterHead: "Day 14: Sea Battle Game", startingPageNum:153}
+
+{width: "50%"}
+![](Chapter14.svg)
+
+Q> I don’t understand how people live without creating.
+Q>— Samuel L. Jackson (actor and producer)
+
+A> **Chapter Objectives**
+A> - Rest and recouperate.
+A> - Enter and play a somewhat larger MiniScript game.
+A> - Review & synthesize what you've learned so far.
+
+If you've been doing one chapter a day, you've now been building your programming skills for two weeks.  If you've been doing some other pace, that's fine too!  Either way, you've now learned all the core basics of programming:
+
+- strings, numbers, lists, and maps
+- variables
+- built-in functions like `print`, `input`, and `val`
+- looping with `while` and `for`
+- branching with `if`, `else if`, and `else`
+- defining your own functions
+- object-oriented programming with classes
+- reading, writing, and manipulating files
+
+And you've learned how to do all this both on the MiniScript Try-It! page on the web, as well as on the command line.  That's a lot of skill!
+
+Of course just knowing something is different from being able to do it well.  If you've never played the piano, someone could very quickly explain how to press the keys in order to make sound come out, and even to play some simple songs.  But you would obviously have plenty of room for improvement through practice.  Programming is the same way.
+
+You can get some idea of a programmer's level by showing them a page of code.
+
+1. The non-programmer can't really make heads or tails of it at all.
+2. A very new programmer will understand most or all of the syntax, and how to look up the bits they don't understand, but may still not grasp what the program is doing.
+3. An intermediate programmer will understand what the program's doing and how it works, though they may not have been able to write such a program themselves.
+4. An advanced programmer could have written the same program from scratch, given only a clear description of the desired behavior.
+
+You're probably at level 2 or so at this point, working towards level 3.  That's a fine place to be, and it's a place every advanced programmer has been.  To progress further, all you need is practice.  Just as when learning a musical instrument, the more you practice, the faster you will improve.
+
+One of the easiest and most quickly rewarding ways to practice is by typing in programs written by advanced programmers.  This is no different from a musical composer, who begins by playing music composed by others.  In following the footsteps of the creators before you, you learn a great deal about how to make your own creations.
+
+So today we're going to take a break from learning new things, and instead review and practice with a moderately-sized MiniScript game.  I encourage you not to skip typing this in on your own computer.  Typing it in engages your brain substantially more than just reading it.  Also, you are sure to make some mistakes in entering the code, and those *really* engage your brain as you track them down.  I can almost see your programming muscles growing stronger already!  Let's dig in.
+
+![](battleship.svg)
+
+## The *Sea Battle* Game
+
+The game today is a classic guessing game for two players, though in our implementation, one of those players will be the computer!  Each player has five ships of various sizes, arranged on a 9 by 11 grid.  The position of your opponent's ships are unknown to you.  On each turn, you guess a grid cell to fire at, and you are told only whether your shot hit a ship, or missed.  When all the cells covered by a ship have been hit, it sinks, and the first player to sink all of their opponent's ships wins the game.
+
+This game will be too big for the Try-It! page, so you'll need to use command-line MiniScript (or you can use Mini Micro, if you aready know how to do so).  Create a text file called "battle.ms", and enter the following:
+
+{caption: "Listing 1 (Sea Battle begins)."}
+```miniscript
+// Sea Battle
+print "Welcome to SEA BATTLE!"
+print
+```
+
+Save this somewhere that you can easily find the path to it on the command line.  You could save it right next to the `miniscript` executable if you want, and then running it would be a matter of changing to that directory (with `cd`), and then entering:
+
+```terminal
+miniscript battle.ms
+```
+
+For readers still not too used to the command line, this may be the hardest step, since I can't tell you exactly how to do it — it depends on what sort of computer you have, and where you have stored command-line MiniScript and your `battle.ms` file.  If you need to, go back and review Chapters 8 and 9, where we learned how to use command-line MiniScript to run a script file.  Make sure you can get this much to run before you go on.
+
+Notice what we did here: we began with just a tiny piece of the program.  This is the right way to approach any program, and is in fact exactly what professional programmers do!
+
+D> When building a large program, never try to do it all at once.  Instead, build it up from smaller pieces, always testing and debugging as you go.
+
+PRINT>Now that we have a working (trivial) script, the next most important thing we have to do is figure out how we are going to represent the data in the game.  Each player has a couple of map grids: one that shows their own ships, along with where their opponent has fired; and one that keeps track of where they have fired at their opponent.  Each cell in a grid is referred to with coordinates like "C5", where the letter (A-K) indicates the column, and the number (1-9) indicates the row.  See the diagram at the top of the next page.
+
+EBOOK>Now that we have a working (trivial) script, the next most important thing we have to do is figure out how we are going to represent the data in the game.  Each player has a couple of map grids: one that shows their own ships, along with where their opponent has fired; and one that keeps track of where they have fired at their opponent.  Each cell in a grid is referred to with coordinates like "C5", where the letter (A-K) indicates the column, and the number (1-9) indicates the row.  See the diagram below.
+
+![Conceptual diagram of the two map grids each player must keep: one for their own ships and where the opponent has fired, and one for where they have fired at the opponent.](BattleGrids.svg)
+
+There are several ways we could represent such a grid in MiniScript.  We could use a list of lists, indexed by row and column number.  But instead we're going to use the `map` data type, where the key is a coordinate string like "C5", and the value is a character that indicates an empty cell, a part of a ship, a hit, or a miss.
+
+So, having figured that out, go ahead and add the code in Listing 2 to your `battle.ms` file.  (Note that the line numbers start at 5 because line 4, not shown, is blank.)
+
+{caption: "Listing 2 (Sea Battle data model).", number-from: 5}
+```miniscript
+rows = "987654321".split("")
+cols = "ABCDEFGHIJK".split("")
+
+shipTypes = {
+  "Battleship": "BBBBB", 
+  "Destroyer": "DDDD",
+  "Cruiser": "CCC",
+  "Frigate": "FFF",
+  "Patrol Boat": "PP" }
+
+EMPTY = "."
+MISS = "w"
+HIT = "*"
+
+newMap = function()
+  m = {}
+  for r in rows
+    for c in cols
+      m[c + r] = EMPTY
+    end for
+  end for
+  return m
+end function
+
+print "rows: " + rows
+print "cols: " + cols
+print "test map: " + newMap
+```
+
+Those last three lines are just test code that we'll remove in a moment.  But when you run this, after the "Welcome to SEA BATTLE!" message, you should see `rows` printed as a list of strings from "9" to "1", and "cols" as a list of strings from "A" to "K".  You'll also see a test map printed as a rather large dictionary, with lots of coordinates like "A9" and "K5", all mapped to the string ".", which represents an empty cell.
+
+Strings like "." in this program are sometimes called *magic strings*.
+
+magic string
+: a string literal that has special meaning to the code, so that if you were to change it in one place without changing it elsewhere, the code would no longer work properly
+
+Magic strings are generally not considered a good thing, because it's so easy to mess them up.  So rather than using the string literals everywhere we need to refer to an empty cell, we assign this magic string to a variable called `EMPTY` on line 15 (and do something similar for the strings that represent a hit or miss).  Now, throughout the code, we use this variable instead of the string literal.  So if you decided you wanted to use something else — perhaps a space — instead of a dot to represent an empty cell, you would just change it on line 15, and the program would still work.
+
+You probably also noticed the `shipTypes` map, which maps each ship to a string of letters that will represent it on the map.  You can change those too, as long as you stick to two rules: all the letters for a particular ship must be the same, and no two ships can use the same letters.  We'll assume these rules later when working out whether a ship has sunk.
+
+Once you have that much working, let's keep going!  Delete those last few lines (29-31), and continue with Listing 3.
+
+{caption: "Listing 3 (Sea Battle input validation).", number-from: 29}
+```miniscript
+isRow = function(s)
+  return rows.indexOf(s) != null
+end function
+isCol = function(s)
+  return cols.indexOf(s) != null
+end function
+
+// Get coordinates from the user, and return as string in 
+// standard form, e.g. "A1" (to index into one of our sea maps).
+inputCoordinates = function(prompt)
+  while true
+    s = input(prompt).upper
+    if s.len == 2 and isRow(s[0]) and isCol(s[1]) then
+      return s[1] + s[0]
+    else if s.len == 2 and isRow(s[1]) and isCol(s[0]) then
+      return s
+    end if
+    print "Please enter a map position like A1 or G8."
+  end while
+end function
+
+print inputCoordinates("Map position? ")  
+```
+
+This part begins by defining a couple of handy functions to determine whether a given character is a valid row indicator (like "5") or column indicator (like "E").  They work by calling `indexOf` to find the index of the given character in our `rows` or `cols` list; if the character is not found, then `indexOf` returns `null`.
+
+Then we define an `inputCoordinates` function that displays a prompt asking the user for a grid coordinate, and keeps asking until it gets a valid answer.  It also standardizes that answer, so even if you enter "c5" or "5c" or "5C", it will be returned as "C5".
+
+Again we have tacked a bit of test code to the end of this block.  So, type in the above, and test it a few times, trying both valid and invalid map positions.  Make sure it works before moving on.
+
+What's next?  The game has two players, and the data for each player is identical: two map grids, plus a list of ships that haven't been sunk yet.  Any time you see a need for a collection of data, defining a class is probably a good idea; and if you have a need for two or more such collections, then a class is *definitely* a good idea.
+
+So in Listing 4, we will define a Player class, including a function to initialize it, and a function to print out its maps.  (In normal play we will never print the computer player's maps, but we might want to for debugging, so it's handy to have it as a general function on the Player class.)  Again, remember to remove the test code (line 50) from your script before adding the new code.
+
+{caption: "Listing 4 (Sea Battle Player class).", number-from: 50}
+```miniscript
+Player = {}
+
+Player.init = function()
+  self.myMap = newMap
+  self.targetMap = newMap
+  self.shipsLeft = []  // names of ships not yet sunk
+end function
+
+Player.print = function()
+  print "  YOUR SHIPS         TARGET MAP"    // 9 spaces in middle
+  print " +-----------+     +-----------+"    // 9 dashes per group
+  for r in rows
+    temp = [r, "|"]
+    for c in cols
+      temp.push self.myMap[c + r]
+    end for
+    temp.push "|    " + r + "|"
+    for c in cols
+      temp.push self.targetMap[c + r]
+    end for
+    temp.push "|"
+    print temp.join("")
+  end for
+  print " +-----------+     +-----------+"
+  print "  " + cols.join("") + "       " + cols.join("")
+end function
+
+p = new Player
+p.init
+p.print
+```
+
+Q> "Type it in, save it, test it out, HEY-O!"
+Q> —lyrics from hit single *Code Me* by Noobz 2 Guruz
+
+Each player has a map (created with the `newMap` function from Listing 2) called `myMap` that represents their own ships, and another one called `targetMap` that keeps track of where they have fired at the other player.  The `Player.print` function prints these out side by side.  It's a big function, but the structure is fairly simple: it loops over the rows, with smaller loops on each row looping over columns to print data from `myMap` (lines 63-65) and then `targetMap` (lines 67-79).  Count your spaces and dashes carefully as you type them in, and the result should look like this.
+
+{width:75%}
+![Output after Listing 4](battle-l4.png)
+
+It's starting to look like a game!  And you're more than a third done.  Maybe stretch your legs a bit, and then delete lines 77-79, and enter Listing 5.
+
+{caption: "Listing 5 (Sea Battle `writeToMap` function).", number-from: 77}
+```miniscript
+// Write a string representing a ship into our map, or optionally,
+// just check whether we COULD write such a string.  Return an
+// error string if it runs out of bounds or hits another ship;
+// or if everything is OK, then return null.
+Player.writeToMap = function(ship, position, horizontal, checkOnly)
+  c = position[0]    // column, e.g. "E"
+  r = position[1]    // row, e.g. "5"
+  for i in ship.indexes
+    // check and maybe write to the map
+    if self.myMap[c + r] != EMPTY then return "Position blocked"
+    if not checkOnly then self.myMap[c + r] = ship[i]
+
+    // then, advance to the next position (unless we're done)
+    if i == ship.len-1 then return   // all done!
+    if horizontal then
+      idx = cols.indexOf(c) + 1
+      if idx >= cols.len then return "Out of bounds"
+      c = cols[idx]
+    else
+      idx = rows.indexOf(r) + 1
+      if idx >= rows.len then return "Out of bounds"
+      r = rows[rows.indexOf(r) + 1]
+    end if
+  end for
+end function
+
+p = new Player
+p.init
+p.writeToMap "DDDD", "C4", true, false
+p.print
+```
+
+This is a somewhat tricky but important function.  The job of this function is to check whether a ship can be placed at a given position and orientation in the map, and optionally, to actually place it there by writing the letters that represent the ship into the map.  The function takes four parameters: the string representing the ship (e.g. "DDD" for the destroyer), a board position like "E5", a true/false value indicating whether the ship should be laid out horizontally, and another true/false value determining whether the function should only check if the ship fits, or actually write it to the map.
+
+Why do we have this check-only behavior?  Determining if the ship can fit is a bit tricky.  It doesn't fit if it goes off the edge of the grid, or if it hits a spot that is not empty (because some earlier ship was already using that spot).  If we're placing a big ship, the first few spots might be fine, but the next spot blocked.  If we were writing the ship letters into the map as we go, then after we discovered the problem, we'd have to go back and erase the already-written letters.  So instead, when placing a ship, we will call this function twice: once to check if it will fit (with the `checkOnly` parameter set to `true`), and then again to actually write it (with `checkOnly` set to `false`).
+
+The test code in Listing 5 is a bit thin.  But if all is working, you should see the destroyer placed as "DDDD" in cells C4 through F4.  If you want to add some additional tests to make sure it returns an error if you give it an invalid ship placement, feel free!  Move on when you're ready.
+
+The next step will be to use that function to let the player place a ship.  This function prompts the user for a location (using the `inputCoordinates` function from Listing 3) and an orientation, either horizontal or vertical.  Then it calls the `writeToMap` function above twice, once to check, and once to actually do it.
+
+{caption: "Listing 6 (Sea Battle `placeShipByInput` function).", number-from: 103}
+```miniscript
+Player.placeShipByInput = function(name)
+  self.print
+  print
+  self.shipsLeft.push name
+  ship = shipTypes[name]
+  while true // keep trying till we succeed
+    print "Placing " + name + " (size " + ship.len + ")."
+    pos = inputCoordinates("  Top-left coordinates? ")
+    hv = ""
+    while hv != "H" and hv != "V"
+      hv = input("  Horizontal or Vertical (H/V)? ").upper
+    end while
+    err = self.writeToMap(ship, pos, hv=="H", true) // just check
+    if err then
+      print err + ".  Please try again!"
+    else
+      self.writeToMap ship, pos, hv=="H", false // place ship
+      return     // and we're done
+    end if
+  end while
+end function
+
+p = new Player
+p.init
+p.placeShipByInput "Destroyer"
+p.placeShipByInput "Battleship"
+p.print
+```
+
+Run this several times, trying different positions and orientations, including some that would run off the map, or place the ships overlapping.  The code should detect the problem, and keep prompting you until you pick a valid place.
+
+We're also going to need a function to place ships randomly.  In the finished game, this is used by the computer player to place its ships.  However during development, I also used it for the human player, so that I could get into a game more quickly and test whatever I was working on without having to place each of my ships.
+
+(Note that you can save yourself a bit of typing by not deleting the test code from Listing 6, but instead only updating it to match Listing 7.)
+
+{caption: "Listing 7 (Sea Battle `placeShipRandomly` function).", number-from: 125}
+```miniscript
+Player.placeShipRandomly = function(name)
+  self.shipsLeft.push name
+  ship = shipTypes[name]
+  while true // keep trying till we succeed
+    pos = cols[rnd * cols.len] + rows[rnd * rows.len]
+    horizontal = (rnd < 0.5)
+    err = self.writeToMap(ship, pos, horizontal, true) // check
+    if err then continue
+    self.writeToMap ship, pos, horizontal, false // place ship
+    return      // and we're done
+  end while
+end function
+
+p = new Player
+p.init
+p.placeShipRandomly "Destroyer"
+p.placeShipRandomly "Battleship"
+p.print
+```
+
+Now we're getting there!  The core of the game is firing shots at your opponent's map.  We need a function that does that, checks the opponent's map, reports *hit* or *miss*, and records the shot in both player's maps.  That function is given in Listing 8.  (Lines 141 and 156 are long enough to wrap in this book, but just keep typing in your text editor; do not insert a line break.)
+
+{caption: "Listing 8 (Sea Battle `fire` function).", number-from: 138}
+```miniscript
+// Fire at the other player's map.
+// Print HIT or MISS, and return the name of the ship sunk (if any)
+Player.fire = function(pos, otherPlayer)
+  if otherPlayer.myMap[pos] == EMPTY or otherPlayer.myMap[pos] == MISS then
+    print "Miss!"
+    otherPlayer.myMap[pos] = MISS
+    self.targetMap[pos] = MISS
+  else
+    print "HIT!"
+    wait
+    otherPlayer.myMap[pos] = HIT
+    self.targetMap[pos] = HIT
+    // Check for a ship that's been sunk.
+    // Every ship has a unique letter, so we know it's sunken if
+    // that letter is not found anywhere in the map.
+    for name in otherPlayer.shipsLeft
+      if otherPlayer.myMap.indexOf(name[0]) == null then
+        // This ship is not found, so it has been sunk.
+        otherPlayer.shipsLeft.remove otherPlayer.shipsLeft.indexOf(name)
+        return name
+      end if
+    end for
+  end if
+end function
+
+p = new Player
+p.init
+p.writeToMap "DDDD", "C4", true, false
+p2 = new Player
+p2.init
+p2.fire "E6", p  // should miss
+p2.fire "E4", p // should hit
+p.print
+```
+
+When you run that, it should fire two shots: the first one at E6 misses, but the second one at E4 hits.  The result should look like the figure below.
+
+{width:"75%"}
+![Output after Listing 8](battle-l8.png)
+
+If you want to test this more thoroughly, try including enough `fire` calls to cover the entire ship.  Also, print out the result of the last one; the function should return the name of a ship sunk, or `null` if nothing is sunk.
+
+The last function we need for our Sea Battle game is one to choose the computer's move.  This is the AI (artificial intelligence) of the game... though our version is really not very intelligent.  It just chooses a move randomly.
+
+
+{caption: "Listing 9 (Sea Battle AI).", number-from: 163}
+```miniscript
+// Here is the "AI" of the game, that is, the code that decides
+// what to do on the computer's turn.
+ai = function()
+  while true  // repeat until we find spot we haven't tried
+    r = rows[rnd * rows.len]
+    c = cols[rnd * cols.len]
+    if comp.targetMap[c + r] == EMPTY then break
+  end while
+  print "I fire at " + c + r + "..."
+  sunk = comp.fire(c+r, human)
+  if sunk then print "Ha ha!  I sunk your " + sunk + "!"
+end function
+```
+
+No test code on this one, because it's referencing two global variables that we haven't defined yet.  So go ahead and remove the previous test code, add Listing 9, save it, and run it.  If you see just the welcome message, you're ready to move on to the next part, where we actually define those global variables.
+
+{caption: "Listing 10 (Sea Battle player setup).", number-from: 176}
+```miniscript
+// Set up the human player
+human = new Player
+human.init
+for s in shipTypes.indexes
+  human.placeShipByInput s  // (or placeShipRandomly to speed things up)
+end for
+human.print
+
+// Now set up the computer player
+comp = new Player
+comp.init
+for s in shipTypes.indexes
+  comp.placeShipRandomly s
+end for
+comp.print  // <-- Just for debugging.  (No cheating!)
+```
+
+When you run at this point, it should present you with a blank board, and then prompt you to place each of your ships, using the `for` loop on lines 179-181.  Your map layout is printed after each entry.  Then the computer very quickly places its ships, using its own `for` loop on lines 189-189, and that is printed as well, just so you can be sure it worked.
+
+And now we're almost done!  All that's left is the main game loop.  Be sure to comment out that `comp.print` call on line 190, since the game doesn't have much challenge if you know where the computer's ships are!
+
+{caption: "Listing 11 (Sea Battle main loop).", number-from: 190}
+```miniscript
+//comp.print  // <-- Just for debugging.  (No cheating!)
+
+// Main game loop
+while true
+  print
+  sunk = human.fire(inputCoordinates("Fire at coordinates: "), comp)
+  if sunk then print "You sunk my " + sunk + "!"
+  if not comp.shipsLeft then
+    print "You win.  Good game!"
+    exit
+  end if
+  print
+  ai
+  ai    // (a second time, to make game more challenging)
+  print
+  human.print
+  if not human.shipsLeft then
+    print "I win!  Thanks for the game."
+    exit
+  end if
+end while
+```
+
+And that's it!  Each time through the loop, we use `inputCoordinates` to get the human player's move, and `fire` at that location.  This returns the name of the ship sunk, if any; so we print that out on line 196.  If the computer doesn't have any ships left, then the human has won.
+
+Otherwise, we let the computer do its move via the `ai` function.  In fact we let it move *twice* (lines 202-203).  This is to compensate for the rather stupid AI.  I find that this makes for a pretty interesting game -- sheer dumb luck (times two) against human wit.  Give it a try, and see how you do!
+
+Remember, if you get errors or the behavior of the program is not what you think it should be, just go back and check your typing carefully.  Pay attention to spelling, capitalization, and punctuation.  Check the end of Chapter 7 for other trouble-shooting tips.
+
+## Going Farther
+
+You've worked hard today, building this game up section by section.  Hopefully you've also built some good habits that will serve you well in the future.  It would be completely reasonable to call it a day.
+
+But at some point, now or later, you may get the urge to pull this program out again and build on it.  The most obvious thing to improve is the AI.  Fortunately that's all contained in one function, `ai` (Listing 9).  Instead of picking randomly, you might try first guessing any spot next to a hit, and then guessing spots that are far away from any previous guess.
+
+Also, over the next week or two you're going to learn how to use Mini Micro.  This very same program will run as-is on Mini Micro, using the keyboard and text display... but Mini Micro can do so much more than that.  You may want to revisit Sea Battle and put a nice graphical interface on it, or add sounds (or both!).
+
+So think of what you did today as a starter kit.  You've assembled it according to the directions, but as you acquire more skills and tools, you can build on it to create something uniquely your own.
+
+A> **Chapter Review**
+A> - You built the *Sea Battle* game, pitting human versus computer in a classic game of strategy and luck.
+A> - You saw how to build up a big program as a series of smaller tests, stopping to test and debug at each step, rather than doing it all at the end.
+A> - You exercised everything you've learned about MiniScript so far, including functions and classes.  The more you use this stuff, the easier it will be!
+

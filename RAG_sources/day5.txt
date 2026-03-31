@@ -1,0 +1,235 @@
+{chapterHead: "Day 5: Comparisons and Looping", startingPageNum:43}
+
+{width: "50%"}
+![](Chapter5.svg)
+
+Q> You might not think that programmers are artists, but programming is an extremely creative profession.
+Q> It's logic-based creativity.
+Q>— John Romero (co-founder, id Software)
+
+A> **Chapter Objectives**
+A> - Learn how to compare two values to see if they are equal, or which one is greater.
+A> - Learn to use `while` and `for` to make blocks of code repeat.
+A> - Obtain and start relying on the *MiniScript Quick Reference*.
+
+{i:"hard-coded value;value, hard-coded"}
+By now, you know several ways to get values into your computer program.  You can put them right into the code (these are known as "hard-coded" values); you can ask the user for them with `input`; or you can calculate them from other values.  Doing calculations with them is great, but sometimes what you need is to make *decisions* with them.  That begins by comparing two values.  In a computer program, there are various *comparison operators* for just this purpose.
+
+{i:"comparison operator"}
+comparison operator
+: a type of operator that compares two values in some way
+
+For example: suppose you wonder whether your computer really understands math at all, so you decide to check whether it knows that 2 plus 2 equals 4.  Write:
+
+```miniscript
+print 2 + 2 == 4
+```
+
+The comparison operator here is `==`, pronounced "equals."  Notice that this operator is written with *two* equal signs.  A single equal sign is used for assignment, as you learned on Day 3.
+
+D> To test two values for equality, remember to use *two* equal signs: `==`
+
+So in the example above, we are comparing the result of `2 + 2`, on the left side of `==`, to the value `4`, on the right.  Run this code and you should see the value `1` in the output.  In MiniScript, `1` means "true" and `0` means "false."  So MiniScript here is saying that yes, indeed, two plus two is equal to four.
+
+D> MiniScript uses the value 1 to mean true, and 0 to mean false.
+
+But `==` is just one comparison operator.  There are half a dozen:
+
+{i:"operators, comparison;comparison operators"}
+{caption:"Comparison operators"}
+| `==` | equals |
+| `!=` | not equal |
+| `>` | greater than |
+| `>=` | greater than or equal to |
+| `<` | less than |
+| `<=` | less than or equal to |
+
+You can use any of these to compare values, wherever they might come from.  Here's an example that decides if you're old enough to see a scary movie.
+
+{caption:"Movie Decider 1"}
+```miniscript
+print "Now showing: Chainsaw Zombie Nightmare VII"
+age = val(input("How old are you? "))
+print "My decision: " + (age >= 18)
+```
+
+This program prints the name of the movie, asks for your age, and then compares your age to 17.  It prints a 1 if your age is 18 or older, otherwise it prints a 0.
+
+That works, but it's not a very elegant way of displaying the result, is it?  Let's make it a little better by making use of string replication from Day 2.  A string multiplied by 1 is just that string itself; but a string multiplied by 0 is nothing (an empty string).  We can use that to print a custom message:
+
+{caption:"Movie Decider 2"}
+```miniscript
+print "Now showing: Chainsaw Zombie Nightmare VII"
+age = val(input("How old are you? "))
+print "Hmm..."
+ok = age >= 18
+print "OK, you can go." * ok
+```
+
+Try that one a few times, entering different ages.  Notice how we are storing the result of the age comparison in a variable, `ok`, on line 4, and then multiplying that by the message on line 5.
+
+If you enter 18 or older, this program works fine.  But if you enter a smaller number, it doesn't print anything after "Hmm..."  Let's improve that with the help of the `not` operator.
+
+{i:"`not` operator;operator, `not`"}
+D> The `not` operator changes 1 to 0 (true to false), and vice versa.
+
+This is the first operator we've seen that operates on a single value, instead of appearing between two values.  You put `not` before the value you want to operate on.  We can use that to finish our movie decider.
+
+{caption:"Movie Decider 3"}
+```miniscript
+print "Now showing: Chainsaw Zombie Nightmare VII"
+age = val(input("How old are you? "))
+print "Hmm..."
+ok = age >= 18
+print "OK, you can go." * ok + "I'm sorry, you're too young." * (not ok)
+```
+
+D> When a line in a code listing is too long, the end of it is printed in this book on the next line, identified with "..." as shown in the last line above.  But when you type it in, just keep typing — it will wrap or scroll over as needed.
+
+This is not the only way to print out alternate messages; we'll learn a more natural way tomorrow.  But it works and is a nice way to review both string replication, and the fact that `true` and `false` are represented as `1` and `0` in MiniScript.
+
+## Looping with `while`
+
+{i:"`while` loop"}
+So far every program we've written has started with the first line, executed each line in order to the end, and quit.  A decent start, to be sure, but computers are so much more powerful when they can do the same operation multiple times.
+
+Now that you know how to compare values, you're ready to learn the first of two ways to make the computer repeat itself.  This is the `while` statement, which defines that a group of lines should repeat while some condition is true.  It looks like this:
+
+{caption:"Doublings"}
+```miniscript
+x = 1
+while x < 1000
+    print x
+    x = x * 2
+end while
+print "And that's high enough!"
+```
+
+Type this code into the Try-It! interface and see what it does.  In plain English, this starts by assigning 1 to x.  Then the loop begins.  Lines 3-4 are repeated as long as (or "while") x is less than 1000.  Those lines print x and then double its value.
+
+When the `while` condition (`x < 1000`) is no longer true, then the loop exits, continuing with the line right after `end while`.
+
+Of course this can work with any sort of condition.  Try this variation:
+
+{caption:"Doubling Spam"}
+```miniscript
+x = "spam "
+while x.len < 60
+    print x
+    x = x * 2
+end while
+print "...that's enough spam for me!"
+```
+
+This is almost the same as the previous program, except instead of numbers, we are doubling strings; and our `while` condition now relies on `x.len` (the length of x).
+
+Let's revisit our movie-decider program.  Suppose it's your job to tell not just one youth, but a whole busload of youths, whether each of them is allowed to see the movie.  Because you are becoming a programmer, you quickly think to automate this tedious process.
+
+{caption:"Multi Movie Decider"}
+```miniscript
+print "Now showing: Chainsaw Zombie Nightmare VII"
+age = val(input("How old are you? "))
+while age > 0
+	print "Hmm..."
+	ok = age >= 18
+	print "OK, you can go." * ok + "I'm sorry, you're too young." * (not ok)
+	age = val(input("Next! How old are YOU?  (0 to exit): "))
+end while
+```
+
+{i:"indentation"}
+I'm sure you've noticed by now that the lines inside the `while` loop are indented.  In MiniScript, indentation is like comments: it's there for the human readers of the code, and ignored by the computer.  But that doesn't mean it's not important!  Without indenting the body of the loop, it would be much harder to see what's going on; and it's generally important that you be able to understand your code when you look at it months later.  But it's not important exactly *how* you indent.  Generally you should just hit the Tab key to indent a line, and your text editor will either insert an actual tab character, or some number of spaces.  Either is fine, as long as the result is clear to your eyes.
+
+## Looping with `for`
+
+{i:"`for` loop"}
+MiniScript has exactly two ways to repeat code; one is the `while` loop.  The other is the `for` loop. It looks like this:
+
+{caption:"For Loop"}
+```miniscript
+for i in range(1, 10)
+    print i
+end for
+```
+
+Like a `while` loop, a `for` loop repeats everything in the loop body (which by convention we indent, though the computer is just looking for the line that says `end for`).  But rather than looping while some condition is true, a `for` loop assigns a sequence of values to a variable, and stops when that sequence is complete.
+
+{i:"`range` function"}
+The example above uses the `range` function, which we haven't covered before.  We'll delve into that more deeply in Chapter 8, but for now just think of it as a way to tell the `for` loop what range of numbers you want it to loop over.  In the example above, `for i in range(1, 10)` makes the variable `i` go from 1 to 10.  (Unlike some other languages, `range` in MiniScript includes both the start and end values specified.)  Try it!
+
+You can easily make a `for` statement count down instead of up.  Try this one:
+
+{caption:"Countdown"}
+```miniscript
+for i in range(10, 1)
+    print i + "..."
+    wait
+end for
+print "Lift-off!"
+```
+
+{i:"`wait` function"}
+Here I have snuck in another new function, `wait`, which just tells MiniScript to pause for 1 second (unless you specify some other number of seconds as an argument).  Together with `range` counting from 10 down to 1, we have a classic rocket count-down.
+
+The `for` loop can also iterate over the characters of a string.  For a trivial example:
+
+{caption:Hello World, Letter by Letter}
+```miniscript
+for i in "Hello world"
+    print i
+end for
+```
+
+This prints each character of the string on its own line.
+
+This is a good time to point out that `for` and `while` loops can be *nested*, that is, you can put one loop inside of another, as much as you like.  Here's a simple example that prints out all the squares on a Chess board.
+
+{caption:"Chess Coordinates"}
+```miniscript
+for col in "ABCDEFGH"
+    for row in "12345678"
+        print col + row
+    end for
+end for
+```
+
+{i:"loop, inner vs. outer;outer loop;inner loop"}
+We call the first loop (`col` in this case) the *outer* loop, and the one nested inside it (`row` in his example) the *inner* loop.  For every iteration of the outer loop, the inner loop starts over and does its whole sequence again.  Here we have eight iterations for columns A through H in the outer loop, and eight iterations for rows 1 through 8 in the inner loop.  How many lines will this print?  Try it and see if you were right!
+
+iteration
+: one time through the body of a loop
+
+Of course you don't have to stop with just two loops; you could nest these as deeply as you like, though the number of iterations adds up quickly.  For example, if the outermost loop iterates 10 times, the middle loop iterates 5 times, and the innermost loop iterates 8 times, the result would be (10 \* 5 \* 8) = 400 iterations in all.
+
+## The MiniScript Quick Reference
+
+{i:"MiniScript Quick Reference;Quick Reference;documentation, MiniScript Quick Reference"}
+In Chapter 2, we referred to coding as an "open-book process."  It's like a test where you're allowed to use your textbook.  Not only that, but you're allowed to search the web, too!  These are great ways to find answers, especially to questions you haven't seen before.
+
+However, they're not always the *fastest* way to find answers, particularly for things you've seen before but just need to double-check your spelling or punctuation.  For that, a concise cheat sheet works much better.  Fortunately, MiniScript comes with exactly that: the **MiniScript Quick Reference**.  This is a one-page document that contains everything you need to know about the MiniScript language.  That's right.  One page.  Everything!
+
+If you haven't already done so, you should go to <https://miniscript.org> *right now*, scroll down to the "MiniScript Quick Reference" link, and click it.  Save the file that appears to someplace handy like your desktop, and if you have a printer, print it out and tape it up next to your computer, or slip it into the cover of your notebook.  Or at least leave it lying around on your desk.  The point is, have it handy, so that you can quickly refer to it.
+
+Although you're only on Day 5, you will find that you already understand much of what this page contains:
+
+- The left column talks about general syntax, including comments; and also `while` and `for` loops, which you just learned.  It also mentions `if` blocks, and `break` and `continue`, both of which we'll cover tomorrow.
+- The middle column talks about numbers and strings, which you understand; plus lists and maps, which we'll get to on days 8 and 10.
+- The right column includes some more advanced stuff we haven't gotten to yet, plus a list of all the important intrinsic functions, for those moments when you know there's a function to do something, but you can't quite remember what it's called.
+
+D> There is only one important function that you won't find on this sheet, and that's `input`.  That's because `input` is not actually part of the official MiniScript standard; if you use MiniScript in the context of a game, for example, it might not have this.  But all the contexts we discuss in this book will have `input`.  So go ahead and write it in the margin next to `yield` if you like.
+
+So this MiniScript Quick Reference serves not only as a handy jog for your memory, but also as a map of what you've learned, and what still lies ahead.  In another week or so, you will understand pretty much everything on this sheet.
+
+In fact, you might consider making an extra printout of this sheet, and highlighting things on it as we go (starting by highlighting everything we've already covered).  That will give you a very visual indicator of your progress, as well as reinforce what you've learned.  If you don't have a printer, you can probably do the same thing using your PDF viewer software.
+
+{pageBreak}
+A> **Chapter Review**
+A> - You learned how to use comparison operators to compare two values.
+A> - You used `while` and `for` to repeat code multiple times.
+A> - You acquired the MiniScript Quick Reference, which will be your favorite one-page document in the coming weeks.
+
+
+{gap:100}
+{width:"25%"}
+![](chinchilla-01.svg)
+

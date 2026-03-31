@@ -1,0 +1,276 @@
+{chapterHead: "Day 7: Three Small Games", startingPageNum:63}
+
+{width: "50%"}
+![](Chapter7.svg)
+
+Q> The only way to learn a new programming language is by writing programs in it.
+Q>— Dennis Ritchie (creator of C programming language)
+
+A> **Chapter Objectives**
+A> - Rest and recouperate.
+A> - Enter and play with some simple-but-fun MiniScript games.
+A> - Review and synthesize what you've learned so far.
+
+If you've been doing one chapter a day, then it's been a week since you started on your journey to programming mastery.  If you've been doing the chapters faster or slower than that, that's fine too.  In any case, it's time to pause and let it sink in.
+
+A great way to help it sink in is to type in some short programs.  In our modern world of scrolling through social media posts and picking responses from suggestions made by AI, you will be tempted to skip this exercise.  Don't!  Typing in code is crucial to learning how to write your own code.  It's like having an expert trainer help you to move your body correctly as you learn dance or martial arts.  But in this case, the muscles being moved are in your brain.
+
+So in this chapter are three small games.  Why games?  First, games are fun.  But more importantly, games like these are *easy*; they represent a world of simplified, well-defined rules that can be converted into code.  With only six chapters behind us, our toolset is still a bit limited.  We haven't learned about lists, maps, or functions yet, so we have to keep things simple.  In a few more weeks, you'll be able to create simulations that provide deep insight into science or business, analysis programs that crunch numbers or graph data, programs that create music or art, and much more.  So if games aren't your cup of tea, be patient — the skills you practice here will be useful for other kinds of coding too.
+
+## The Matchstick Game
+
+First up is the matchstick game.  This is a classic numbers game for two players.  You start with a pile of matchsticks between you, and then take turns removing one, two, or three matchsticks from the pile.  Whoever takes the last matchstick loses.  The skill in this game is to think ahead and try to force your opponent to take the last matchstick.
+
+Our implementation here pits you, the human player, against the computer!  Here's the code — only 40 lines long.  Type it in and take it for a spin.  If you get any errors, compare your code carefully to the code below.  If you are still getting errors, check the troubleshooting section at the end of this chapter.
+
+{caption:Matchstick Game}
+```miniscript
+// Matchstick Game
+qty = 15
+while qty > 0
+    // Human player's turn.
+    // Print how many matchsticks there are.
+    if qty == 1 then
+        print "There is one matchstick left."
+    else
+        print "There are " + qty + " matchsticks."
+    end if
+    // Ask the player how many to take.
+    take = 0
+    while take < 1 or take > 3 or qty - take < 0
+        take = round(val(input("How many do you take? ")))
+    end while
+    // Update the quantity left, and check for game-over.
+    qty = qty - take
+    if qty == 0 then
+        print "You took the last matchstick.  I win! :)"
+        break
+    end if
+    
+    // Computer player's turn.
+    // Print how many matchsticks there are now.
+    if qty == 1 then
+        print "That leaves just one matchstick."
+        print "I guess I have to take it.  You win!"
+        break
+    else
+        print "That leaves " + qty + " matchsticks."
+    end if
+    // Calculate how many the computer should take.
+    take = (qty - 1) % 4
+    if take == 0 then take = 3
+    if rnd < 0.2 then take = ceil(rnd * 3) // occasional mistake
+    print "I'll take " + take + "."
+    // Update the quantity.
+    qty = qty - take
+    if qty == 0 then print "Oops.  You win!"
+end while
+```
+
+Most of this code should be pretty clear to you by now.  There's a main `while` loop, as in most interactive programs.  This begins by printing out the current state of the game on lines 6-10.  Then we ask (with `input`) how many matchsticks you want to take.  Notice how we use a little `while` loop around that to keep asking until we get a valid input (lines 12-15).
+
+The second half of the main loop does the computer's turn.  It begins by again printing the current state.  Then on lines 33-35, we do a bit of mathematical wizardry to figure out how many matchsticks the computer should take.  Let's pause and study how that works.
+
+The computer's goal is to leave only 1 matchstick, forcing the player to take it.  So if there are 2 sticks left, the computer should take 1; if there are 3 it should take 2, etc.  In general, if `qty` (the number of matchsticks left) is a small number, the computer should take `qty - 1`.  That explains the first part of line 33.
+
+This works up to 4, since 4 - 3 is 1, a valid number of matchsticks to take.  What if there's more than that?  Well, if there are 5 matchsticks left, then the computer is out of luck.  No matter how many it takes, the human can take all but one of the remainder.  But this works both ways; if the computer can stick the human with 5, then it can win no matter what the human does.  So the computer should take 1 when `qty = 6`, 2 when `qty = 7`, etc.  If you keep working this out, the correct number of matchsticks to take repeats every 4 numbers.
+
+Whenever you have a sequence that repeats every so-many numbers, it's a hint to use the mod (`%`) operator.  Mod is the remainder after division.  In this case, we want the remainder after dividing by 4.  Let's work through an example: if `qty = 6`, then `qty - 1` is 5, and `5 % 4`, the remainder after dividing 5 by 4, is 1.  So the computer takes 1 matchstick, leaving the player with 5, from which the player cannot win.  It works!
+
+The only hitch in this formula is that sometimes the remainder after dividing by 4 is 0.  This is true when `qty - 1` is 4, 8, 12, etc.  Taking 0 sticks is not a legal move.  These are the no-win situations for the computer; it doesn't really matter what we do in this case, but to keep the game moving along, we have the computer take 3 matchsticks in this case (line 34).
+
+If all this math is still unclear, don't worry about it.  It's not the programming that's tricky; it's the math!  And eventually, programming will make math easier.  For now it's OK to just take these formulas on authority and enjoy the game.
+
+Finally, note that the computer would play a perfect game if not for line 35.  That generates a random number between 0 and 1, and if this is less than 0.2 (i.e., 20% of the time), it makes a random move instead of the ideal move.  This causes the computer to make occasional mistakes, giving the poor human a chance to win.  Feel free to change that 0.2 to other values, to make the computer smarter or dumber.
+
+**Challenge:** Change line 34 so that when the computer is in a tight spot, instead of always taking 3 matchsticks, it randomly takes 1, 2, or 3.  This makes the game less predictable and more interesting for a good human player.
+
+
+## The Bit-Flip Game
+
+Next up is a fun little logic puzzle.  Nine bits are arranged in three rows and three columns.  You can think of these as coins, or Othello pieces that are black on one side and white on the other, or cards that are face up or down.  But since we're doing this on a computer, they're just bits, each with a value of 0 or 1.
+
+The bits start out all 0, and your goal is to change them all to 1.  On each move, you pick a row and column.  All the bits that match your row or column are flipped: 1 becomes 0, and 0 becomes 1.  Can you find a sequence of moves that gets all the bits to be 1?
+
+{caption:Bit-Flip Game}
+```miniscript
+b0A = 0    // bit in column 0, row A
+b0B = 0    // bit in column 0, row B
+b0C = 0    // (etc.)
+b1A = 0
+b1B = 0
+b1C = 0
+b2A = 0
+b2B = 0
+b2C = 0
+print "Can you flip the all bits to 1?"
+print
+while true
+    print "Bit: "
+    print "  A: " + b0A + " " + b1A + " " + b2A
+    print "  B: " + b0B + " " + b1B + " " + b2B
+    print "  C: " + b0C + " " + b1C + " " + b2C
+    print "     - - -"
+    print "     0 1 2"
+    print
+    if b0A + b0B + b0C + b1A + b1B + b1C + b2A + b2B + b2C == 9 then
+        print "You win!"
+        break
+    end if
+    cmd = input("Which row and column to flip (e.g. A0)? ").upper
+    if cmd.len != 2 then continue
+    row = cmd[0]
+    col = val(cmd[1])
+    if col == 0 then
+        b0A = 1 - b0A
+        b0B = 1 - b0B
+        b0C = 1 - b0C
+    else if col == 1 then
+        b1A = 1 - b1A
+        b1B = 1 - b1B
+        b1C = 1 - b1C
+    else if col == 2 then
+        b2A = 1 - b2A
+        b2B = 1 - b2B
+        b2C = 1 - b2C
+    end if
+    if row == "A" then
+        if col != 0 then b0A = 1 - b0A
+        if col != 1 then b1A = 1 - b1A
+        if col != 2 then b2A = 1 - b2A
+    else if row == "B" then
+        if col != 0 then b0B = 1 - b0B
+        if col != 1 then b1B = 1 - b1B
+        if col != 2 then b2B = 1 - b2B
+    else if row == "C" then
+        if col != 0 then b0C = 1 - b0C
+        if col != 1 then b1C = 1 - b1C
+        if col != 2 then b2C = 1 - b2C
+    end if
+end while
+```
+
+The logic in this game is straightforward.  Notice that our main loop in this program is using `while true`, with a `break` when the game is over (line 22).  We get the user's input on line 24, and if it's not 2 characters long, use `continue` to jump back to the top of the loop.
+
+The rest of the main loop flips the appropriate set of bits.  There is an `if`/`else if` structure for the column (lines 28-40), and another one for the row (lines 41-53).  Note that there is one bit that matches the column *and* the row — i.e., the one at the exact coordinates you enter.  We don't want to flip that one twice.  So as we're working on the row, we also check (using single-line `if` statements) to be sure we skip the entered column.
+
+**Challenge:** The code given above gets the job done and exercises some important variations on the `if` statement.  But there is another way to do it.  Lines 28-53 could be replaced with nine lines, each checking for a particular row and column, like this:
+
+```miniscript
+    if row == "A" or col == 0 then b0A = 1 - b0A
+```
+
+Delete lines 28-53, and replace them with the line above, which handles position A0, and eight similar lines to handle the other eight positions.  Verify that the game still works!
+
+
+## Pig Dice Game
+
+The last game for this chapter is another computer-versus-human game.  This one involves rolling dice.  On each player's turn, a six-sided die is rolled.  If the player rolls a 1, their turn is over and they get no points for that turn.  If they roll 2 to 6, they get that many points added to their total for the turn.  At this point they face a choice: end their turn and add their current total to their score; or roll again, potentially getting even more points, but risk getting a 1 and losing all their points for the turn.  This continues until the player either chooses to stop, or rolls a 1.
+
+In either case, play then passes to the other player.  The first player to reach the goal (32 points in this version) wins the game.
+
+{width:"50%"}
+![](pigDice.svg)
+
+{caption:Pig Dice Game}
+```miniscript
+// Pig Dice game
+human = 0
+computer = 0
+goal = 32
+print "Let's play Pig to " + goal + " points!"
+while human < goal and computer < goal
+    // Human player's turn
+    print
+    print "Your turn!  (You: " + human + "  Me: " + computer + ")"
+    rollTotal = 0
+    choice = "R"
+    while choice != "D"
+        if choice == "R" then  // roll!
+            wait
+            roll = ceil(rnd * 6)
+            if roll == 1 then
+                print "You roll a 1.  No points for you!"
+                rollTotal = 0
+                break
+            end if
+            rollTotal = rollTotal + roll
+            print "Your roll: " + roll + ", total: " + rollTotal
+        end if
+        choice = input("[R]oll again, or [D]one? ")
+        choice = choice.upper
+    end while
+    human = human + rollTotal
+    print "You gain " + rollTotal + " points, and now have: " + human
+    if human >= goal then break
+    
+    // Computer's turn
+    print
+    print "My turn!  (You: " + human + "  Me: " + computer + ")"
+    rollTotal = 0
+    while true
+        wait
+        roll = ceil(rnd * 6)
+        if roll == 1 then
+            print "I roll a 1.  Darn!"
+            rollTotal = 0
+            break
+        end if
+        rollTotal = rollTotal + roll
+        print "My roll: " + roll + ", total: " + rollTotal
+        if rnd * 20 < rollTotal then
+            print "That's enough for me."
+            break
+        end if
+        print "I'll roll again."
+    end while
+    computer = computer + rollTotal
+    print "I gain " + rollTotal + " points, and now have: " + computer
+   
+end while
+
+print
+print "Final scores:  You: " + human + "  Me: " + computer
+if human > computer then
+    print "You win.  Well played!"
+else
+    print "I win.  Good game!"
+end if
+```
+
+As usual, there's a main `while` loop here.  Within that, we have a section of code for the human player, using another `while` loop to let the player roll as many times as they like until they stop or get a 1.  Notice how the `break` statement on line 19 breaks out of this inner loop.
+
+Then we have a similar section of code for the computer player.  The AI (artificial intelligence) here is on line 45: the computer decides to stop when `rnd * 20 < rollTotal`.  The formula `rnd * 20` picks a random number between 0 and 20.  So when the computer's total roll is rather small, it's likely to roll again.  When the total for the turn is 10, it has a 50% chance of stopping.  And once the roll total is 20 or more, the computer is guaranteed to stop.
+
+Play the game a few times and see how often you can win.  It's not easy!
+
+**Challenge:** the rule used on line 45 is certainly not optimal; it always plays the same, regardless of whether it's ahead or behind.  A smarter player might play more aggressively when behind, and more conservatively when ahead.  Change the code so that it first picks a `target` value, equal to 10 if `computer > human`, or 25 otherwise.  Then use `rnd * target` instead of `rnd * 20` when deciding whether to roll again.
+        
+
+## Troubleshooting
+
+If you got errors or incorrect behavior in any of the programs above, start by comparing your code carefully to what's in the book.  Here are some common mistakes to watch out for:
+
+- Be sure you've used the correct capitalization.  Remember that MiniScript is case-sensitive.  So check for places you may have typed `RollTotal` or `rolltotal` rather than `rollTotal`, for example.
+
+- Check that every `if` statement has a `then`, and unless it's a single-line `if`, it should also have a matching `end if` statement.
+
+- Check that every `while` has a matching `end while`.
+
+- Be sure every open parenthesis `(` has a matching close parenthesis `)`.
+
+- Make sure your quotation marks are balanced.  Every string must have quotation marks at the beginning, and quotation marks at the end.
+
+- Some text editors may try to apply "smart quotes," that is, quotation marks that curl towards the text they enclose.  Those will not work with MiniScript (or any other programming language I've used).  You need to use the straight kind, like `"`.  If you're running into this problem, find the option to turn off smart quotes, or use a different text editor.
+
+- Make sure any tests for equality are using two equal signs, `==` instead of `=`.  If you get an error like "got OpAssign where Keyword(then) is required", you made this mistake (and now you know how to fix it).
+
+- The Bit-Flip Game uses some square brackets on lines 26 and 27, to get to the first and second characters of the player's input.  Double-check that you're using square brackets and parentheses exactly as shown.
+
+{pageBreak}
+A> **Chapter Review**
+A> - You entered and debugged several real programs that do interesting things.
+A> - You practiced using variables, assignment, `if` blocks, and `while` loops.
+A> - You exercised your coding muscles, laying down brain pathways through which magic will one day flow.  Savor this accomplishment.  You are well on your way!
+
+

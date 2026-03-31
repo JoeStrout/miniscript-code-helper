@@ -1,0 +1,316 @@
+{chapterHead: "Day 27: Algorithms, Step by Step", startingPageNum:335}
+
+{width: "50%"}
+![](Chapter27.svg)
+
+Q> First, solve the problem. Then, write the code.
+Q>— John Johnson
+
+A> **Chapter Objectives**
+A> - Learn about algorithms and pseudocode.
+A> - Translate several pseudocode algorithms into MiniScript.
+A> - See how to fix an incomplete algorithm.
+
+Today we're going to address head-on a topic we've only hinted before now: *algorithms*.
+
+algorithm
+: a process to be followed in order to solve a problem
+
+Algorithms are wonderful things.  They are clear, step-by-step instructions for accomplishing something.  In mathematics, you learned algorithms for multiplying or dividing big numbers.  In the kitchen, you might have an entire book of algorithms for making various foods (those algorithms are usually called "recipes").  But it's in computing that algorithms are most famous, and most useful.  A computer is very good at following instructions quickly and accurately — but it has to be told exactly what to do.
+
+Of course programming is also telling a computer specifically what to do.  We've been doing that this whole book.  But programming is giving instructions to a computer in a specific programming language, like MiniScript.  Algorithms are at a slightly more generic level; they are instructions on how to solve a problem regardless of the specific programming language used.  They are usually written in either natural language (for example, English), or else in pseudocode.
+
+pseudocode
+: a made-up, natural-ish programming language used to convey an algorithm to human readers
+
+You can find algorithms for all sorts of things.  Need to efficiently combine two sorted lists into one bigger list that's still sorted?  There's an algorithm for that.  Need to divide a bunch of data points into clusters?  There's one for that too.  Want to find the first 1000 prime numbers?  You can find several different algorithms for that!  In many cases, when you face some common problem like this, you can save yourself some time by digging up a known algorithm for it, and then just converting the pseudocode into whatever real programming language you're using.  And *that's* the cool thing about algorithms: they represent things humanity has figured out how to do, regardless of the particulars of a programming language.
+
+D> Programming languages come and go, but algorithms are eternal.
+
+So in the end, an algorithm is just a fancy word for a simple concept: step-by-step instructions on how to do something.  Let's make all this concrete by looking at a few simple, well-known algorithms.
+
+## Greatest Common Divisor
+
+The greatest common divisor (or "GCD" for short) of two numbers is the largest whole number that will divide evenly into them both.  For example, the GCD of 8 and 12 is 4, because 4 divides both 8 and 12 without any fractions or remainder.  The GCD has all sorts of uses.  For example, if you want to simplify a fraction, you just divide the top and bottom by their GCD: so 8/12 simplifies to 2/3 (dividing them both by 4).
+
+A pretty neat algorithm for finding the GCD was developed by Euclid, a Greek mathematician who lived around 300 BC.  This is one of the oldest algorithms still in common use.  If you search for "Euclidean algorithm for greatest common divisor," you will find a whole lot of material about it, including a Wikipedia page that gives several variations of the algorithm in pseudocode.  The first one is given as:
+
+```pseudo
+function gcd(a, b)
+    while b != 0
+        t := b
+        b := a mod b
+        a := t
+    return a
+```
+
+I bet you can read that!  It looks *almost* like MiniScript, but not quite.  It uses `:=` to indicate assignment, while we use a simple `=` sign.  It's written `mod` as a word, while in MiniScript we use the `%` operator.  And finally, you may notice that the `while` loop does not have an `end while`, and the `function` does not have an `end function`, but you can easily guess where these should go.  So, in MiniScript this would be:
+
+```miniscript
+gcd = function(a, b)
+    while b != 0
+        t = b
+        b = a % b
+        a = t
+    end while
+    return a
+end function
+```
+
+Pretty direct conversion, isn't it?  Type that in and try it out.  What is the GCD of 294 and 546?
+
+Skipping ahead to the third version of the algorithm, the pseudocode is given as:
+
+```pseudo
+function gcd(a, b)
+    if b = 0
+        return a
+    else
+        return gcd(b, a mod b)
+```
+
+This is a fun  one because it's recursive — it is defined in terms of itself.  But as MiniScript supports recursion too, this too is a straightforward translation:
+
+```miniscript
+gcd = function(a, b)
+    if b == 0 then
+        return a
+    else
+        return gcd(b, a % b)
+    end if
+end function
+```
+
+D> Remember that MiniScript uses `==` for comparing two numbers.  Pseudocode often uses a single `=` (especially pseudocode that uses `:=` for assignment).
+
+And finally, the second version in the Wikipedia page is actually Euclid's original version, as he hadn't thought of *mod*.  This is given in pseudocode as:
+
+```pseudo
+function gcd(a, b)
+    while a != b 
+        if a > b
+            a := a - b
+        else
+            b := b - a
+    return a
+```
+
+Can you translate this to MiniScript code yourself?  Try it!
+
+## Binary Search
+
+Another useful algorithm is finding the position of an element in a sorted list.  Of course you could just search every element with this algorithm:
+
+```pseudo
+function find(x, list)
+	i := 0
+	while i < length of list
+		if list[i] = x then return i
+		i := i + 1
+	return -1
+```
+
+This is actually an algorithm called *sequential search*, and is in fact what MiniScript does when you use the `indexOf` intrinsic method.  It's the best possible algorithm for an *unsorted* list of items, where the thing you're looking for could be anywhere; you simply have to check each one.  But if we know the list is sorted, then we can do much better.  The first thing we might do is simply bail out as soon as we find an item bigger than what you're looking for, since in a sorted list, there's no way it could be found after that.
+
+```pseudo
+function find(x, list)
+	i := 0
+	while i < length of list
+		if list[i] = x then return i
+		if list[i] > x then return -1
+		i := i + 1
+	return -1
+```
+
+But it turns out we can do even better, by using the *binary search* algorithm.  Instead of keeping track of just one position in the list (like `i` in the pseudocode above), binary search keeps track of two positions, called `min` and `max`.  And on each step, it moves one of those by quite a lot, quickly zeroing in on the target value.
+
+Googling "binary search" quickly led me to a nice lesson about at Kahn Academy, which gives the pesudocode as:
+
+D>The inputs are the array, which we call array; the number n of elements in array; and target, the number being searched for. The output is the index in array of target:
+D>1. Let min = 0 and max = n-1.
+D>2. Compute guess as the average of max and min, rounded down (so that it is an integer).
+D>3. If array[guess] equals target, then stop. You found it! Return guess.
+D>4. If the guess was too low, that is, array[guess] \< target, then set min = guess + 1.
+D>5. Otherwise, the guess was too high. Set max = guess - 1.
+D>6. Go back to step 2.
+
+
+Here's a very different style of pseudocode!  In case it wasn't clear already, everybody's pseudocode is a little different.  That's OK, because it only needs to be clear to humans, not to computers.  We can work with this.  Just convert it into MiniScript, step by step.
+
+```miniscript
+find = function(array, target)
+	n = array.len  // (no need to pass this as a parameter!)
+	// step 1:
+	min = 0
+	max = n-1
+	while true  // (loop from step 2 to step 6)
+		// step 2:
+		guess = floor((max + min)/2)
+		// step 3:
+		if array[guess] == target then return guess
+		// steps 4 and 5:
+		if array[guess] < target then
+			min = guess + 1
+		else
+			max = guess - 1
+		end if
+	end while // step 6
+end function
+```
+
+Note that while the pseudocode said that the number `n` of elements in the array was to be one of the inputs (i.e. parameters to the function), there is no need for that in MiniScript; a list already knows its own length.  So our implementation takes only the list, and the target value.  Also, while the pseudocode uses "go to" to make a loop, MiniScript (like most other modern languages) uses `for` or `while` to loop instead.  So we just threw a `while true` loop around the steps in the algorithm that should loop.
+
+Type that in and give it a try on this data:
+
+```terminal
+]find [3,6,10,14,19,27], 10
+2
+```
+
+It works!  We asked for the index of value 10, and it returned 2, which is correct since element 2 of our list is indeed 10.  But now try this one:
+
+```terminal
+]find [3,6,10,14,19,27], 11
+```
+
+Uh-oh!  This call never returns; it is stuck in an infinite loop.  Looking at the pseudocode (or our MiniScript implementation), it is easy to see why: the only `return` statement in it is when the target element is found.  If the target is not found, it will never return.  So the pseudocode algorithm we found here is slightly flawed.
+
+When you run into something like this, first, give a cheer for testing!  It's so much better to discover things like this right away, rather than later when this code has become some small part of a much larger program.  And next, you have two options.  Either search for a different variation of the algorithm, and implement that, or just fix the problem with this one.  We're going to do the latter.
+
+When a program is stuck in an infinite loop, the first step is usually to get a better understanding of what state it's in when it's stuck.  Press Control-C if your program is still stuck, and then insert a `print` statement right after we calculate the guess, on line 9:
+
+{number-from: 9}
+```miniscript
+		print "min:" + min + " max:" + max + " guess:" + guess
+```
+
+Now run that same test that failed before.  It will very quickly start repeating this line over and over:
+
+```terminal
+min:3 max:2 guess:2
+```
+
+Now notice something odd about this — the "min" is actually greater than the "max" value!  As we move the `min` value up and the `max` value down, we will always either find the target value, or end up in this situation where `min > max`.  So, the solution is to just check for that.  Change the `while` statement so that instead of `while true`, it reads `while min < max`.  And finally, add a `return -1` down after the `end while` (but before `end function`).
+
+Now try both tests again (remember that in Mini Micro or command-line MiniScript, you can press the up arrow to recall a previous command).  It should work now.
+
+If you have a very large list of items, and know that this list is always sorted, this algorithm will often be faster than the built-in `indexOf` method.  So now you have a handy new tool in your toolbox, *and* you've learned how to fix a flawed algorithm you find on the internet!
+
+## k-Means Clustering
+
+For our last example, we're going to look at a machine learning algorithm called "k-means clustering."  Suppose you have a bunch of data points, characterized by X and Y values, and you want to divide those points into groups ("clusters") so that each point is mostly surrounded by other points in the same group.  How do you do that?
+
+D> This problem actually came up in my day job quite recently.  We were building a large multiplayer game.  To keep network traffic down, we wanted to divide all the players into groups of nearby players, so we can send frequent updates only to other players in the same group.  k-means clustering is one way to do that!
+
+The k-means clustering algorithm is a fancy name for a simple idea.  Each group (or "cluster") is defined by the centroid (average position) of all the data points assigned to it.  We simply alternate between assigning each point to the nearest cluster, and moving each cluster to the centroid of its assigned points.  In pseudocode:
+
+```pseudo
+initialize k clusters at random positions
+repeat until done:
+	assign each data point to the nearest cluster
+	move each cluster to the centroid of data assigned to it
+```
+
+Using Mini Micro, we can implement this algorithm in a very visual way, using sprites for the data points and cluster centroids.  It comes out a bit longer, but it's totally worth it.
+
+{caption:"k-means clustering program."}
+```miniscript
+import "mathUtil"
+import "listUtil"
+
+clear
+
+Datum = new Sprite
+Datum.image = file.loadImage("/sys/pics/shapes/Circle.png")
+Datum.scale = 0.2
+
+Cluster = new Sprite
+Cluster.image = file.loadImage("/sys/pics/XO/X-white.png")
+Cluster.scale = 0.2
+
+// Define the number of data points (n) and centroids (k).
+n = 40
+k = 4
+
+// Create some random data points.
+data = []
+for i in range(1, n)
+	d = new Datum
+	d.x = round(960 * rnd)     // (960 is the screen width)
+	d.y = round(640 * rnd)     // (640 is screen height)
+	display(4).sprites.push d  // (display 4 is the sprite display)
+	data.push d
+end for
+
+// Create the centroids, also in random starting positions.
+centroids = []
+colors = [color.orange, color.aqua, color.fuchsia, color.lime]
+for i in range(1, k)
+	c = new Cluster
+	c.tint = colors[i-1]
+	c.x = round(960) * rnd
+	c.y = round(640 * rnd)
+	display(4).sprites.push c
+	centroids.push c
+end for
+
+// update all data points by assigning them to the nearest centroid
+// also update dataX and dataY lists within each centroid
+updateData = function()
+	for c in centroids
+		c.dataX = []
+		c.dataY = []
+	end for
+	for d in data
+		bestCluster = null
+		for c in centroids
+			dist = mathUtil.distance(d, c)
+			if bestCluster == null or dist < bestDist then
+				bestCluster = c
+				bestDist = dist
+			end if
+		end for
+		d.tint = bestCluster.tint
+		bestCluster.dataX.push d.x
+		bestCluster.dataY.push d.y
+	end for
+end function
+
+// update the centroids by moving them to the average position
+// of the data points assigned to them
+updateClusters = function()
+	for c in centroids
+		if not c.dataX then continue
+		c.x = c.dataX.mean
+		c.y = c.dataY.mean
+	end for
+end function
+
+// Repeat those steps until done!
+for i in range(10)
+	updateData
+	updateClusters
+	wait	// slow things down enough that you can see!
+end for
+```
+
+
+Notice that even though the pseudocode didn't show any functions, I chose to put each of the major update steps into its own function in the MiniScript implementation.  That just helps keep things neat and organized.  Also note that we're defining "done" as simply completing 10 updates.  You might need more in some cases, or you might keep track of whether any of the points are actually changing their color, and stop when they are no longer changing.  (This is guaranteed to happen eventually.)
+
+{width:"75%"}
+![Sample run of the k-Means Clustering algorithm.  Circles are data points; X symbols are cluster centers.](kMeansClustering.png)
+
+Run this a few times; since the data and initial cluster positions are random, you'll get a different result every time.
+
+
+## Next Steps
+
+The three algorithms in this chapter are pretty typical of most small, well-defined problems that you might need to solve.  Now you've learned the secret every expert programmer knows: you don't have to think up a solution to every problem yourself.  In many cases, a good solution (algorithm) is already known, and all you need to do is translate it into your favorite language (which is surely MiniScript in our case!).
+
+Of course, not *every* problem has already been solved by someone else.  The number of things a computer can do is infinite, and you have so much creative freedom, you will certainly run into things that no one has done before, or if they have, they failed to publish a nice neat algorithm explaining how they did it.  In such cases you'll need to develop your *own* algorithm.  And that's the topic of the next chapter!
+
+A> **Chapter Review**
+A> - You learned about algorithms, and how they relate to programming.
+A> - You implemented algorithms for Greatest Common Divisor, Binary Search, and k-Means Clustering.
+A> - You learned how to fix an algorithm that is incomplete or contains an error.
+

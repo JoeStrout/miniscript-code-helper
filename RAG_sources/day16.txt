@@ -1,0 +1,311 @@
+{chapterHead: "Day 16: Key Module; MiniScript Files", startingPageNum:187}
+
+{width: "50%"}
+![](Chapter16.svg)
+
+Q> Experience is the name everyone gives to their mistakes.
+Q>— Oscar Wilde (poet and playwright, 1854-1900)
+
+A> **Chapter Objectives**
+A> - Practice editing, saving, and managing your Mini Micro programs.
+A> - Learn how to use the `key` module to interact more directly with the keyboard.
+A> - Discover different ways to access files on the host computer from Mini Micro, and vice versa.
+
+Fire up Mini Micro.  Today's going to be a fun day!
+
+## The `key` module
+
+Before today, the only way of getting input from the user has been with the `input` function.  That displays a prompt, then waits for the user to type as much as they like, until they press the Return/Enter key; then it returns what they typed as a string.  That's fine for many kinds of input, but it has limitations:
+
+- No way to enter special keys like Shift, Control, Escape, or F1.
+- No way for the computer to react to a single keypress (other than Return).
+- No way to tell if the user is currently pressing a key.
+
+Those limitations are difficult to avoid in general-purpose enviroments like the Try-It! page and command-line MiniScript.  But Mini Micro, being a virtual computer, can do much more!  With that preamble we introduce `key`, a module of methods for reading the keyboard.
+
+{i:"Mini Micro, `key` module;`key` module;keyboard"}
+{caption:"Methods in Mini Micro's `key` module."}
+| `key.available` | returns 1 if a key is in the buffer, 0 if not |
+| `key.get` | return a key from the key buffer, or the next key pressed |
+| `key.clear` | clear the key buffer |
+| `key.pressed(k)` | return 1 if key *k* is currently down |
+| `key.keyNames` | return all names usable with `key.pressed` |
+| `key.axis(h)` | return value of analog axis *h* |
+
+Remember that by "module" we really just mean a map containing some functions and other values.  Don't take my word for it — check for yourself!
+
+```terminal
+]key
+{"available": FUNCTION(), "clear": FUNCTION(), "get": FUNCTION(), "p
+ressed": FUNCTION(keyName="space"), "axis": FUNCTION(axisName="Horiz
+ontal"), "keyNames": FUNCTION()}
+```
+
+This just dumps the contents of the `key` module to the screen; it's not pretty, but it's good enough for you to verify what there.  So let's try it!  Enter:
+
+```terminal
+]foo = key.get
+```
+
+After entering this method call, Mini Micro doesn't show the usual "]" prompt with blinking cursor... instead it looks like it's frozen.  It's actually just waiting for you to press a key!  Go ahead and press your favorite letter.  (I'm pressing "m" here.)  As soon as you do, the prompt and cursor return.  Now if you enter `foo`, you can see that it has been assigned whatever key you pressed.
+
+That brings up the first good use of `key.get`: waiting for the user to be ready.  But now our examples are going to get long enough to be worth using the code editor rather than the REPL (Read-Eval-Print Loop).  So enter `edit` at the prompt to launch the Mini Micro code editor.  Then type in the following.
+
+{caption:"Press any key!"}
+```miniscript
+print "Press any key to begin!"
+key.get
+print "OK, here we go..."
+wait
+print "And we're done!"
+```
+
+After typing that in, click the close button in the top-left corner, or press Control-W, which does the same thing.  The editor disappears and you're back to the REPL, at a fresh prompt right after `edit`.  Now enter `run`, and you should see the program wait for you to indicate you're ready by pressing any key, and then run the rest of the program.
+
+```terminal
+]run
+Press any key to begin!
+OK, here we go...
+And we're done!
+```
+
+Of course you can't really press *any* key here; `key.get` does not return modifier keys like Shift and Control, nor function keys like F1.  It does, however, return values for the Escape key, Return, Delete, Backspace, and arrow keys.  Here's a fun way to test exactly what `key.get` returns.  Use `edit` again, delete the old code, and enter this.
+
+{caption:"`key.get` explorer"}
+```miniscript
+// What exactly does key.get return?
+while true  // press Control-C to exit
+	k = key.get
+	print "char(" + k.code + "): " + k
+end while
+```
+
+{pageBreak}
+D> You probably noticed that the Mini Micro code editor indents lines for you.  You don't need to press the Tab key within the `while` loop, and you don't need to press the Delete key before typing `end while` — in fact if you do, it deletes the line break and puts you back on the previous line.  Just type `end while` in line with the previous line, and the editor will fix it as soon as you're done typing it.
+
+D> Pro tip: you can also close any open `while`, `for`, or `if` block automatically by holding the Shift key when you press Return or Enter at the end of a line!  This inserts a blank line and the block closer, then positions the cursor on the blank line, ready to add code to the body of the loop.
+
+Again press the Close button (or hit Control-W) to exit the editor, and `run` the program.  Now try various keys on the keyboard.  It should print out the character code, as well as the printable character, if any.  You may notice that when you press the Return key, it reports as `char(13)`, and when we print that we get an extra line break.  The arrow keys display as `char(17)` through `char(20)`, and print as little arrow symbols.  We made an infinite loop here, so just press Control-C to break out of the program when done.
+
+This little program is something you might want to run again later, when you're trying to remember exactly what `key.get` returns for some special key.  So you'll want to save it, so you can reload it later.  Time to get organized!
+
+## Organizing Your Files
+
+If you enter `pwd` right now, you'll probably find that your current working directory is `/usr/`, the root directory of the user disk.  You certainly could just save your program here, but as I hope you will be creating lots and lots of programs in the future, that could get pretty cluttered.  It's generally a good idea to sort your stuff into folders.  Let's make a folder to contain any examples you enter from this book.
+
+{i:"`makedir`;`save`"}
+```terminal
+]cd
+]file.makedir "learnToCode"
+]cd "learnToCode"
+]save "keyGet"
+7 lines saved to /usr/learnToCode/keyGet.ms
+```
+
+That `cd` command on line 1 isn't really necessary if you're already in the `/usr/` directory, but it doesn't hurt; without any parameter, `cd` always returns you there.  Then the `file.makedir` command creates a new directory, and the next `cd` on line 3 changes your current directory to that one.  Finally, the `save` command saves your file.
+
+Let's just verify that it really is there.
+
+```terminal
+]dir
+/usr/learnToCode :
+  keyGet.ms                            152  2020-07-18 14:07:18
+]view "keyGet.ms"
+// What exactly does key.get return?
+print "Press any key, or Control-C to exit."
+while true
+    k = key.get
+    print "char(" + k.code + "): " + k
+end while
+```
+
+{i:"`view`"}
+Pretty neat, right?  The `dir` command, without any parameters, lists the contents of the current directory, along with the size and date/time of each file.  The `view` command can list a program, to verify what's there.  (It can also preview images and sounds, but we'll get to those later!)
+
+Notice that a program on disk and a program in memory are not the same thing.  You saw this yesterday; to run the demos you had to first `load` the program into memory, and then `run` it.  To create a new program on disk is basically the same thing in reverse: first you `edit` to create the program, and then `save` it.
+
+So we used the `view` command to list a program on disk.  How do you list the program in memory?  Of course you can `edit` it and see it that way, but you can also use the `source` command.
+
+```terminal
+]source
+// What exactly does key.get return?
+print "Press any key, or Control-C to exit."
+while true
+    k = key.get
+    print "char(" + k.code + "): " + k
+end while
+```
+
+There's our program, still in memory!
+
+D> The `source` and `edit` commands both operate on the program in memory.  The `view` command always displays a file on disk.
+
+But we're done with the keyGet program for now.  Let's clear it out of memory using the `reset` command.
+
+{i:"`reset`"}
+```terminal
+]reset
+Program source cleared and reset
+```
+
+If you try `source` now, it doesn't print anything; our current program is empty.  Likewise, when you `edit`, you'll be in a blank editor.  Do that, and type in this new program:
+
+{caption:"Keyboard Dash"}
+```miniscript
+print "Keyboard Dash!"
+print "Press the , and . keys as fast as you can"
+print "to race to the finish line."
+print
+print "Ready..."; wait
+print "Set..."; wait
+print "GO!"
+
+lastKey = ""
+count = 0
+startTime = time
+while count < 25
+	k = key.get
+	if k == lastKey then continue
+	if k != "." and k != "," then continue
+	count = count + 1
+	print count
+end while
+elapsed = time - startTime
+print "DONE!"
+print "You finished in " + elapsed + " seconds.  Great job!"
+```
+
+This time, before you exit the editor, try hitting the Save button (second button from the left), or pressing Control-S.  Because this program has not been saved before, the editor will pop up a little box asking you where to save it.
+
+{width:"50%"}
+![Code editor Save dialog.](SaveDialog.png)
+
+Type `keyboardDash` (with or without a `.ms` suffix), and hit Return/Enter or click Save.  The program will be saved, and the program path appears in the toolbar at the top of the screen.  Now exit with Control-W (or click the Close button).
+
+First, if you like, use the `dir` and `view` commands to verify that your program really was saved to disk.  So now you know *two* ways of saving a program: using the `save` command in the REPL, or using the Save button in the editor.  Both do the same thing.
+
+Finally, run your program, and alternately press the comma and period keys as fast as you can to race to the finish line.  How fast can you do it?  (My record is about 2.25 seconds.)  Find some other people and challenge them to a race!
+
+## More Key Methods
+
+Sometimes you want to get a key from the user, only if they've pressed one; if they haven't, then you want to continue on with the program.  There are two ways to do that.  The first is to call `key.get` only if `key.available` is true.  Or if you don't care what the key is, you can call `key.clear` to clear it out.
+
+{caption:"Reaction test."}
+```miniscript
+print "Press any key to stop the count."
+print "See if you can stop on exactly 50! Get ready..."
+wait
+print "GO!"
+for i in range(1, 100)
+	if key.available then break
+	print i
+	wait 0.05
+end for
+key.clear
+diff = abs(i - 50)
+print "You stopped " + diff + " away from 50."
+if diff < 5 then print "Amazing!"
+```
+
+Save this program as "reactionTest", then try it a few times.  Notice how we're checking `key.available` within the loop, and when one is available (i.e. the user has pressed a key), we `break` out of the loop.  Then we use `key.clear` to clear out the keyboard buffer.  In fact, try taking that out, and see what happens!
+
+{i:"keyboard buffer"}
+The second way to detect key presses without waiting for them is to use `key.pressed`.  This function is quite different from the other key functions we've looked at so far.  The `key.available`, `key.get`, and `key.clear` functions all deal with the keyboard *buffer*, the set of printable characters (plus a few editing characters as discovered before) that the user has typed.  These can include modified keys like capital letters, $, or π, but they don't include the modifier keys themselves.  Also, when you hold a printable key down, it will be entered into the keyboard buffer multiple times, following the same key-repeat behavior you see when typing.  Basically, despite being in the "key" module, what these functions actually report is keyboard *input*, one character at a time.
+
+The `key.pressed` function is different.  It reports on the status (pressed or not pressed) of individual, physical keys on the keyboard.  That includes the left and right shift keys, the alt keys, the function keys, and so on.  It also includes the printable keys like letters and numbers, but not the shifted version of those; to `key.pressed`, shift-2 is just two keys being pressed, not the at-sign that `key.get` would report.
+
+To illustrate, here's a program that counts up only while the left Shift key is held.
+
+{caption:"Demonstration of key.pressed."}
+```miniscript
+print "Hold left shift to count up.  Press Esc to quit."
+x = 0
+while not key.pressed("escape")
+	if key.pressed("left shift") then
+		x = x + 1
+		print x
+	end if
+end while
+key.clear
+```
+
+We're actually using `key.pressed` twice in this program: once to break out of the infinite loop with the Escape key, and once to increment the count whenever the left shift key is held.  Notice how fast that count goes up!
+
+If you're interested in making games, or even interactive simulations, you'll probably be using `key.pressed` a lot.  It lets you detect the keys as soon as they're pressed, for as long as they're pressed.  It can even detect multiple keys at once, which is handy if you're using them to control a character running and jumping at the same time.
+
+What are these magic strings that you use with `key.pressed` to specify the key?  Well, you'll find them on the Mini Micro Cheat Sheet, as well as in the `key.keyNames` list (although that list is so long, it won't fit on one screen!).  But you should also be aware of the `inputCheck` demo in the `/sys/demo` directory.
+
+{i:"`/sys/demo`,`inputCheck`"}
+```terminal
+]cd "/sys/demo"
+]load "inputCheck"
+]run
+```
+
+When you run this, mash any keys or combinations of keys on your keyboard or game controller, and the corresponding key or axis names will appear on the screen.
+
+We haven't covered axes yet, but it's not too hard: `key.axis` returns a value from -1 to 1 for analog axes, like joystick inputs.  Mini Micro also gives you a Horizontal and a Vertical axis usable with the arrow keys and the WASD keys.  You can tell axis names from key names because axis names are capitalized, while key names are all lower case.
+
+## More on Files
+
+You just changed to the `/sys/demo` directory.  How do you get back to your files?  The same question would apply after you quit Mini Micro and relaunch it again later.  You'll soon get comfortable navigating your files, but for now just do:
+
+```terminal
+]cd
+]cd "learnToCode"
+```
+
+and then follow this with a `dir` to make sure you see your saved files.  Remember that the first `cd` above takes you to `/usr/`, your home directory on the user disk.  But you could have done it instead in a one-liner:
+
+```terminal
+]cd "/usr/learnToCode"
+```
+
+Because the path in this case starts with a slash, it is an *absolute* path, and will work no matter where you are.  Without an initial slash, it's a *relative* path, and starts in your current directory.
+
+## Minidisk Files and Folders
+
+For the last topic of this chapter, we're going to dig a little more into how your files are actually stored in the host operating system.  This section applies to desktop computers — Windows, Mac, and Linux.  If you're running Mini Micro on a tablet or phone, you can safely skip to the end.
+
+{i:"disk slot;minidisk file;disk file"}
+Mini Micro has two ways of storing its files.  First is a "minidisk file", or just a "disk file" within the context of Mini Micro.  Click on the top disk slot below the screen.  A menu should pop up that looks like this:
+
+{width:"70%"}
+![Disk slot menu.](DiskSlotMenu.png)
+
+{i:"`/usr`"}
+Try selecting the top option, "Unmount /usr".  Now use the `dir` command in the REPL.  Mini Micro will reply "Invalid path".  The "/usr" path references a disk file or folder mounted in the top disk slot, but we just unmounted (removed) that, so there are no files there to view.
+
+{i:"mount folder"}
+Click the top slot again, and this time pick "Mount Folder..."  A folder selection dialog appears, this time showing real files on your host (Windows, Mac, or Linux) computer.  Choose some folder in your home directory, perhaps something with some text or picture files in it.  Now use the `cd` command to make sure your working directory is set to `/usr/`, and use the `dir` command again.  You should see the contents of the folder you selected, presented in Mini Micro as a file listing.  You can use the `view` command to view any files with a suffix like `.txt`, `.png`, `.jpg`, or `.wav`.
+
+Moreover, if you used the `file` module (from Chapter 13) to create, delete, or alter files here in Mini Micro, you would see those changes reflected in File Explorer or Finder on your host operating system.  (So please be careful!)
+
+{i:"mount disk file"}
+Assuming that your previous user disk was a minidisk file, you can click the slot again and choose "Mount Disk File..." to remount it.  (If you have trouble finding it, just search your system for a file called `user.minidisk`, which is what Mini Micro calls it by default.)  Or you can use the "New Disk File..." command to create a new minidisk file with any name and location you choose.
+
+A minidisk file is, in fact, nothing more than a zip file — a standard way of bundling a bunch of files and folders up into a single file, usually smaller than the original files thanks to compression.  If you have a .minidisk file and want to convert it to into regular files, you can do so with this procedure:
+
+1. Rename the file so that it ends in .zip rather than .minidisk.
+2. Unzip it.  Exactly how you do this depends on your system; in Windows you would use the "Extract All" button, on Mac you would just double-click it, etc.
+
+Now you have an ordinary folder, which you could use with Mini Micro via that "Mount Folder..." command.  What if you want to go the other way — take a folder and turn it into a minidisk file?  That's easy too:
+
+1. Zip the folder.  On Mac, you right-click it and choose "Archive..."; on Windows you might need a third-party zip program.
+2. Rename the zip file so that it ends in .minidisk rather than .zip.
+
+And that's it.  Now you can mount this as a disk in Mini Micro using the "Mount Disk File..." command.
+
+Each way of representing files has its pros and cons.  A minidisk file is a nice way of keeping all the MiniScript files for a particular program or task together.  If you want to send somebody a copy of your program, along with all the images and sounds and other data it might need, a minidisk file is the most convenient way to do that.  You'll also use this format when you package your game or program for distribution on sites like itch.io.
+
+But mounting a folder is nice if you frequently want to access files both from Mini Micro and from the host OS.  For example, you might want to use a paint program like PhotoShop to edit the artwork for a game, or use powerful audio software for editing the sound files for a music program.  That's easier to do when Mini Micro simply mounts a folder on the host disk.
+
+Now that you know about these two formats, you can choose how you prefer to store your files.  Not sure?  Don't worry about it — you can always convert from one to the other later.
+
+{i:"`/usr2`"}
+Finally, it's worth pointing out that Mini Micro has *two* disk slots.  Any folder or disk file you mount in the second slot becomes available in Mini Micro as             `/usr2/`.  You probably won't need this at first, but someday you may have the need to load a second disk (or folder) of programs and data so that you can copy or compare to your main disk.
+
+A> **Chapter Review**
+A> - You experimented with the `key` module for reading the keyboard.
+A> - You practiced editing and saving programs in Mini Micro.
+A> - You learned about the two ways Mini Micro stores files on the host disk: as a disk file, and as a folder hierarchy, and how to convert between them.

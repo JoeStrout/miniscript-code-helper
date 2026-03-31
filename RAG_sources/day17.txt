@@ -1,0 +1,258 @@
+{chapterHead: "Day 17: Colors and Text", startingPageNum:201}
+
+{width: "50%"}
+![](Chapter17.svg)
+
+Q> Life is a series of building, testing, changing and iterating.
+Q>— Lauren Mosenthal (designer, researcher, & entrepreneur)
+
+A> **Chapter Objectives**
+A> - Learn how to specify and work with colors in Mini Micro.
+A> - Explore the `text` module and various ways of placing text on the screen.
+
+When you boot up Mini Micro, it looks a lot like a terminal window at first.  There is monospaced text and a blinking cursor.  Yesterday you learned some ways to go beyond standard terminal input/output, on the input side: ways to get a single character input or detect the state of all keys and buttons.  Today we're going to go beyond standard terminal output: ways to move the cursor, change the text and background colors, and manipulate individual cells of the text display.  All this will lead to more interactive, engaging programs that are as fun to use as they are to create.
+
+## Color in Mini Micro
+
+{i:"color;Mini Micro,colors in"}
+Colors in Mini Micro are represented as standard HTML (that is, web page) color strings, which look like this:
+
+{width:"50%"}
+![](ColorString.svg)
+
+The first character must be a hash (`#`), followed by two characters each for red, green, and blue.  The last two characters represent alpha (transparency), and are optional.  If not specified, the alpha will be assumed to be FF, which is fully opaque.
+
+Each pair of characters is a *hexadecimal* value from 00 to FF.
+
+{i:"hexadecimal"}
+D> The ordinary numbers everybody knows about are *decimal* numbers, with digits that go from 0 to 9.  The second digit from the right is the "tens place" and digits there are multiplied by 10, so that 42 really means 4 \* 10 + 2.  *Hexadecimal* numbers are similar, but instead of ten different digits, there are 16: 0 through 9 plus A through F.  A in hexadecimal is the same value as 10 in decimal; B is 11, and so on.  F (hex) is worth 15 (decimal).  So the largest possible 2-digit value, FF, is 15 \* 16 + 15 = 255 in decimal.
+
+PRINT>If all that about hexadecimal numbers seems confusing, don't worry about it; you don't really need to understand them to work with colors.  Mini Micro comes with a `color` module that has 20 standard colors defined, so you can just refer to them by name.  The table at the top of the next page lists them all.
+EBOOK>If all that about hexadecimal numbers seems confusing, don't worry about it; you don't really need to understand them to work with colors.  Mini Micro comes with a `color` module that has 20 standard colors defined, so you can just refer to them by name.  The table below lists them all.
+
+{colWidths:"50,100,50,100", caption:"Colors defined in the `color` module."}
+|Name|Value|Name|Value|
+|----|-----|----|-----|
+|aqua|#00FFFF|navy|#000080|
+|black|#000000|olive|#808000|
+|blue|#0000FF|orange|#FF8000|
+|brown|#996633|pink|#FF8080|
+|clear|#00000000|purple|#800080|
+|fuchsia|#FF00FF|red|#FF0000|
+|gray|#808080|silver|#C0C0C0|
+|green|#008000|teal|#008080|
+|lime|#00FF00|white|#FFFFFF|
+|maroon|#800000|yellow|#FFFF00|
+
+{gap:30}
+D> Want to see those colors in color?  Check the *Mini Micro Cheat Sheet*!  They are shown at the bottom of page 2.
+
+There are many uses for colors in Mini Micro, but for today, we're just going to use them to color text.  When you launch Mini Micro, it comes up with the color set to orange text on a black background, though you probably noticed that the welcome message used several other colors.  Time for you to learn how to do such tricks yourself!  Try this:
+
+```terminal
+]text.color = color.lime
+```
+
+As soon as you hit return, the `]` prompt and the blinking cursor appear a bright green.  Enter `dir` just to get a bit more text to display in your current color settings.
+
+Now perhaps that bright green is a bit too garish.  Let's tone it down:
+
+```terminal
+]text.color = color.green
+]dir
+```
+
+If you consult the color chart, you'll note that `color.lime` is `"#00FF00"`, while `color.green` is `"#008000"`.  Both of these have red and blue equal to zero, but different amounts of green; lime uses FF, while green uses 80.  Because FF is a bigger (hexadecimal) number than 80, it's a lot more green, and so a brighter color.
+
+Green on black is nice, but what if we reduced the contrast a bit more by coloring the background?
+
+```terminal
+]text.backColor = color.navy
+]dir
+```
+
+Notice that we assigned to `text.backColor` here rather than `text.color`.  You might have also noticed that changing this only changes the background color of subsequent printing, not text already printed, or areas that are not printed over in some way.  To clear the whole screen to your new text colors, just enter `clear`.
+
+PRINT>Take a few moments now to explore other color schemes.  Are there any you particularly like?  The figure below shows what my screen looked like after messing around for a while (at least, as well as we can show it in a black and white book).
+EBOOK>Take a few moments now to explore other color schemes.  Are there any you particularly like?  The figure below shows what my screen looked like after messing around for a while (though if you're reading this on a monochrome ebook reader, you will have to use some imagination).
+
+{width:"80%"}
+![Fun with text colors.](TextColors.png)
+
+
+In addition to the 20 standard colors, the `color` module contains a couple of helper functions.  One is the `color.rgb` function, which constructs a color given numeric values for red, green, and blue in the range 0 to 255.
+
+```terminal
+]text.color = rgb(255, 200, 100)
+```
+
+There's also a `color.rgba` function that does the same, but takes an alpha value, also in the range 0-255.  An alpha of 0 makes a color that is invisible because it is completely transparent; an alpha of 255 is fully opaque (non-transparent).  Intermediate values make colors that are translucent, i.e., you can see through them to some degree.  That's not terribly useful now because there is nothing in the background to see, but you'll have use for it later on, when you've learned to make use of Mini Micro's multiple display layers.
+
+{i:"`lerp`;linear interpolation;`color.lerp`"}
+The last color function we're going to talk about is `color.lerp`.   "Lerp" is a computer term that comes from "linear interpolate," which is just a fancy way to describe the mixing of two values.  `color.lerp` takes three parameters: *colorA*, *colorB*, and *t*, which is the interpolation value from 0 to 1.  The result will be a color that is fraction *t* of the way between *colorA* and *colorB*.
+
+A couple of examples will clear it up.  Suppose that `a` and `b` are colors.  Then `color.lerp(a, b, 0)` returns exactly the same thing as `a`.  We've gone 0% of the way from color `a` to color `b`.  If we did `color.lerp(a, b, 0.5)`, then we'd get a color exactly halfway between `a` and `b`.  And of course `color.lerp(a, b, 1)` would return color `b`.
+
+We can use this to generate a bunch of colors in between two others in a loop.  Try this:
+
+```terminal
+]for t in range(0, 1, 0.05)
+...]text.backColor = color.lerp(color.red, color.blue, t)
+...]print "     "
+...]end for
+```
+
+PRINT>Here we've made a simple `for` loop that goes from 0 to 1 in increments of 0.05, and then use that value to lerp between red and blue.  For each one, we set the text background color and print and handful of spaces so we can see it.  (I can't effectively show the result in a black and white book, so please try it yourself!)
+EBOOK>Here we've made a simple `for` loop that goes from 0 to 1 in increments of 0.05, and then use that value to lerp between red and blue.  For each one, we set the text background color and print and handful of spaces so we can see it.  (Words can't do this justice; please try it!)
+
+
+There's one more trick you should know about colors, and that is the color picker in the Mini Micro code editor.  Enter `edit` to launch the editor, type `text.color =`, and then pause.  Use the mouse to click on the code wizard button, which looks like a magic wand glowing above a little document icon.  A menu should drop down from the button; select "Insert Color..." and the color picker will appear.
+
+![Color picker in the Mini Micro code editor.](ColorPicker.png)
+
+Here you can adjust the red, green, blue, and alpha values by using the sliders or by typing in values.  You can also select one of the standard colors by clicking on the little color boxes below.  A large color preview is shown against a checkered background, so you can see what effect the alpha channel has.  Once you've found a color you like, click the Insert button to insert the color value into your code.
+
+## The Text Display
+
+So far we've just been using `print` and `input` to manipulate the text on the display, just like a terminal or even the Try-It! web page.  You may have also caught `clear` for clearing the screen.   Now we're going to learn some more advanced ways to put text on the Mini Micro screen.
+
+The Mini Micro text display uses a friendly, monospaced font arranged in a grid of 26 rows by 68 columns.  Columns are numbered starting on the left, and like many things in computers, they begin at 0 with the leftmost column.  The rightmost column is column 67.  Rows start at the bottom of the screen with 0, and proceed up to row 25 at the top of the screen.
+
+![Mini Micro text display: 26 rows of 68 columns each.](TextDisplay.png)
+
+In terms of pixels, each cell is 16 pixels wide and 24 pixels tall, but they overlap horizontally by 2 pixels.  So effectively, you can think of the text cells as 14 by 24 pixels in size.  (You don't really need to worry about pixel coordinates yet, but we will start thinking about such things soon when we get into pixel graphics.)
+
+The text display has the concept of a cursor, which is where any printing goes.  You've seen this already: it's the blinking block that shows you where you can type.  But the cursor is only visible when it's waiting for input.  At other times, it's invisible, but it's still there — and the output of any `print` statement goes wherever that cursor is.  You can control where the cursor is by setting the `text.row` and `text.column` properties.  Try this (either via `edit`, or just typed into the REPL):
+
+```miniscript
+for row in range(20, 5)
+	text.row = row
+	text.column = 10 + row*2
+	print "Hello world!"
+end for
+```
+
+You already used `text.color` and `text.backColor` in the previous section, and now you've done something similar with `row` and `column`.  As you've surely noticed, there is a `text` module much like the `key` module.  It's actually *slightly* different, because Mini Micro can have not just one, but up to eight different text display layers, as you'll see in a couple of days.  But one of these is always the "default" text display, which handles `print` and `input`, and `text` is a reference to that.  So it's perfectly fine to think of `text` as just a module of text-related functionality.
+
+{i:"Mini Micro, `text` module;`text` module;text properties"
+{caption:"Properties that can be read or assigned to in the `text` module."}
+| `text.color` | foreground (text) color of subsequent printing |
+| `text.backColor` | background color of subsequent printing |
+| `text.column` | cursor column (0-67) |
+| `text.row` |  cursor row (0-25) |
+| `text.inverse` | boolean: when true, foreground and background colors are swapped |
+| `text.delimiter` | string to follow the text of every `print`; by default, `char(13)` |
+
+PRINT>Some of that functionality is in the form of properties you can both read, and assign new values to, like we did with `text.row` and `text.column` above.  The full set of these text properties is shown in the table on the previous page.
+EBOOK>Some of that functionality is in the form of properties you can both read, and assign new values to, like we did with `text.row` and `text.column` above.  The full set of these text properties is shown in the table above.
+
+But the `text` module also contains functions, like the `key` module did yesterday.  You never assign new values to these; you just call them and pass in any parameters they need.  Here is the list of those functions.
+
+{caption:"Functions in the `text` module.", colWidths:"150,*"}
+| `text.clear` | clear the display using the current foreground and background colors |
+| `text.cell(x, y)` | get the character displayed at column *x*, row *y* |
+| `text.setCell x, y, s` | set the character displayed at column *x*, row *y* to *s* |
+| `text.cellColor(x, y)` | get the foreground character at column *x*, row *y* |
+| `text.setCellColor x, y, c` | set the foreground color at column *x*, row *y* to *c* |
+| `text.cellBackColor(x, y)` | get the background character at column *x*, row *y* |
+| `text.setCellBackColor x, y, c` | set the background color at column *x*, row *y* to *c* |
+| `text.print s` | print *s* to this display starting at `text.column`, `text.row` |
+
+As usual, you should not try to memorize these!  Just skim them so you have some idea of what's available, and then look them up (here, or on the Mini Micro Cheat Sheet) when you need them.
+
+{i:"`text.inverse`"}
+The `text.inverse` property is a switch that causes the foreground and background colors to be swapped on subsequent output.  Try it: just enter `text.inverse = true` at the Mini Micro prompt.  Maybe follow it with `dir`, or `print` something, so you can really see the effect.  Do `text.inverse = false` to turn it back off.
+
+{i:"`text.delimeter`;`print`"}
+The last text property to consider is `text.delimiter`.  This is a special string that is added to the console after every `print` statement.  Try this:
+
+```terminal
+]print 1; print 2; print 3
+1
+2
+3
+```
+
+We're just putting three `print` statements on one line, joining them with semicolons.  You can see that each number appears on its own line.  But now enter `text.delimiter="*"`, and then repeat the previous command.  (Remember to user the up-arrow key to save yourself some typing!)
+
+```terminal
+]text.delimiter="*"
+]print 1; print 2; print 3
+1*2*3*
+```
+
+The difference this time is that all the output appears on one line, but after each number is an asterisk (the value you assigned to `text.delimiter`).  To restore the standard behavior, do `text.delimiter=char(13)`.  To understand that, first recall that the `char` intrinsic function returns a character (string) defined by its numeric Unicode value.  For example, `char(65)` is capital letter "A".  Unicode values less than 32 are called *control characters*, and are generally not printable, but instead cause special things to happen.
+
+{i:"line break"}
+`char(13)`, in particular, is a line break.  It causes the text cursor to go to the column 0 of the next line.  If the cursor was already on row 0, then it scrolls the whole text display up (i.e. moves everything up by one line), and then puts the cursor at the start of row 0.
+
+D> There are a couple other useful control characters, and a whole host of character codes that produce special glyphs in Mini Micro.  To learn these, run `/sys/demo/specialChars.ms`.
+
+
+Changing `text.delimiter` to the empty string (that is, `""`) is handy when you need to print something, do some extended calculations, and then print something else, all on the same line.  It's even more handy when you want to print something on row 0 without scrolling the screen.
+
+That covers all the `text` properties.  As for the functions, `text.clear` does almost the same thing as the `clear` method you already know, though it applies only to the text display (and not to the graphical displays you'll learn about soon).  The other text functions all have to do with getting or setting the data in a particular cell on the display.  Each cell contains three pieces of data:
+
+
+|Data|How to get it|How to change it|
+|----|-------------|----------------|
+|the text character displayed|`text.cell`|`text.setCell`|
+|the text color|`text.cellColor`|`text.setCellColor`|
+|the background color|`text.cellBackColor`|`text.setCellBackColor`|
+
+You use all these methods with parameters that specify the column and row of interest.  For example, try this:
+
+```terminal
+]clear
+]print "Neat?"
+Neat!
+]print text.cell(4, 24)
+?
+]text.setCell 4, 24, "!"
+```
+
+In this way, you can read or set the contents (or colors) of any cell on the screen.  Many classic games, like *Rogue* and *Dwarf Fortress*, use exactly this sort of technique to draw 2D games using only a text display.  In Mini Micro, the need for this is reduced, since it has powerful graphics capabilities you'll learn by the end of this book.  But the ability to do advanced text-based user interfaces is there if you need it.
+
+
+## ASCII Bear
+
+{i:"ASCII art"}
+To celebrate your new understanding of the text displays and color, here's a program that creates an adorable little bear using "ASCII art" (artwork made only with standard letters, numbers, and punctuation).  Type carefully!
+
+```miniscript
+text.color = color.black
+text.backColor = color.white
+clear
+print "    _     _"
+print "   (c).-.(c)"
+print "    / ._. \"
+print "  __\( Y )/__"
+print " (_.-/'-'\-._)"
+print "    || x ||"
+print "  _.' `-' '._"
+print " (.-./`-~\.-.)"
+print "  `-'     `-'"
+text.setCellColor 7, 20, color.gray // belly button
+text.setCellColor 6, 23, color.blue // left eye
+text.setCellColor 8, 23, color.blue // right eye
+```
+Feel free to tweak this and improve it if you can!
+
+
+## Exploring the Demos
+
+{i:"`/sys/demo`,`theMatrix`;`/sys/demo`,`forestFire`"}
+There are several demos in `/sys/demo/` that you are better equipped to understand now.  `theMatrix.ms` demonstrates direct manipulation of the text display.  The logic for managing all those dropping columns of characters is a little complex, but see if you can find where the characters and colors are poked onto the screen with text.setCell and text.setCellColor.  Slightly simpler is the `forestFire.ms` program, which simulates a forest fire entirely on the text display.
+
+{i:"`/sys/demo`,`typing`"}
+There's a typing game called `typing.ms` that also uses the text display.  Right near the top of the program, you'll find a `printAt` function that uses the things you learned today to print things exactly where they should appear on screen.
+
+{i:"`/sys/demo`,`therapist`;`/sys/demo`,`textAdventure`;`/sys/demo`,`acey-deucey`"}
+Finally, several of the other demos are primarily text-based, but don't do anything too fancy with the display.  The `therapist`, `textAdventure`, and `acey-deucey` programs all fall into this category.
+
+
+A> **Chapter Review**
+A> - You learned how to represent colors in Mini Micro using HTML color syntax.
+A> - You found the `color` module with 20 built-in colors, plus several handy functions.
+A> - You explored the `text` module, and its several properties and methods that let you display (or read) text anywhere on the screen, in any colors you like.
+

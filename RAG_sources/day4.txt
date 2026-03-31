@@ -1,0 +1,137 @@
+{chapterHead: "Day 4: Input and Val", startingPageNum:37}
+
+{width: "50%"}
+![](Chapter4.svg)
+
+Q> I view computer science as a liberal art. It should be something that everybody learns.
+Q>— Steve Jobs (co-founder, Apple Computer)
+
+A> **Chapter Objectives**
+A> - Learn to use `input` to get a string from the user.
+A> - Use the `val` function to convert a string to a number.
+
+## Getting input from the user
+
+In the first three days of this course, you've already learned how to store values in variables, do math with them, and print them out.  But those values are always set right in the program code, so your program does the same thing every time.  The only exception to that is code that uses the `rnd` function, but that only gets a random value.  What can a program do when it needs a little input from the user?
+
+The answer is the `input` function.  This is a built-in function in most MiniScript implementations.
+
+{i:"`input`"}
+{caption:"`input` intrinsic function"}
+| `input(s="")` | displays prompt s, then returns string entered by the user |
+
+
+{i:"prompt"}
+prompt
+: a string displayed to the user when the computer is waiting for input, giving them some idea of what sort of input is needed
+
+Here's a simple example.
+
+```miniscript
+name = input("What is your name?")
+print "Hello, " + name + "!"
+```
+
+Go ahead and try this on the MiniScript *Try-It!* page.  When you run it, you'll see the prompt — "What is your name?" — displayed in the output area, followed by a rectangular blinking cursor.  That blinking cursor is your invitation to type something!  Go ahead and type your name.  (Or the name of your favorite celebrity, or your favorite fruit — it's your program; you can troll it if you like.)
+
+{i:"Return key;Enter key"}
+When you've typed something, press the Return or Enter key, which is your signal to the computer that you're done with your answer.  The program then continues with line 2, printing out a personalized greeting.  Now run it again, and type something else.  You get a different output.
+
+D> Pause for a moment and think about how cool that is.  You can now make programs that can ask for information from the user, process that information, and produce a unique result.  Every run of the program can do something new and useful based on the information the user provides.  This is the power that got us to the Moon; it's the power that took the world by storm in the second half of the 20th century.  And now that power is yours.
+
+The ability to get input from the user lets you make considerably more chatty programs than you could before.  Let's illustrate that with a somewhat longer example.  (Remember, the fastest way to learn is to actually type these examples in and run them!)
+
+{caption:"Cookbook suggestion program"}
+```miniscript
+name = input("Enter your name: ")
+print "Hello, " + name + "."
+food = input("What's your favorite food? ")
+print "You like " + food + "?  I can't stand the stuff."
+print "So what region do you live in?"
+region = input("Northern, Eastern, etc.? ")
+print "Well, maybe you should make a cookbook:"
+print name + "'s " + region + " " + food + "!"
+```
+
+This program uses three variables: `name`, `food`, and `region`.  Each of them is assigned a value from a separate call to the `input` function.  You can see that the computer works through this program, step by step, but it pauses on each `input` call, waiting for the user to type something and press return.  Then it continues with the next line.
+
+{width: "75%"}
+![Cookbook suggestion sample output](CookbookSuggestion.png)
+
+## Getting a *number* from the user
+
+Recall the difference between strings and numbers, which we covered in Chapter 1.  A string is a sequence of characters, like `"Mary"`, while a number is a numeric value, like `42`.  Even if the sequence of characters in a string happens to look like a number to us, like `"007"`, it's still just a bunch of characters to the computer.
+
+The `input` function always returns a string.  This is important.
+
+A> The `input` function always returns a string!
+
+That's important to remember, because the math operators do different things with strings than they do with numbers.  With numbers, `*` is multiplication.  But with strings, it is string replication (i.e. repeating).  So if you try to do something like the following, it doesn't work as intended.
+
+{caption:"Incorrect dog-years program"}
+```miniscript
+age = input("Enter your age: ")
+print "That's " + age*7 + " in dog years!"
+```
+
+Try that out and see what happens.  The program above asks your age, so the user probably enters something like "42", which gets stored in the variable `age`.  But it's still a string, so when we do `age*7`, we get "42424242424242" — that is, the string "42" repeated seven times.
+
+The solution is the `val` function, which we briefly mentioned in Chapter 2.  This takes a string argument and returns its numeric value.  To fix the program above, we just need to use this to convert the user's input to a number.  That could be done in several ways; we could do it in the math expression where the number is needed...
+
+{caption:"Dog-years program, corrected version 1"}
+```miniscript
+age = input("Enter your age: ")
+print "That's " + val(age)*7 + " in dog years!"
+```
+
+Or we could do it around the `input`, so we get a number right away...
+
+{caption:"Dog-years program, corrected version 2"}
+```miniscript
+age = val(input("Enter your age: "))
+print "That's " + age*7 + " in dog years!"
+```
+
+Or we could even add a new line, between where we get `age` as a string and where we use `age` as a number, that reassigns the variable with the numeric value.
+
+{caption:"Dog-years program, corrected version 3"}
+```miniscript
+age = input("Enter your age: ")
+age = val(age)
+print "That's " + age*7 + " in dog years!"
+```
+
+All of these work just fine; you should use whichever makes the most sense to you.
+
+Also try entering a string that does *not* look like a number.  Enter "fish" for example.  What result to you get?
+
+A> If given a string that does not appear to be a number, `val` returns 0.
+
+However, it's smart enough to correctly convert negative numbers, numbers with a decimal point, etc.  Experiment with different values until you're comfortable with it.  `val` is one of the most common functions you will use in all your MiniScript programming, so it's well worth spending a little time on it.
+
+Try one more example to see how `input`, `val`, and math all work together to do handy calculations.  (Remember that the rest of the line after `//` is a comment for the human reader, and ignored by the computer.)
+
+{caption:"Yearly income calculator"}
+```miniscript
+// Yearly income calculator.
+// Enter your income per hour, and hours worked per week,
+// and this will calculate your income per month and year.
+amountPerHour = val(input("Hourly rate? "))
+hoursPerWeek = val(input("Hours per week? "))
+weeksPerYear = 50  // assume 2 weeks vacation
+amountPerYear = amountPerHour * hoursPerWeek * weeksPerYear
+print "That's " + amountPerYear + " per year,"
+print "or about " + round(amountPerYear/12) + " per month!"
+```
+
+{gap:40}
+A> **Chapter Review**
+A> - You learned how use `input` to get a string from the user.
+A> - You used the `val` function to convert a string to a numeric value.
+A> - You've entered programs that can be run again and again, calculating different results based on user inputs.
+
+
+
+
+
+

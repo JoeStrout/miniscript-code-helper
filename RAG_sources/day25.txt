@@ -1,0 +1,307 @@
+{chapterHead: "Day 25: Tile Display", startingPageNum:305}
+
+{width: "50%"}
+![](Chapter25.svg)
+
+Q> Testing leads to failure, and failure leads to understanding.
+Q>— Burt Rutan (aerospace engineer and entrepreneur)
+
+A> **Chapter Objectives**
+A> - Learn the last type of Mini Micro graphics display, `TileDisplay`.
+A> - Get familiar with presenting grid-based data or images.
+A> - Learn to draw hexagonal grids as well as rectangular ones.
+
+You've learned a lot about Mini Micro's sophisticated display system by now.  To review, it has eight display layers, each of which can be configured to any of the following modes:
+
+| 0 | off | no display |
+| 1 | solid color | displays one color over the whole screen |
+| 2 | text | 26 row, 68 column text display |
+| 3 | pixel | 960 by 640 (by default) pixel display |
+| 4 | tile | displays a rectangular grid of small images |
+| 5 | sprite | displays a set of scaleable, rotatable, resizable images |
+
+Most of these were covered on Day 19, though pixel displays were covered on Day 18, and sprite displays on Day 22.  The only display mode we haven't explored yet is `tile` mode.
+
+So today, let's do that!  After today, your training in Mini Micro graphics will be complete.
+
+## TileDisplay
+
+The big idea with a `TileDisplay` is that it takes little rectangular sub-images from a source image called a "tile set," and places them into a grid of locations on the screen.
+
+![Overview of how TileDisplay works. Rectangular portions of a tile set (SimplePlatformTiles.png, *left*) are mapped to rectangular portions of the display (*right*).  That happy character standing on the bridge is a Sprite, but everything else on screen is a TileDisplay. Grid lines have been added for reference.](TileDisplayOverview.png)
+
+{i:"`/sys/demo`,`platformer`"}
+The figure above shows one of the built-in images (`/sys/pics/SimplePlatformTiles.png`) on the left, with grid lines added so you can see where the tiles are.  Such an image is called a *tile set*.  On the right is a screen shot of the platform demo (`/sys/demo/platformer.ms`), also with reference lines added.  Each of those little squares in the `TileDisplay` is called a *cell*, and each cell shows some *tile* from the tile set.  Let's get that terminology straight to avoid confusion later.
+
+tile set
+: an image composed of a rectangular grid of smaller images intended to be used with a tile display
+tile
+: one of those little images in a tile set
+tile display
+: a display composed of rectangular cells, each displaying zero or one tiles from a tile set; in Mini Micro, represented by the `TileDisplay` class
+cell
+: one of those little rectangular areas of the display
+
+## Sprites vs. Tiles
+
+Remember those letter tiles in the word game of Chapters 23 and 24?  Those were *sprites*, drawn in a `SpriteDisplay`, and for good reason: we wanted them to fall smoothly into position, and we might even want to add a little bit of rotation to each one to make them look more natural.  That sort of fine control is not possible with a `TileDisplay`; every cell in a `TileDisplay` is positioned precisely next to its neighbors like every other cell, and no rotation is possible.
+
+Why would you ever use a `TileDisplay`, then?  There are two chief advantages.  First, a `TileDisplay` is somewhat easier to manage, since you need only assign a tile number to any cell of the display, and the graphics on screen automatically update.  You'll see how easy that is by the end of the chapter.  Second, while `SpriteDisplay` is the most efficient way to draw a bunch of moving/rotating pictures, it can't compete with a `TileDisplay` when it comes to drawing a large grid of same-sized little images.  So if you're making something like a map or game board, in most cases `TileDisplay` is both easier and faster.
+
+## The `TileDisplay` class
+
+When you set a display's `mode` to `displayMode.tile`, it changes the type of that display to `TileDisplay`, which means it gets the following assignable properties:
+
+{caption:"Properties of the `TileDisplay` class (where `td` is any `TileDisplay` reference).  All these may be both read and assigned to.  The `extent`, `tileSetTileSize`, `cellSize`, and `overlap` properties may be either a single number applied to both X and Y, or an `[x,y]` list."}
+|`td.extent`|[columns, rows] display size|
+|`td.tileSet`|`Image` containing tiles to draw from|
+|`td.tileSetTileSize`|size of tiles in `tileSet`|
+|`td.cellSize`|size of tiles (cells) on screen|
+|`td.overlap`|cell overlap on screen, in pixels|
+|`td.oddRowOffset`|amount to shift odd rows horizontally; use 0.5 for hex rows|
+|`td.oddColOffset`|amount to shift odd columns vertically; use 0.5 for hex columns|
+|`td.scrollX`|horizontal scroll amount, in pixels|
+|`td.scrollY`|vertical scroll amount, in pixels|
+
+{pageBreak}
+And it gets the following methods (you can only call these, not assign to them):
+
+{caption:"Methods of the `TileDisplay` class."}
+|`td.clear` *toIndex*|set all tiles to null (the default) or the given index|
+|`td.cell(x,y)|get the tile index of cell `x`,`y`|
+|`td.setCell x, y, idx|set the tile index of cell `x`,`y` to `idx`|
+|`td.cellTint(x,y)|get the tint color of cell `x`,`y`|
+|`td.setCellTint x, y, c|set the tint of cell `x`,`y` to color `c`|
+
+That seems like a lot, but as we'll see shortly, they fall into just a couple of groups: things for configuring the TileDisplay at setup time, and things for controlling the content (the tiles shown and their tint color) as your program runs.
+
+## Basic Configuration
+
+EBOOK>It's time to put hands to keyboard and start using this thing!  You may recall from Day 19 the default display types that Mini Micro gets at startup (or when you use the `clear` command).  These include a PixelDisplay (display 5), a SpriteDisplay (4), and of course a TextDisplay (3).  They do not, however, include a TileDisplay.
+
+EBOOK>So the first thing to do is create such a display!  You can put it in any layer you want, but for this chapter, let's repurpose layer 5, as we won't be doing any pixel drawing anyway.  Fire up Mini Micro, and let's get started.
+
+{width: "50%", position:"top"}
+![The tile set image `/sys/pics/TileShapes.png`, with tile index numbers added.](SimpleTileShapes.png)
+
+PRINT>It's time to put hands to keyboard and start using this thing!  You may recall from Day 19 the default display types that Mini Micro gets at startup (or when you use the `clear` command).  These include a PixelDisplay (display 5), a SpriteDisplay (4), and of course a TextDisplay (3).  They do not, however, include a TileDisplay.
+
+PRINT>So the first thing to do is create such a display!  You can put it in any layer you want, but for this chapter, let's repurpose layer 5, as we won't be doing any pixel drawing anyway.  Fire up Mini Micro, and let's get started.
+
+```terminal
+]display(5).mode = displayMode.tile
+]td = display(5)
+```
+
+Nothing much appears to happen at this point, but invisibly, display 5 has transmogrified from a pixel display into a tile display.  We've also assigned it to a variable called `td` so we can refer to it more easily.  Now let's load a tile set (and also use the `view` command so you can get a glimpse of what it looks like).
+
+```terminal
+]td.tileSet = file.loadImage("/sys/pics/TileShapes.png")
+]view td.tileSet
+```
+
+The tile set we've loaded here is a selection of eight different simple shapes, in eight different colors.  The image is 512 by 512 pixels, and since there are 8 rows and columns, this means the tile size (in the tile set) is 64 pixels wide and tall.  This is the next thing we have to do: tell the tile display how big the tiles are.
+
+```terminal
+]td.tileSetTileSize = 64
+```
+
+We used just a simple number here (64) because the tiles are square.  That's usually the case, but if you ever find or make a tile set with non-square tiles, you can specify the width and height in a list like `[48,32]`.
+
+Finally we're ready to get some tiles onto the display!  The easiest way to do that is with the `.clear` method, which takes a *tile index* to know which tile it should clear everything to.
+
+tile index
+: a number which identifies a tile in a tile set, starting with 0 at the top-left, and counting left-to-right, then top-to-bottom
+
+The figure above shows the tile indexes for this tile set.  Let's clear the tile display to the dark blue circle, which is tile index 20.
+
+```terminal
+]td.clear 20
+```
+
+The result should look something like this:
+
+{width:"75%"}
+![Initial setup of a TileDisplay.](TileDisplay1.png)
+
+
+Now we can see the tile display: it's that grid of blue circles!  Check your understanding of tile index by trying a few other values.  Can you fill the display with red diamonds?  How about purple hexagons?
+
+You probably noticed that the tile display does not fill the whole screen.  There 12 columns and 7 rows of cells, which is called the *extent* of the display.
+
+extent
+: how many columns and rows a tile display has
+
+In fact if you type `td.extent` at the prompt, it will tell you `[12, 7]`.  You can change it by simply assigning a new pair of numbers.  Note that if you make the tile set *smaller*, you see the change right away; but if you make it bigger, it's not so obvious, because the new rows and columns are filled in with empty cells.  You need to use the `.clear` method (or otherwise fill in the new cells) to see the new extent.  Try this, carefully observing the result at each step:
+
+```terminal
+]td.extent = [8,6]
+]td.extent = [15,10]
+]td.clear 20
+```
+
+Now the screen should be full of blue circles.  But that's a function of the extent of the tile display, and also the cell size.  The default cell size is 64, which happens to be the same as our tile size in this case.  But you can easily change it.  Explore:
+
+```terminal
+]td.cellSize = 32
+]td.cellSize = 320
+]td.cellSize = [128,32]
+]td.cellSize = 64
+```
+
+Note that just like the `tileSetTileSize` property, you can specify `cellSize` as either a simple number for square cells, or as a `[width, height]` list for non-square cells.
+
+Changing the tile size is how you can scale a tile display.  What about scrolling?  That uses the same `scrollX` and `scrollY` properties you already saw on `PixelDisplay` and `SpriteDisplay`.
+
+```terminal
+]for x in range(0,100); td.scrollX = x; wait 0.1; end for
+]td.scrollX = 0
+```
+
+A tile display could be configured to be many times bigger than the actual screen, with different areas being scrolled into view as needed during a run.
+
+## Using Cells
+
+You've already been using tile indexes with the `.clear` method, to clear the whole tile display to the same cell.  Now let's learn to set, read, and tint specific cells.
+
+The methods for doing this are very similar to those you would use on a `TextDisplay` (Day 17): `cell(column, row)` to read the tile index at a given column and row, or `setCell column, row, index` to set it.  And just like a `TextDisplay`, rows count up from the bottom, and columns count from the left side of the display.  So to change the lower-left cell to index 8 — a round-cornered square in our tile set — just do:
+
+```terminal
+]td.setCell 0, 0, 8
+```
+
+Now try using the `cell` method to read back the tile index at several positions.
+
+```terminal
+]td.cell 0,0
+8
+]td.cell 1,0
+20
+```
+
+Simple, right?  Cover up the code below, and see if you can solve the following challenge without looking: change the cell that's 6th from the left, and 3rd from the bottom, into a white diamond.  (Remember that rows and columns begin at 0, not at 1.)
+
+```terminal
+]td.setCell 5, 2, 40
+```
+
+Did you get it right?
+
+D> Make up some more challenges for yourself if you need more practice; the computer is a calm and infinitely patient teacher.
+
+Instead of assigning a tile index to a cell, you can also set it to `null`, which means "don't draw any tile here at all."  In fact this is what the `.clear` method does to all cells if you don't specify an index value.  Go ahead and try it now:
+
+```terminal
+]td.setCell 3, 3, null
+```
+
+The other thing you can do with tile display cells is tint them, just like sprites.  If you tint a pixel that's white in the source image, it comes out exactly the tint color; but if the source image is darker, then you get a darker version of the tint color.  That's why white images are so useful.  In fact, this `SimpleTiles.png` is really eight times bigger than it needs to be; it could have been *only* white shapes, as all the other colors could be made by tinting.  (But sometimes it's convenient to use the prebaked colors, too.)  Anyway, try this:
+
+```terminal
+]td.setCellTint 5, 2, color.orange
+]td.setCellTint 5, 1, color.gray
+```
+
+The first line above tints that white diamond a nice strong orange.  The second line tints a blue circle gray, which really just makes it a darker blue.
+
+Hopefully you see how by assigning different tile indexes and/or tints to different cells, you can build a complex display that looks like a map, or a platformer game level, or anything else that has a basically grid-like structure.
+
+## Overlap and Offset
+
+So far we have only seen cells arranged into a neat square or rectangular grid.  Tile displays in Mini Micro are more versatile than that, however.
+
+First, it is possible to set the cells in the display to overlap horizontally, vertically, or both.  To do this you assign to the `overlap` property a list that contains the desired horizontal and vertical overlap.  For example:
+
+```terminal
+]td.overlap = [0, 8]
+```
+
+This scrunches the cells so that they overlap in Y.  This can be useful for certain art styles, where each tile contains bits at the top that overlap, for example, grass or flowers that stick up from the ground on a grass tile.  When tiles are overlapped, they're always layered so that lower rows on the screen are drawn on top of higher rows, producing the correct result in this case.  In other cases, `overlap` is simply used to spread the cells apart, or squeeze them together, as needed.
+
+The second trick you can do with the cell arrangement is to offset odd-numbered rows or columns by some fraction of the cell width.  This is useful in making isometric or hexagonal maps.  Let's start with an isometric map.  That's one where the map is made of little diamonds that fit together neatly, as if you were looking at graph paper from an angle.
+
+{width: "50%"}
+![Isometric map made using the `overlap` and `oddRowOffset` properties of a `TileDisplay`.](IsometricTiles.png)
+
+To do set this up, we'll use a diamond-shaped tile with a rectangular cell size.  Then we'll use `overlap` to make it so that each row overlaps the one above it, and the `oddRowOffset` property to shift the odd-number rows over by one half the cell width.  Try it:
+
+```terminal
+]td.overlap = 0
+]td.clear 40
+]td.cellSize = [64, 48]
+]td.overlap = [0, 24]
+]td.oddRowOffset = 0.5
+```
+
+Line 1 above just clears out the `overlap` values from our previous experiment.  Line 2 clears the display to a white diamond tile, and line 3 squashes that vertically so that each cell on screen is wider than it is tall.  Line 4 makes the rows overlap, and then — here's the real trick — line 5 shifts the odd rows (i.e. row 1, 3, 5, etc.) over by one half (0.5) of the cell width.  The result is a nice neat isometric display, as shown in the figure above.
+
+The other use for shifting odd rows or columns is to make a hexagonal display.  The basic idea here is the same: make your tiles overlap, and then add a row or column offset, depending on which way your hexagons are rotated.  We'll walk through each case, using circle tiles at first (which make it slightly easier to see what's going on) and then switching to hexagons.
+
+First, let's get back to an ordinary square grid of circles.
+
+```terminal
+]td.oddRowOffset = 0
+]td.cellSize = 64
+]td.overlap = 0
+]td.clear 16
+```
+
+Remember that the 16 used on line 4 is just the tile index for a white circle in our tile set.  If you look back at the tile set, you'll see that right below that, at index 24, is a hexagon with a flat top and points on its left/right sides.  That means when we're all done, the cells are going to overlap a bit horizontally, and we'll be offsetting the odd columns to make them all fit.  Try it step by step:
+
+```terminal
+]td.overlap = [11, 0]
+]td.oddColOffset = 0.5
+]td.clear 24
+```
+
+{gap:20}
+{width: "50%"}
+![Hexagonal grid with offset columns.](Hex24.png)
+
+The next row in our tile set, at index 32, is the opposite kind of hexagon: it's flat on the sides, and pointy on top and bottom.  To fit together neatly, it needs to overlap in Y, and have the odd rows shifted over by half a cell.
+
+```terminal
+]td.clear 16
+]td.oddColOffset = 0
+]td.overlap = [0, 11]
+]td.oddRowOffset = 0.5
+]td.clear 32
+```
+
+The first two lines above are just undoing our previous demo; lines 3-5 do the actual setup for this kind of hexagonal display.
+
+{width: "50%"}
+![Hexagonal grid with offset rows.](Hex32.png)
+
+
+## Exploring the Demos
+
+`TileDisplay` is used by quite a few of the demos in `/sys/demo/`.  Here's a quick run-down of how each of them use it, and what you might be able to learn.
+
+{i:"`/sys/demo`,`drumMachine`"}
+**drumMachine**: this demo uses two overlaid tile displays, in display layers 5 and 6.  Both use the same `TileShapes.png` tile set you've been working with in this chapter.  The frontmost layer uses the square with rounded corners, and uses a *negative* `overlap` value to spread them apart so there's a nice gap between the cells.  The background layer uses no gap, and a solid square tile; this is used to highlight the column of cells that represents the current point in the music loop.  The result of all this is an interactive grid where each row represents a different instrument, and each column represents a point in time; by clicking those cells on and off, you can lay down a beat.
+
+{i:"`/sys/demo`,`levelEditor`"}
+**levelEditor**: this is an interesting one, because it's not just a demo, but also a useful tool.  It sets up `display(6)` as the tile display, with `display(5)` used in pixel mode to draw on top of the tiles.  It then provides functions to define the pattern of tiles in a tile display, save these out to disk as a data file, and load them back in for further editing next time.
+
+{i:"`/sys/demo`,`platformer`"}
+**platformer**: this game demo uses a layout defined by `levelEditor`, and also adds a sprite character who can run, jump, and climb.  The very first figure in this chapter was a screen shot of this demo and its tile set.  The code illustrates how to check the tile display where the character is trying to walk or climb, and use that information to react appropriately.  It's one of the more sophisticated demos in Mini Micro, but if you're interested in making platformer games, it's definitely the place to start.
+
+{i:"`/sys/demo`,`speedConquest`"}
+**speedConquest**: this turn-based strategy game also uses the `TileShapes.png` tile set, with a hexagonal layout (using `oddColOffset`).  In this case it uses only the white tile, and then tints them to each player's color to make their territories clear.  There's also a sprite layer, used to draw the units and flags on top of the tile display.  In the code you'll find some handy functions for converting between tile coordinates and pixel coordinates, which is a bit trickier in a hex layout than in a rectangular one.  These functions are useful for handling mouse clicks and figuring out where to position the sprites.  (It's also a really fun game — if you haven't given it a serious try yet, I recommend it!  It's a much deeper game than it first appears.)
+
+{i:"`/sys/demo`,`wumpusTrap`"}
+**wumpusTrap**: this puzzle game also uses a hex grid, but this time using `oddRowOffset` because the hexagons are in the other orientation.  Also, it uses different color tiles from the tile set rather than using tint.  Like `speedConquest`, it has some handy functions for converting between pixels and tile coordinates, so between the two, you should have a starting point for any sort of hex map you might want to make.  Naturally the wumpus in this game is in a separate sprite layer on top of the tile display.  (And yes, it is always possible to trap the wumpus — but not always easy!)
+
+A> **Chapter Review**
+A> - You explored the `TileDisplay` class, the last type of Mini Micro display.
+A> - You learned how to load a tile set, and configure the tile display.
+A> - You discovered how to control what a tile display shows by assigning a tile index or tint color to each cell.
+A> - You learned about the overlap and offset properties that enable you to make an isometric or hexagonal display.
+A> - You toured the built-in demos that illustrate some of the many ways a tile display can be put to use.
+
+
+{gap:250}
+{width:"25%"}
+![](chinchilla-05.svg)
+

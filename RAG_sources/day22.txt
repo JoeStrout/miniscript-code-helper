@@ -1,0 +1,365 @@
+{chapterHead: "Day 22: Sprites", startingPageNum:263}
+
+{width: "50%"}
+![](Chapter22.svg)
+
+Q> With too many bells and whistles, it gets complicated. With too few, there are inefficiencies. Designing something just powerful enough is an art.
+Q>— Barbara Liskov (2008 A. M. Turing award winner)
+
+A> **Chapter Objectives**
+A> - Learn about *sprites* and how they are used in games and utilities.
+A> - Explore the SpriteDisplay, Sprite, and Bounds classes in Mini Micro.
+A> - Write code to make sprites move, rotate, scale, and respond to mouse clicks.
+
+If you look carefully at any two-dimensional (2D) video game, you will see the screen full of little images that move around.  This is easiest to see in older games (though still true today).  Consider one of the greatest arcade games of all time, *Ms. Pac-Man*.  Our heroine, Ms. Pac-Man, travels around the maze eating dots; and if you look closely she often overlaps the walls of the maze slightly.  The four ghosts also travel around the maze, passing right over the dots and power-up pills, as well as each other.
+
+Now consider how you would create such an effect using the tools you have so far, such as the `drawImage` and `fillRect` methods on `PixelDisplay`.  You could certainly keep track of where the ghosts are, and draw them in their correct positions for each frame.  But to make them move, you would need to erase them, perhaps by filling the space they previously occupied with black.  But this would clobber any dots that had been there, as well as any parts of the maze they happened to overlap.  So to fix this, you would have to redraw the dots *and* the maze on every frame, too.
+
+All this drawing would be difficult and inefficient, resulting in a slow, flickery display.  Yet these machines from the 1980s drew things like this — and much more complicated scenes, with lots of moving objects overlapping a complex background — at video rates, without breaking a sweat.  How did they do it?  And more importantly, how can *you* do it?
+
+The answer is... sprites.
+
+sprite
+: an image, often with transparent areas and usually much smaller than the screen, which can be made to appear on screen and efficiently moved, rotated, and scaled, all without disrupting the background or other sprites
+
+D> OK, fine, some readers will realize that in Mini Micro there is another answer, which is to take advantage of display layers.  By drawing your ghost and player images in a different display layer than the maze and dots, you could clear the moving images on each frame without clobbering the background, and thereby make such an animation work.  But sprites are both easier and far more efficient than this approach.
+
+PRINT>The image on the next page is from a Mini Micro game called *Dr. Yond's Zombie Experiment*.  The characters (both human and zombie), the giant floating brain, and the balls of energy are all sprites, as indicated with the white boxes in the figure.  These are drawn and animated very efficiently over the pavement and buildings in the background.
+EBOOK>The following image is from a Mini Micro game called *Dr. Yond's Zombie Experiment*.  The characters (both human and zombie), the giant floating brain, and the balls of energy are all sprites, as indicated with the yellow boxes in the figure.  These are drawn and animated very efficiently over the pavement and buildings in the background.
+
+![Screen shot from *Dr. Yond's Zombie Experiment*, with boxes added to outline the sprites.  There are 13 sprites on screen.  Can you spot them all?](DYZE-sprites.png)
+
+## Creating and Drawing Sprites
+
+To make a program like this with your own code, you first have to create a sprite object.  You may recall from Chapter 12 (or yesterday's fireworks program) that you create an object in MiniScript using `new` with the desired class.  In this case what we desire is the built-in Sprite class.  Try it right on the command line:
+
+```miniscript
+spr = new Sprite
+spr.image = file.loadImage("/sys/pics/Wumpus.png")
+```
+
+This creates a new Sprite object, and assigns an image (a fuzzy purple wumpus image from `/sys/pics`) to its `image` property.
+
+It does not, however, cause the wumpus to appear on screen.  Right now our sprite object is just hanging out in memory, not attached to any display.  To make it appear, we need to add it to a sprite display.  In the default configuration, display 4 is a sprite display, so we can do:
+
+```miniscript
+display(4).sprites.push spr
+```
+
+You should see a wumpus peeking out from the lower-left corner of the screen.  To bring it more into view, assign to its `x` and `y` properties:
+
+```miniscript
+spr.x = 480
+spr.y = 320
+```
+
+That will move the sprite into the center of the screen.
+
+If you don't see the sprite, then the most likely cause is that you made a typo in the file path.  You could print out `spr.image` and if it is null, repeat the `file.loadImage` line above, checking your typing and capitalization very carefully.
+
+{i:"`Sprite` class"}
+PRINT>So far, you've seen the `image`, `x`, and `y` properties of the `Sprite` class.  The full set is presented in the table at the top of the next page.  We'll cover the rest before the chapter is done.
+EBOOK>So far, you've seen the `image`, `x`, and `y` properties of the `Sprite` class.  The full set is presented in the table below.  We'll cover the rest before the chapter is done.
+
+{gap:20}
+
+{caption:"Properties and methods for the Sprite class (where `spr` is any Sprite object).  The last three rows are functions; all the others are properties which may be read or assigned."}
+|`spr.image`|image to use for the sprite's appearance|
+|`spr.x`|horizontal position of the center of the sprite in the display|
+|`spr.y`|vertical position of the center of the sprite in the display|
+|`spr.scale`|scale factor: 1 is normal size, 0.5 is half size, etc.|
+|`spr.rotation`|sprite rotation angle in degrees|
+|`spr.tint`|tint color (white for no tint)|
+|`spr.localBounds`|defines rectangular bounds relative to the sprite itself|
+|`spr.worldBounds`|get the bounds of the sprite on screen|
+|`contains`(*pt*)|return true if the sprite bounds contains the given x/y point|
+|`overlaps`(*other*)|return true if the sprite is touching other sprite or Bounds|
+
+## Animating Sprites
+
+Sprites excel at animation!  And to do it is simple: you only need to change one or more of the sprite's properties (like position, scale, and rotation) from frame to frame.  Let's first try a simple animation of our sprite's `rotation` property.
+
+```miniscript
+for ang in range(0,360)
+	spr.rotation = ang
+	yield
+end for
+```
+
+{i:"`yield`"}
+You should see the wumpus slowly spin counter-clockwise.  The `yield` call here makes the script wait until the next frame; frames happen 60 times per second.  Since we're changing our angle by 1 degree on each frame, it takes 6 seconds to complete the loop.  If we wanted to spin faster, we could simply change the angle more on each step.  Try replacing the `range` call above with `range(0, 360, 6)` for example, which should complete six times faster.
+
+What about position?  That's just as easy:
+
+```miniscript
+for x in range(100, 900, 10)
+	spr.x = x
+	yield
+end for
+```
+
+Type that in, and watch the wumpus zoom across the screen from left (x=100) to right (x=900).  Now you try: make a loop that moves the Wumpus vertically instead of horizontally.  (Remember that `y` values in Mini Micro range from 0 at the bottom of the screen, to 640 at the top.)
+
+Finally, let's look at the `scale` property.  This is a factor that's multiplied by the sprite's natural size.  When `scale` is 1, then one pixel in the image appears as one pixel on screen.  If you set `scale` to 2, then each image pixel covers two pixels on screen.  You're not limited to whole numbers, either; you can set the scale to 0.1 or 1.25 or anything else, and the sprite will be scaled accordingly.
+
+But this section is about animation, so let's animate!  This time, how about a `while` loop:
+
+```miniscript
+while true
+	spr.scale = 1 + sin(time)/2
+	yield
+end while
+```
+
+{i:"`time`;`sin`"}
+The scale here is set using the built-in `time` function, which returns the time in seconds since the start of the program.  This is passed through `sin` to produce a scale factor that slowly changes between 0.5 and 1.5.  Just press Control-C when you've had enough of this animation.
+
+Our furry Wumpus is a single image, so loading it was very easy.  But most animated characters have many different versions of the image, in different poses or with different expressions.  Sometimes these are stored on disk as separate little image files, but other times, multiple sprite images are arranged into one big image file called a "sprite sheet."
+
+sprite sheet
+: a single image file that contains multiple smaller images meant for use as sprites
+
+Mini Micro has examples of both styles in the `/sys/pics/` directory.  For example, `cd` down into "/sys/pics/KP" and do a `dir`.  You will see eight images of K.P., a cute little character who looks like a handheld video game with arms and legs.  (Remember that you can use the `view` command to preview an image in Mini Micro.)
+
+But now go back up to the `/sys/pics` directory (perhaps by using `cd ".."`), and view the file "Enemies.png".
+
+![The result of doing `view "Enemies.png"` in the `/sys/pics` directory.  (The background color was changed to white before doing this command, to make the dark colors in the image easier to see.)](ViewEnemies.png)
+
+Here you can see one image file that includes quite a lot of little pictures: four versions of four different enemies, plus eight facial expressions, and a box of instructions on the right.  (That's a feature most sprite sheets don't have, but this one does.)
+
+To make a sprite from a sprite-sheet is a two-step process: (1) load the sprite sheet itself; (2) extract the smaller image you need using `Image.getImage`.  For example:
+
+```miniscript
+sheet = file.loadImage("Enemies.png")
+spr = new Sprite
+spr.image = sheet.getImage(0, 128*3, 128, 128)
+display(4).sprites.push spr
+spr.x = 480; spr.y = 320
+```
+
+The only real difference between this and the Wumpus example you did before is the `getImage` call on line 3, which plucks out a square area that starts at 0 on the left, 128\*3 pixels up from the bottom, and is 128 pixels wide by 128 pixels tall.
+
+This leads to the final common trick for animating sprites: changing the image over time.  You probably noticed in the Enemies sprite sheet that there were two versions of the colored enemies, differing only in which foot is down.  By alternating between these two images, we can give the appearance of the enemy marching in place.  Continuing from the previous example...
+
+```miniscript
+img1 = sheet.getImage(0, 128*3, 128, 128)
+img2 = sheet.getImage(0, 128*2, 128, 128)
+while true
+	spr.image = img1
+	wait 0.2
+	spr.image = img2
+	wait 0.2
+end while
+```
+
+You should see the yellow enemy grumpily stamping his feet.
+
+At this point we've just done very simple, quick animation demos at the REPL prompt.  In real games, things get a little more complicated: you probably have multiple sprites all doing different things.  How do you keep track of what to change on every frame?  ...Object-oriented programming to the rescue!
+
+The solution is to create a subclass of `Sprite` for each kind of sprite you need in your game, all with an `update` method to be called on each frame.  Each such object is responsible for keeping track of its own state, so it knows what it needs to change and when.  Then the main loop has nothing to do but call `update` on all the sprites.  Here's an example that illustrates that, using the same enemy sprite as above.  But this is getting too long to type in on the command line, so you will probably want to use `edit` to invoke the code editor.
+
+{i:"`/sys/lib`,`mathUtil`"}
+{caption:"Stampy demo."}
+```miniscript
+import "mathUtil"
+clear
+sheet = file.loadImage("/sys/pics/Enemies.png")
+// Make a subclass of Sprite called Stamper
+Stamper = new Sprite
+Stamper.frames = []  // (image for each frame of animation)
+Stamper.frames.push sheet.getImage(0, 128*3, 128, 128)
+Stamper.frames.push sheet.getImage(0, 128*2, 128, 128)
+Stamper.target = {"x":480, "y":320}
+Stamper.lastStepTime = 0
+Stamper.curFrame = 0
+Stamper.update = function()
+	if time > self.lastStepTime + 0.2 then
+		// Change to the other image (stamp stamp!)
+		self.curFrame = 1 - self.curFrame
+		self.image = self.frames[self.curFrame]
+		self.lastStepTime = time
+	end if
+	// Move towards the target
+	mathUtil.moveTowardsXY self, self.target, 5
+end function
+
+// Create a Stamper instance, and add to the sprite display.
+stampy = new Stamper // yes, it's stampy the Stamper!
+display(4).sprites.push stampy
+stampy2 = new Stamper // and he has a friend
+display(4).sprites.push stampy2
+stampy2.target = {"x":800, "y":100}
+
+// Main loop: update sprites, and set target on mouse click
+while true
+	for spr in display(4).sprites
+		spr.update // (assumes all sprites have an update function)
+	end for
+	if mouse.button then stampy.target = mouse + {}
+	yield
+end while
+```
+
+When you run this, you should see two enemy sprites appear.  One slinks off into the corner and stays there, while the other moves to any point on the screen that you click with the mouse.  And both enemies stamp their feet the whole time.
+
+Let's quickly go over how this works.  The first line imports the "mathUtil" module, so we can use the handy `mathUtil.moveTowardsXY` function to move our sprite towards a target.  On lines 5-21 we define a Sprite subclass called Stampy, with properties to keep track of both sprite frames (images plucked from the sprite sheet), as well as a target position, what time we last took a step, and the current frame.  The class also includes an `update` method, that assigns a new `image` when it is time to take a step, and moves the whole sprite 5 pixels closer to the target.
+
+Lines 24-25 create a new `Stamper` instance named `stampy`, and add it to the sprite display.  Lines 26-28 create *another* `Stamper` instance, and give it a different initial target.
+
+Finally, the main loop updates all the sprites (assuming that all sprites have an `update` method, which is true in this demo because they are all derived from `Stampy`).  Also, when the mouse button is pressed, it sets the target of our `stampy` sprite to the mouse position (plus an empty dictionary; see note below).  Finally, we remember to call `yield` in the main loop, so that it the loop will run only once per screen update.
+
+D> What's going on with `mouse + {}` in line 35?  Adding two maps together always results in a *new* map, even if one of the maps you're adding is empty.  So this is a way of creating a fresh copy of the `mouse` map.  Without this trick, we would be telling `stampy` to use the built-in `mouse` map as its target, and when the values in that map get updated (as they automatically do whenever you move the mouse), the sprite would automatically follow it.  Try it: remove `+ {}` from that line, and see what happens!
+
+
+## Controlling Draw Order
+
+The last example had two sprites on screen.  If you directed the the first one to the lower-right corner, so that it overlapped the second sprite, then you may have noticed that at always appeared behind the second one.
+
+That's controlled by the order in which sprites appear in the `sprite` list of the display.  In that last example, we first pushed `stampy` onto the list at position 0, and then we pushed `stampy2`, which would put it at position 1.  You can think of the sprite display as simply walking through its sprite list, drawing the sprites in order, so in this case `stampy2` appears on top.
+
+Run that example again, and position the moving sprite so that it's partially overlapping the stationary one.  Then break the program (Control-C), and type in this:
+
+```miniscript
+while true
+	display(4).sprites.push display(4).sprites.pull
+	wait 1
+end while
+```
+
+Every second, this simply loop pulls element 0 off the sprites list, and pushes it onto the end of the list.  Changing the order of sprites in a list changes the order in which they are drawn on screen.
+
+Some games like to sort the sprites to produce a pseudo-3D effect, where sprites higher up on the screen are meant to be further away from the viewer, and so should be drawn behind sprites that are lower on the screen.  We can make the Stampy demo do that with two small changes.  First, insert this line at the bottom of the `Stamper.update` function:
+
+{number-from: 21}
+```miniscript
+	self.sortOrder = -self.y
+```
+
+This adds a new `sortOrder` property to the sprites that decreases as Y increases, that is, the sortOrder gets smaller as sprites move up the screen.  Then add these lines in the main loop, after `end for` but before the `if mouse.button` line:
+
+{number-from: 36}
+```miniscript
+	// sort sprites by their sortOrder property
+	display(4).sprites.sort "sortOrder"
+```
+
+Now run again, and move our moving Stampy around near the stationary one.  You should observe that whichever sprite is higher on the screen is now drawn behind, and whichever one is lower on the screen is drawn in front.  This creates the illusion that the sprites are moving in 3D space.
+
+{width:"50%"}
+![Back off, dude!  If I had a neck, you'd be breathing down it.](StampyClose.png)
+
+Before we move on, save this program if you haven't already — I called it "StampyDemo", but you can call it whatever you like.  We will use it again later.
+
+## Hit Detection
+
+The last topic of this chapter is about detecting when something is touching a sprite.  When that something is the mouse, this is called *hit detection*; when it's another sprite, it's more commonly called *collision detection*.
+
+hit detection
+: determining whether a point on the screen (usually, the mouse) is touching a sprite
+collision detection
+: determining whether two sprites are touching
+
+{i:"`Bounds` class"}
+PRINT>Both of these tasks are done in Mini Micro with the help of another built-in class called `Bounds`.  `Bounds` has the properties listed below, and the methods at the top of the next page.
+EBOOK>Both of these tasks are done in Mini Micro with the help of another built-in class called `Bounds`.  `Bounds` has the properties listed below.
+
+{caption:"Properties of the Bounds class (where `b` is any Bounds object).  All of these may be written (i.e. assigned to) as well as read."}
+|`b.x`|horizontal position of the center of the bounding box|
+|`b.y`|vertical position of the center of the bounding box|
+|`b.width`|bounding box width|
+|`b.height`|bounding box height
+|`b.rotation`|rotation angle of the bounding box, in degrees|
+
+EBOOK>`Bounds` also has the following three methods.
+
+{caption:"Methods of the Bounds class (where `b` is any Bounds object)."}
+|`b.corners`|returns box corners as a list of [x,y] coordinates|
+|`b.overlaps(`*b2*`)`|returns whether `b` is touching box *b2*|
+|`b.contains(`*x*`, `*y*`)`|return true if point *x, y* is within box `b`|
+
+You can use `Bounds` by itself, just to define a rectangular (possibly rotated) area and see whether any point is inside or outside that area.  But the more usual way to use it is via the `Sprite` class.  `Sprite` has special support for a Bounds object called `localBounds`.  Once you assign and configure the `localBounds` of a sprite, you can then do hit testing and collision testing on that sprite.
+
+Some examples will make this clearer.  Let's create a fresh sprite, using our old friend the Wumpus.
+
+```miniscript
+clear
+spr = new Sprite
+spr.image = file.loadImage("/sys/pics/Wumpus.png")
+display(4).sprites.push spr
+```
+
+You should see the Wumpus once again peeking out from the lower-left corner.  If you look at `spr.localBounds`, you will see it is null.  Sprites do not automatically get any bounding box defined.  But let's define one:
+
+```miniscript
+spr.localBounds = new Bounds
+spr.localBounds.width = spr.image.width
+spr.localBounds.height = spr.image.height
+```
+
+Now we've created a `Bounds` object, assigned it to the special `localBounds` property of our Sprite, and then set its width and height to match the image.  We didn't assign to the `x` or `y` properties of the bounds, so they are implicitly `0,0`, which is the center of the sprite.
+
+That's all the setup you need to do to enable the `contains` and `overlaps` methods of Sprite to work.  For example, try this code to make the Wumpus bashful and jump away from the mouse.
+
+{caption:Bashful Wumpus doesn't want to be clicked on!}
+```miniscript
+while true
+	if spr.contains(mouse) then
+		spr.x = 960*rnd
+		spr.y = 640*rnd
+	end if
+end while
+```
+
+Type that in and then see if you can click on the Wumpus.  Slippery little monster, isn't he?
+
+Because this is such a common and useful task, let's summarize.
+
+D> **Hit-Testing Summary**
+D> 1. Set the sprite's `localBounds` to define the bounding box relative to the sprite itself.
+D> 2. Call `contains` on the sprite with a point of interest.
+
+Note that the `contains` method actually allows several different parameter styles for defining the point of interest:
+
+- give it the *x* and *y* coordinates as two separate numeric parameters; or
+- give it a list containing [*x*, *y*]; or 
+- give it a map containing "x" and "y" keys.
+
+In the example above, we gave it `mouse`, which happens to be a map containing *x* and *y*, so we were using the third style.
+
+Finally, let's consider collision-testing.  This is what we use to tell if two sprites are touching each other.  You set this up exactly the same way, except that there are two sprites involved instead of one; and then you use the `overlaps` method to test whether they are touching.
+
+To illustrate, please load up that Stampy demo you made in the previous section.  We're going to modify it to tint the moving sprite whenever it touches the stationary one.  First, where we are defining the `Stamper` class, we need to add a `localBounds`.
+
+{number-from: 9}
+```miniscript
+Stamper.localBounds = new Bounds
+Stamper.localBounds.width = 128
+Stamper.localBounds.height = 128
+```
+
+Then, let's add a special version of the `update` method just for `stampy`, our moving Stamper.  It will begin by calling the superclass version of `update`, so that it does whatever all Stampers do; but it will then do the `overlaps` test against `stampy2`, and blush accordingly.
+
+{number-from: 34}
+```miniscript
+stampy.update = function()
+	super.update  // do regular update first
+	if self.overlaps(stampy2) then
+		self.tint = color.red
+	else
+		self.tint = color.white		
+	end if
+end function
+```
+
+With those changes, run the program again, and guide your stamper around the screen.  You should see that whenever it touches the second stamper, it turns red.  Note that the argument to `overlaps` can be either a `Bounds` object, or a `Sprite` object; either will work (but passing a `Sprite` is more common).
+
+## Sprites in the Wild
+
+Now that you know how to create, animate, hit-test, and collision-check sprites in Mini Micro, be on the lookout for sprites in the apps you use every day.  Any little image that moves, rotates, reacts to clicks or taps, and animates by switching among some series of predefined frames is likely a sprite.  You'll see them in any 2D game, but sometimes in serious productivity software too, where they may be serving as custom widgets in the user interface.  Sprites also appear in 3D games, as an efficient way to draw things that are far away from the camera, or as status bars, icons, and other such elements that appear in the user interface, or float over units in the game.
+
+Sprites are one of the most powerful, general, and widely useful concepts in real-time computer graphics.  Now that you have this tool in your toolbelt, you will be using it a lot.  Keep it sharp!
+
+A> **Chapter Review**
+A> - You learned about sprites, and how to create them in Mini Micro.
+A> - You animated sprites by changing their position, rotation, or image.
+A> - You discovered the `Bounds` class, and used it to test whether a sprite is touching a point or another sprite.

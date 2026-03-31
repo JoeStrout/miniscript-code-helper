@@ -1,0 +1,106 @@
+{chapterHead: "Day 30: Where to Go From Here", startingPageNum:367}
+
+{width: "50%"}
+![](Chapter30.svg)
+
+Q> Software engineering is the closest I could come to fulfilling my lifelong dream of becoming a wizard.
+Q>— Mel Klimushyn (software engineer)
+
+A> **Chapter Objectives**
+A> - Learn some fun ways to apply your programming skills.
+A> - Find resources that will enable you to keep learning and growing as a coder.
+A> - Get some final words of wisdom that you may find useful.
+
+This is it.  The final chapter!  If you've done one chapter per day, then you set out on your programming journey a month ago.  Look how far you've come!
+
+This guide book is coming to an end, but the road to programming mastery does not.  So let's finish by looking forward a bit, so you can choose your own path as you continue from here.
+
+## Contributing to the Community
+
+Q> When one teaches, two learn.
+Q> — Robert Heinlein (science fiction author)
+
+A great way to continue growing as a programmer is to help the MiniScript community, and there are several easy ways to do that.  First, you can look for tasks to implement at Rosetta Code.
+
+Rosetta Code
+: <http://www.rosettacode.org/>
+
+This site is a specialized wiki that has a large number of relatively simple, well-defined tasks, and for each task, implementations in a wide variety of languages.  If you search for "MiniScript" you can find a page that lists all the tasks that have been already implemented in MiniScript.  There are over 150 of those, and studying these is a great way to get nice, bite-sized examples of MiniScript code.
+
+But there are literally thousands of tasks not yet implemented in MiniScript (and you can get a list of those from the MiniScript category page, too).  Some of the tasks are complex, but most of them are quite simple.  Most of them have dozens of implementations in other languages, too, which you can use as pseudocode if you're not sure about the algorithm.
+
+So, my suggestion is this: create an account on Rosetta Code, browse the tasks not implemented in MiniScript, find some nice easy ones, and implement them!  You will be exercising your skills, and helping visitors to Rosetta Code see how we do things in MiniScript.  Then head on over to BadgeList — described in the next section — to collect your Rosetta Coder badge!
+
+Another way to help out the community is to contribute to the MiniScript wiki.  That was also mentioned in the last chapter, but it's so important that it's worth pointing out again.
+
+MiniScript wiki
+: <https://miniscript.org/wiki/>
+
+Beginners often think of wikis as something they only read.  But it doesn't need to be that way; you can and should *write* wiki content, too!  Find some article that is short or lacking in examples, and improve it by adding your own example, or clarifying some unclear part of the text.  If you poke around enough, you might even find a link to some page that does not yet exist.  In that case, create it!
+
+Here's a great way to get started when making a new page: find some similar page, click Edit, and then copy the wiki source code that appears in the editing box.  Then cancel that edit, go to the page you want to create, click "create this page," and then paste in the copied text.  Now you have the basic format already done, and you can just change the text and sample code to reflect the new topic.  Be sure to use the Preview button to check that it all looks good before you save it.  But don't worry about making mistakes — a wiki can always restore a previous version of a page if needed, and believe me, your efforts will be greatly appreciated.
+
+Rosetta Code and the wiki are important but indirect ways of helping others: you're depositing your knowledge in a resource that future knowledge-seekers may find.  But also try to help others more directly, through the forums or Discord server.  Check in with these when you can, and if you see somebody posting a question you happen to know the answer to, help them out!  Also, if you see someone sharing something they're working on, give them some positive feedback.  Helping each other in this way makes us all stronger.
+
+## Coding Challenges
+
+If you're facing the "writer's block" problem where you just don't know what program to write next, then there are some fun programming challenges that might be of use.  Your first stop could be Badge List:
+
+Badge List
+: <https://www.badgelist.com/MiniScript>
+
+Badge List is a fun little site that awards "badges" for your accomplishments, something like merit badges in Girl Scouts and Boy Scouts.  You can group the badges by tags or just browse them all, and many of them are organized into different difficulty levels.  Start with the *MiniScript Neophyte* badge, which only requires you to use a `for` loop to print "Hello world!" ten times.  Like Rosetta Code, you will find some of the tasks are quite easy, while others are more difficult.  See how many badges you can collect!
+
+{i:"game jam"}
+When you're ready for a bigger challenge, you may want to dip your toes into the warm, chaotic waters of *game jams*.  A game jam is a contest in which developers get together, individually or in small teams, to create a game in a short amount of time — typically a few days, sometimes several weeks.  There are usually restrictions and/or a theme that is not known until the contest begins, which helps keep people from working ahead on a project before the official start date.
+
+Most game jams are informal affairs, just for fun, though some of them do offer prizes, awarded by a panel of judges.  Every game jam I've participated in has been a blast, and full of supportive, positive people all eager to share their love of coding.  Here's a good place to find upcoming game jams:
+
+Game jams on itch.io
+: <https://itch.io/jams>
+
+Here you'll find a "jam calendar" showing all the ongoing or upcoming jams.  You can also search and filter in various ways.  Note that you don't need to find a MiniScript-specific game jam; you can build your Mini Micro games for Windows, Mac, Linux, and the web, so you can enter almost any game jam that does not require a specific development tool.
+
+{width:"75%"}
+![There are always a ton of jams going on at itch.io.](JamCalendar.png)
+
+The game jam community is also a great place to connect with others in the hobby.  In particular, it's common for programmers like yourself to team up with artists and musicians to tackle a jam together.
+
+Note that there's a `#game-jam` channel in the MiniScript Discord server, too, so if you are thinking about participating in a jam and would like a coding partner, help with a bug, or just words of encouragement, be sure to post there.
+
+## More Guidance
+
+Since you've made it this far, it's clear you're a good reader and you enjoy learning this way.  So you may be wondering if there are any other books to learn from?
+
+At the time of this writing, the only other book is the *MiniScript User's Manual*, described in the last chapter.  *Learn to Code in 30 Days* is the first "real" book written for MiniScript, because its whole purpose is to help people who are new to coding get up to speed.
+
+However, there are plans for follow-on books that will be focused on different topics: games with various themes, simulations, and more.  They will include program listings, and lots of explanation about how to tackle various problems that come up when writing that sort of code.  As those books come out, they will be announced via the forums, Discord, and of course the MiniScript home page.  Maybe by the time you're reading this, some are out already!  Go have a look, and be sure to let me know what you most want to see.
+
+## Parting Advice
+
+You are fortunate to have begun your coding journey with MiniScript, a language that is especially simple and easy to learn, while still being powerful enough to create real programs.  MiniScript is still a pretty new language, and you will find that many people have not heard of it.  Those people are likely to tell you that if you want to become a programmer, you have to learn JavaScript, or C#, or C++, or whatever else their preferred language might be.
+
+*This is not true.*
+
+You already *are* a programmer, and there is no one language that you have to learn.  Eventually you will be comfortable in many languages, but there is no rush to get there.  The best tool for the job is whichever one lets you accomplish your goals in the simplest, most efficient manner.  In many cases, that will be MiniScript and Mini Micro, even if the guru you're speaking to has never seriously looked at these.  Just smile and nod, thank them for their advice, and then go and do it your way anyway.
+
+At the same time, don't be afraid of learning another language when a genuine need arises.  Beginners often mistake *syntax* for *programming.*  Syntax is the detailed rules about how to declare variables, write loops, create classes, and so on in a particular language.  That stuff is relatively easy to pick up in a new language, because the concepts are all more or less the same as any other language.  The real difficulty in programming is at the conceptual level: how to break a complex problem down into smaller problems, how to design an algorithm when you need one, how to manage the complexity of your code so that you don't have to keep too many things in your head at once.  These skills are universal.  So you can certainly stick with MiniScript while you build these skills, and rest assured that when someday you need to pick up another language, those same skills will still apply.
+
+Be patient with yourself as you build these skills.  This book is called *Learn to Code in 30 Days*, and you've done that — but it's in the same sense that you could learn to play the piano in 30 days.  You know all the basics and you can understand what the experts are doing, but that doesn't mean you can do it yourself at an expert level yet.  That's OK!  Like any skill, programming takes practice.  Keep mind that there is no such thing as raw talent:
+
+Q> A lot of people believe that... people have their gifts and that they should go out and look for what that gift is. That’s what you are spending your teenage and college years sifting through and sampling things and then finding your gift, but what I find with most college students is that they never find their gift... We argue that there is no gift to be found, basically that [they] are much better off picking something that they want to be good at and then use all of that [known about how] you can effectively achieve a high level of performance.
+Q>— Anders Ericsson, Ph.D.
+
+Talent is what you have *after* you've put in hours and hours of productive practice.  In the case of programming, that means writing code.  This chapter was full of suggestions on where to find programming tasks, from tiny to large, as well as where to share your own unique creations.  Use them!  And if you find them challenging, that is OK.  That feeling of struggling, of not quite being able to see the answer, is just the feeling of your mind getting stronger.  It's no different from sore muscles, which indicate your body growing stronger.  It's a sign of time well spent.
+
+You will find that this talent you build in programming spills over to other mental activities, too.  Computers, as you know by now, are patient, but require precision.  You have to say exactly what you mean; fuzzy thinking doesn't work.  So over time you learn to think clearly and precisely, and this will serve you well in everything from schoolwork, to the workplace, to understanding the world.
+
+So have fun!  Remember "code a little, test a little."  Don't try to do too much at once.  And when you do get stuck — as we all do from time to time — don't be shy about asking for help.  Every expert was a beginner at some point, and someday *you* will be the expert helping someone who is new.
+
+You are now part of a web of experience passed from person to person, which stretches back to our prehistoric ancestors, and forward to who-knows-where — the stars, perhaps.  With diligence, a good attitude, and a supportive community, there is nothing you can't accomplish.
+
+Happy coding!
+
+{gap:100}
+{width:"25%"}
+![](chinchilla-04.svg)

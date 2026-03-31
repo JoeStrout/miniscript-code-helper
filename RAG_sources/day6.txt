@@ -1,0 +1,245 @@
+{chapterHead: "Day 6: If and Break", startingPageNum:53}
+
+{width: "50%"}
+![](Chapter6.svg)
+
+Q> In the end, there can be only one `else` block.  
+Q> Or none.  That's cool too.
+Q>— The Highlander
+
+A> **Chapter Objectives**
+A> - Learn how a computer program can do different things depending on what values it currently has.
+A> - Explore the various forms of the `if` statement.
+A> - Learn how to short-cut or exit a loop.
+
+In the last chapter, we learned how to compare values, and applied that new power to the `while` loop.  But, it turns out, that's a little bit like learning to cook and then only doing so for breakfast.  It's a perfectly valid use of your skill, but misses the most common application.  In programming, comparing values happens most often in the `if` statement.
+
+{i:"`if`"}
+An `if` statement does just what it sounds like: it tells the computer to do something only *if* some condition is true.  Let's look at a simple example:
+
+{caption:Our first `if` statement}
+```miniscript
+age = val(input("Enter your age: "))
+if age > 23 then
+	print "Wow, you're old!"
+end if
+print "OK, got it."
+```
+
+Line 1 of this example should be familiar to you; it displays a prompt, waits for the user to type something and press Return, converts this to a number using `val`, and stores it in a variable called `age`.
+
+The new bit is on line 2.  It says that *if* (and *only* if!) age is greater than 23, *then* the computer should actually do line 3.  If not, then the computer should just skip on down to the `end if` line.  
+
+Note how, just as with `while` and `for` loops, we indent the body of the `if` block (everything between `if` and `end if`) for clarity.  But again, that indentation is like a comment; it's for the human readers of the code, and ignored by the computer.  But that doesn't mean you shouldn't do it!
+
+Also notice that there are two new keywords on line 2: `if` and `then`.  An `if` statement always has both of these keywords, working together.  The actual condition lies in between.
+
+Type in the above code and run it several times, testing it with different ages.  (It's totally OK to lie about your age when testing a program.)
+
+## Doing Something Else
+
+The above example prints an extra message when an age over 23 is entered.  You may have wondered how to print a different extra message for younger users.  You could do it with another `if` block, like so:
+
+{caption:Life without `else`}
+```miniscript
+age = val(input("Enter your age: "))
+if age > 23 then
+	print "Wow, you're old!"
+end if
+if age <= 23 then
+	print "Not so old, are you?"
+end if
+print "OK, got it."
+```
+
+That works, but it's a pain; we have to think about what the opposite of the original comparison is (changing `> 23` to `<= 23` in this case).  Worse, if we ever change the initial `if` statement, we'll have to remember to change the second one accordingly.  That's just inviting mistakes.  Programming is all about making complex things easier so as to *reduce* the chance of mistakes, especially in the future.
+
+Fortunately, there's a much better way to express what we're trying to do here, and that is the `else` statement.  The word `else`, on a line all by itself, identifies code that the computer should run when the condition in the `if` statement is *not* true.
+
+{caption:`else` to the rescue}
+```miniscript
+age = val(input("Enter your age: "))
+if age > 23 then
+	print "Wow, you're old!"
+else
+	print "Not so old, are you?"
+end if
+print "OK, got it."
+```
+
+This is much better!  Now when the computer gets to line 2, it's going to check the age, and then print one message or the other, but never both.
+
+## Checking Multiple Possibilities
+
+Sometimes there are multiple possibilities you want to check for, and run code corresponding only to the one that is true.  You can do this using `else if` blocks.
+Extending the previous example, suppose we want the computer to comment on several different age ranges.
+
+{caption:Being snarky to all ages}
+```miniscript
+age = val(input("Enter your age: "))
+if age > 60 then
+	print "Distinguished indeed."
+else if age > 23 then
+	print "Older than dirt!  (Dirt's 23.)"
+else if age > 17 then
+	print "Be sure to vote!"
+else if age > 12 then
+	print "Ah, the teenage years."
+else if age < 1 then
+	print "I don't think that's right."
+else
+	print "Just a young'un!"
+end if
+print "Seriously though, thanks for telling me."
+```
+
+In this example there are actually four `else if` blocks, but you can have any number of these (including none at all).  Here's how it works: the computer first checks the condition on the `if` statement.  If that's true, then it runs the code in that very first block (line 3 in the example above), and then jumps on down to the `end if` statement, skipping the rest of the conditions.  Otherwise, it goes on to check the condition in the first `else if` block.  Again if the condition there is true, it runs *that* block of code and then skips to the end; otherwise it goes on checking the next `else if`, and the next, until it either finds one that applies, or reaches the `else` block (which always applies, since it doesn't have a condition).
+
+To review, a complete `if` statement consists of:
+
+- an `if` *condition* `then` block
+- zero or more `else if` *condition* `then` blocks
+- zero or one `else` block
+- an `end if` statement
+
+Notice that while you can have any number of `else if` blocks, you can have no more than one `else` block, and this must always come last.
+
+Finally, be aware that just like `while` and `for` loops, `if` blocks can be nested; you can put an `if` inside another `if`.  Or inside a loop.  Or put a loop inside an `if`.  Combine these however you like... just remember to be consistent about your indentation, so you don't get confused about what's going on.
+
+## Single-Line If
+{i:"single-line `if`;`if`, single-line"}
+
+A fairly common need is to do a simple check with just one simple effect.  This often comes up in input validation, that is, making maximum sense out of a human's input (humans are notoriously unreliable).  Suppose you've got code that asks users for a percentage, but you just know some eager user is going to try to give you 110%, which doesn't make any sense mathematically.  But you want to treat it the same as 100%.  You could write:
+
+{caption:Using three lines where one would do}
+```miniscript
+effort = val(input("Enter effort, in percent: "))
+if effort > 100 then
+	effort = 100
+end if
+print "OK, calculating with " + effort + "%..."
+```
+
+There's nothing wrong with this.  It works fine.  But it will eventually become a little annoying to have to write (or read) three lines for such a simple correction.  For this reason, MiniScript supports a special single-line form of the *if* statement.  It looks like this (see line 2):
+
+{caption:Single-line `if`}
+```miniscript
+effort = val(input("Enter effort, in percent: "))
+if effort > 100 then effort = 100
+print "OK, calculating with " + effort + "%..."
+```
+
+This does exactly the same thing as the previous example; it's just shorter, and easier to read and write.
+
+To make a single-line *if* statement, simply put the (single line) of code you want to happen if the condition is true on the same line right after `then`.  That's it.  If you have more than one line of code to do when the condition is true, you'll need to use the standard block form instead.
+
+You can, however, also include an `else` clause in the single-line *if*.  This is less commonly needed, but might come up for example when finding the right way to pluralize a word:
+
+{caption:Counting geese}
+```miniscript
+count = val(input("How many geese? "))
+if count == 1 then n = "goose" else n = "geese"
+print "Thanks for the " + count + " " + n + "!"
+```
+
+Type that in and try entering different numbers — in particular, be sure to try both 1 and any value other than 1.  You'll see that the print statement at the end always selects the right form of the word "goose."  You could certainly do the same thing with a block-form `if`/`else` statement, but it would take five lines of code instead of one.  That would require more brain power to process when reading the code, whereas the single-line form is much easier to scan and say "oh, we're just picking the right form of the noun here" and move on.  Minimizing the brain power needed to read the code is one of the keys of good programming.
+
+## Breaking a Loop
+
+Let's return now to the subject of loops, introduced yesterday.  Once a loop begins, must it carry through mindlessly to completion?  Is it a slave to its `for` sequence or `while` condition, condemned, like Bill Murray in *Groundhog Day*, to repeat itself over and over until the loop is fully satisfied?
+
+{i:"`break`"}
+Well, no.  There is a way out: the `break` statement.  This statement tells MiniScript to break out of the current loop, jumping to the next line past the closest `end for` or `end while` statement.
+
+{caption:"C'mon, 1!"}
+```miniscript
+while true
+   roll = 1 + floor(rnd * 6)
+   print "I rolled: " + roll
+   if roll == 1 then break
+end while
+print "Finally rolled a 1!"
+```
+
+Look at the funny condition on this `while` statement — `while true`.  That would be an infinite loop, because of course `true` can never be `false`.
+
+{i:"infinite loop"}
+{i:"loop, infinite"}
+infinite loop
+: a loop that repeats forever, or until something forcibly halts the program
+
+But this loop does not actually repeat forever, because we've provided an escape clause in line 4: `if roll == 1 then break`.  This is using the single-line `if` statement you just learned about to check whether the randomly selected value is a 1.  If it is, then we execute the `break` statement, which jumps past the nearest `end while` or `end for` statement, exiting the loop.
+
+{i:"`continue`"}
+There is another, related statement called `continue`.  Instead of skipping past the nearest `end while` or `end for` statement, it skips to the next iteration of the loop, as if that `end` line had been reached normally.  For example, suppose you're writing code for a user who's afraid of the number 13, and whatever processing you do with all the other numbers, you want to skip it entirely for that one.
+
+{caption:Triskaidekaphobia}
+```miniscript
+sum = 0
+for i in range(1,20)
+    if i == 13 then continue
+    print i + ". " + "*" * i
+    sum = sum + i
+end for
+print "That's a total of: " + sum
+```
+
+This is an ordinary `for` loop, but on line 13, we check for the special case of `i == 13`, and when that's true, we `continue` — that is, we skip the rest of the loop body and continue with the next iteration of the loop (when `i` is 14 in this case).
+
+This is a pretty silly example, but in real code the need for this sort of thing occurs fairly often.  You might have a long `while` loop that does a lot of processing, but starts by asking the user for an input.  You could check this input and if it's no good, skip the rest of the loop and continue with the next iteration.  You could also check for a special input that means "I'm done" and bail out.
+
+{caption:Common while-loop input handling}
+```miniscript
+while true
+	inp = input("Enter a value (0 to exit): ")
+	if inp == "0" then break
+	if val(inp) < 1 or val(inp) > 100 then
+		print "Please keep your values between 1 and 100."
+		continue
+	end if
+	print "...OK... doing big complex processing with " + inp + "..."
+end while
+```
+
+Just imagine that line 8 in the example above is actually a couple dozen lines long, and you may see why bailing out at the top of the loop is better than putting all that code inside a giant `if` block.  (Remember, the goal isn't to write code the computer can understand... it's to write code a *human* can understand, and with as little effort as possible!)
+
+As a final example, here's a program that may actually be useful.  It allows you to encode and decode messages in a cipher called "ROT-13."  In this cipher, every letter in the alphabet is rotated 13 places, so A maps to N, B maps to O, etc.  Because the alphabet is exactly 26 letters long, a 13-letter rotation also does the inverse mapping (N maps to A, O maps to B, and so on).  So, with this one program, you can either enter a plain-text message and get back the encoded version, or enter an encoded message to decode it.
+
+{width:"75%"}
+![](secretMessage.svg)
+
+{caption:ROT-13 secret message encoder/decoder}
+```miniscript
+while true
+    msg = input("Enter your message: ")
+    if msg == "" then break
+    result = ""
+    for i in range(0, msg.len - 1)
+        c = msg[i]   // gets the i'th letter of msg, starting at 0.
+        if c >= "A" and c <= "Z" then
+            letterNum = c.code - "A".code		// A=0, B=1, etc.
+            letterNum = (letterNum + 13) % 26	// 1->14, 2->15...
+            result = result + char("A".code + letterNum) // 0->A...
+        else if c >= "a" and c <= "z" then
+            letterNum = c.code - "a".code		// a=0, b=1, etc.
+            letterNum = (letterNum + 13) % 26	// 1->14, 2->15...
+            result = result + char("a".code + letterNum) // 0->a...
+        else
+            // not a letter; copy to the output as-is
+            result = result + c
+        end if
+    end for
+    print result
+end while
+```
+
+Notice how there is a main `while` loop that runs forever, but we break out of it (on line 3) if the user enters an empty string.  Then within the `for` loop that iterates over each character of the message, we have an `if`/`else if`/`else` block that checks for several possibilities: the character is an upper-case letter (lines 7-10), or a lower-case letter (lines 11-14), or anything else (lines 15-17).
+
+Enter this code carefully, and confirm that it works by entering a message, and then copying the encoded message and pasting it back as your next input, which should produce the original message.  Use this to send secret messages over email or social media!  And then when you're done, just press Return without typing in anything, and the program will neatly exit.
+
+{pageBreak}
+A> **Chapter Review**
+A> - You learned how to use `if`, with optional `else if` and `else` blocks, to make a program do different things depending on the data.
+A> - You can use a single-line `if` or `if`/`else` for very short checks.
+A> - You learned how to break out of a loop with `break`, or skip to the next iteration with `continue`.
+

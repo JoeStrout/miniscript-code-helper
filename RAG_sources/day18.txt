@@ -1,0 +1,282 @@
+{chapterHead: "Day 18: Pixel Graphics", startingPageNum:213}
+
+{width: "50%"}
+![](Chapter18.svg)
+
+Q> The future belongs to those who believe in the beauty of their dreams.
+Q>— Eleanor Roosevelt (First Lady and activist, 1884-1962)
+
+A> **Chapter Objectives**
+A> - Learn about the graphics display and the `gfx` module.
+A> - Read and write individual pixels on the display.
+A> - Learn to draw lines, rectangles, polygons, strings, and images.
+
+Today is a very special day.  For the first 17 chapters of this book — and perhaps your entire programming career up till now — your programs have been built around strings of text.  Strings come in, strings go out.  In the last chapter we got a little fancy about how and where the strings go out, but still, it was all just text on the screen.
+
+Today that changes forever.
+
+As of today, you are no longer limited to creating text.  Today you learn to create *graphics*: pictures composed of tiny pixels!  Of course if you ran the demos in     `/sys/demo`, or have played any Mini Micro games on the web, then you already know what that looks like.  So let's jump right in with a short program.  Type this in and see what it does:
+
+{caption:"Our first graphics program."}
+```miniscript
+clear
+gfx.clear color.white
+gfx.color = color.gray
+for x in range(0, 960, 64)
+	gfx.line x, 0, x, 640
+	gfx.print x, x,0
+end for
+for y in range(0, 640, 64)
+	gfx.line 0, y, 960, y
+	gfx.print y, 0,y
+end for
+key.get  // wait for a keypress
+```
+
+The first line clears the screen, and the last line waits for a keypress; you already know about these.  The rest of the program uses the built-in `gfx` global, which is new.  This is pronounced "graphics," and it is a reference to Mini Micro's pixel display, in the same way that `text` is a reference to the text display.  For brevity, we'll just refer to "the `gfx` module" in this chapter.
+
+{width:"75%"}
+![Mini Micro pixel display: 960 pixels wide, 640 pixels high.](PixelDisplay.svg)
+
+When you run that program, it should draw a grid with the X (horizontal) and Y (vertical) values listed every 64 pixels.
+
+As you can see, the graphics display is 960 pixels across horizontally, and 640 pixels vertically.  Just as with the text display, 0,0 is the lower-left corner of the screen; X values increase to the right, and Y values increase towards the top.
+
+In this program you used one graphics property, `gfx.color`, as well as three methods: `gfx.clear`, `gfx.line`, and `gfx.print`.  There are a few more graphics properties:
+
+{i:"Mini Micro, `gfx` module;`gfx` module;graphics properties"}
+{caption:"Properties in the `gfx` module.  `width` and `height` are read-only; the others can be assigned new values."}
+| `gfx.color` | default color for subsequent drawing |
+| `gfx.width` | width of the graphics display, in pixels |
+| `gfx.height` | height of the graphics display, in pixels |
+| `gfx.scrollX` | horizontal scroll position, in pixels |
+| `gfx.scrollY` | vertical scroll position, in pixels |
+| `gfx.scale` | scale factor, or [hScale, vScale] factors |
+
+EBOOK>Functions in the `gfx` module are listed below.  You've already used `gfx.clear`, which has three optional parameters: color, width, and height.  The color parameter (listed as `c` in the table) defaults in this case to `color.black`, while `width` and `height` default to 960 and 640, respectively.  We'll get into why you might use different values for these later.
+
+{caption:"Functions in the `gfx` module.  Parameters: `points` is a list; `c` is a color; `s` and `font` are strings; `img` is an Image; all other parameters are numbers measured in pixels.  All parameters have default values; in particular, color, pen size, and font parameters are usually omitted.", colWidths:"200,*"}
+| `gfx.clear c, width, height` | clear and resize the graphics display |
+| `gfx.pixel(x, y)` | get the color of pixel at *x*, row *y* |
+| `gfx.setPixel x, y, c` | set the color of pixel at *x*, row *y* to *c* |
+| `gfx.line x1, y1, x2, y2, c, penSize` | draw a line |
+| `gfx.drawRect left, bottom, width, height, c, penSize` | outline a rectangle |
+| `gfx.fillRect left, bottom, width, height, c` | fill a rectangle |
+| `gfx.drawEllipse left, bottom, width, height, c, penSize` | outline an ellipse |
+| `gfx.fillEllipse left, bottom, width, height, c` | fill an ellipse |
+| `gfx.drawPoly points, c, penSize` | outline a polygon |
+| `gfx.fillPoly points, c` | fill a polygon |
+| `gfx.print s, x, y, c, font` | draw string `s` in the given font |
+| `gfx.drawImage img, left, bottom, width, height, srcLeft, srcBottom, srcWidth, srcHeight` | draw an Image (or a rectangular portion of an image) |
+| `gfx.getImage(left, bottom, width, height)` | get a portion of the display as an Image |
+
+PRINT>Functions in the `gfx` module are listed on the next page.  You've already used `gfx.clear`, which has three optional parameters: color, width, and height.  The color parameter (listed as `c` in the table) defaults in this case to `color.black`, while `width` and `height` default to 960 and 640, respectively.  We'll get into why you might use different values for these later.
+
+## Getting and Setting Pixels
+
+Just as you can read or change individual cells of the text display with methods like `text.cell`, you can get and set individual pixels of the graphics display with the `gfx.pixel` and `gfx.setPixel` methods.  The program listed on the next page is a quick demo that randomly changes pixels from black to gray, and from gray to aqua.  As always, I recommend you type it and and try it out.
+
+There is one important trick to note on line 5 of this program.  Recall that colors are represented as a string containing a hash symbol, plus two digits each for red, green, blue, and *optionally* alpha.  The predefined color strings like `color.black` and `color.aqua` do not include the alpha characters (with the exception of `color.clear`, which needs them).  But whenever you get the color of a pixel with `gfx.pixel`, it includes the alpha, even if the pixel is fully opaque.
+
+{caption:"Pixel fog."}
+```miniscript
+gfx.clear
+while true
+	x = 960 * rnd
+	y = 640 * rnd
+	c = gfx.pixel(x, y)[:7]  // (ignore alpha)
+	if c == color.black then
+		gfx.setPixel x, y, color.gray
+	else
+		gfx.setPixel x, y, color.aqua
+	end if
+end while
+```
+
+Let's poke at this with the REPL to make sure it's clear.  If the program above is still running, hit control-C to stop it, then try the following.
+
+```terminal
+]color.red
+#FF0000
+]gfx.setPixel 200,200, color.red
+]gfx.pixel(200,200)
+#FF0000FF
+```
+
+So `color.red` is defined as "#FF0000": full red, and zero green and blue.  Alpha is not included in this string, because alpha is optional when it would be equal to FF (fully opaque).  But when we store this color as a pixel and then read it back out, we get the full color string including alpha, "#FF0000FF".  This is equivalent to the color we put in, but simple string comparison would say they are different.
+
+The solution is as shown in the example above: when you don't care about alpha, just truncate the color you get back to 7 characters.
+
+```terminal
+]gfx.pixel(200,200)[:7]
+#FF0000
+```
+
+Now you can compare this to other 7-character color strings with no problem.
+
+## Drawing Lines, Rectangles, and Ellipses
+
+Next up, let's look at some of the figure drawing routines.  All of these have an optional `color` parameter, which defaults to whatever color you set on `gfx.color`; and `penSize`, which defaults to one.  Try this at the prompt:
+
+```terminal
+]gfx.color = color.green
+]gfx.line 200,100, 500,540
+```
+
+This sets the default drawing color to green, then draws a line from X=200, Y=0 (i.e. a point at the bottom of the screen, 200 pixels from the left edge) to X=500, Y=640 (a point at the top of the screen, 500 pixels from the left).  Now use the up-arrow to recall that last command, but specify a different color:
+
+```terminal
+]gfx.line 200,100, 500,540, color.yellow
+```
+
+The line turns yellow.  Now let's try one more variation, specifying a pen size of 20:
+
+```terminal
+]gfx.line 200,100, 500,540, color.yellow, 20
+```
+
+The first two commands produced a very thin line, but this produces a fat, chunky line with square ends.  Let's use this to make a "screen saver" that endlessly fills the screen with random lines!
+
+{caption:"Random-lines screen saver."}
+```miniscript
+while true
+	c = color.rgb(255*rnd, 255*rnd, 255*rnd)
+	pen = 1 + rnd*20
+	gfx.line 960*rnd,640*rnd, 960*rnd,640*rnd, c, pen
+end while
+```
+
+Drawing the outline of a rectangle or ellipse is very similar, but the third and fourth parameters are the width and height of the figure, rather than the other end of a line.  The first two parameters are the position of the bottom-left corner (since Mini Micro always measures things from the bottom left).  Just keep saying "left, bottom, width, height" to yourself as you type these!  Try it:
+
+```terminal
+]gfx.drawRect 200,100, 300,80
+]gfx.drawRect 200,100, 300,80, color.lime
+]gfx.drawEllipse 200,100, 300,80, color.orange, 20
+```
+
+{width:"75%"}
+![Noodling around with `gfx.drawRect` and `gfx.drawEllipse`.](drawRectEllipse.png)
+
+But a rectangle or ellipse can also be filled rather than outlined.  In this case there is no `penSize` parameter.  Type the next one in on the REPL, line by line, to see a surprise.
+
+{caption:"Sometimes, when you stare at the computer long enough... the computer stares back."}
+```terminal
+]gfx.clear
+]gfx.fillRect 200,100, 400,500, color.brown
+]gfx.fillEllipse 250,400, 150,50, color.white
+]gfx.fillEllipse 400,400, 150,50, color.white
+]gfx.fillEllipse 455,410, 40,40, color.blue
+]gfx.fillEllipse 305,410, 40,40, color.blue
+]gfx.fillRect 300,250, 200,20, color.red
+]text.clear
+```
+
+
+If your eyes glaze over when you see so many numbers, don't worry.  It's actually not very common to write code like this; usually if you need a picture, you would just load a picture from disk (as we'll see later in this chapter).  More often when you're using drawing commands like these, the coordinates are computed from other values, for example when drawing a bar chart.  But you already know how to do math; and now you know how to draw too, so when that need arises, you'll be all set.
+
+## Drawing Polygons
+
+{i:"polygons"}
+Mini Micro can also draw polygons of three or more sides, and by "draw" we mean either outline or fill, just like rectangles and ellipses.  But polygons are a little trickier to specify, since they can include any number of points.  Mini Micro solves this by using a list of points.  Each element of the list can be itself an [x,y] list specifying the location of one point.
+
+```terminal
+]gfx.clear
+]gfx.drawPoly [[100,100], [200,300], [300,100]]
+]gfx.drawPoly [[100,100], [200,300], [300,100]], color.red
+]gfx.drawPoly [[100,100], [200,300], [300,100]], color.red, 10
+]gfx.fillPoly [[100,100], [200,300], [300,100]], color.blue
+```
+
+As an alternative, each point can be a little map containing "x" and "y" values.  This is mostly useful when working with other things that already have coordinates in this form, like the mouse pointer or sprites (all things we'll get to later).  For now, let's just prove that it works:
+
+```terminal
+]clear
+]gfx.drawPoly [{"x":100,"y":100}, {"x":200,"y":300}, {"x":300,"y":100}]
+```
+
+D> Note that this line of code does not quite fit on one line on the screen.  That's OK; just keep typing, and don't let it worry you when it wraps to the next line!
+
+## Drawing Text
+
+Sure, you already know how to print text to the text display.  But it turns out you can also draw text to the graphics display, and it's more flexible in two ways.  First, you can draw the text anywhere you like, rather than only in predefined rows and columns.  Second, you can draw it in a smaller or larger font, in addition to the standard font size.  All this is done with the `gfx.print` method.  Explore:
+
+```terminal
+]@gfx.print
+FUNCTION(self, str, x=0, y=0, color, fontName="normal")
+]gfx.print "Hello world!", 600, 400
+]gfx.print "Hello world!", 600, 350, color.aqua
+]gfx.print "Hello world!", 600, 300, color.aqua, "small"
+]gfx.print "Hello world!", 600, 250, color.aqua, "large"
+```
+
+That first line above displays the parameter list of the `gfx.print` function.  This is a handy trick that works with any function.
+
+D> If you remember the name of a function but need to review its parameters, enter an at sign (@) followed by the function name.  The REPL will display the parameter names and default values.
+
+The rest of the above example draws our classic greeting in various colors and sizes.
+
+{width:"75%"}
+![Hello, world!  (Now in a graphics display).](gfxPrint.png)
+
+Of course there are costs to the increased flexibility of drawing text with `gfx`: it is substantially slower than using `text`, you can't easily change the text once it's drawn, and you certainly can't read the text back from the display, as it's just a bunch of pixels.
+
+## Working with Images
+
+There are only a couple more methods left on the `gfx` module: `gfx.drawImage` and `gfx.getImage`.  But to understand them, we first need to cover the Image class.
+
+{i:"`Image`;Mini Micro, `Image` class;pictures, in Mini Micro"}
+`Image` is a class built into Mini Micro for representing pictures.  Images are usually loaded from disk, but they can also be built pixel by pixel from scratch, or plucked right out of a graphics display.  Once you have an image, you can either draw it directly to a graphics display, or (as we'll see in Chapter 22) turn it into a sprite that can be moved around very efficiently.
+
+Let's jump in with an example first, and then we'll go over the details.
+
+```terminal
+]img = file.loadImage("/sys/pics/Mochi.png")
+]gfx.drawImage img, 0, 0
+]gfx.drawImage img, 120, 0, img.width*6, img.height*6
+```
+
+{gap:20}
+{width:"50%"}
+![Small mochi, big mochi.](drawImage.png)
+
+
+All the `file` methods you learned in Chapter 13 still apply in Mini Micro.  But in Mini Micro there are a couple of additional functions, including `file.loadImage`, which simply returns an image from the given file path.
+
+The following table shows the properties and methods of the `Image` class.
+
+{caption:"Image properties (all read-only) and methods.", colWidths:"150,*"}
+| `img.width` | get the image width, in pixels |
+| `img.height` | get the image height, in pixels |
+| `img.pixel(x, y)` | get the color of pixel at *x*, row *y* |
+| `img.setPixel x, y, c` | set the color of pixel at *x*, row *y* to *c* |
+| `img.getImage(left, bottom, width, height)` | get a portion of the image as a new Image |
+| `Image.create(width, height, c)` | create a new image filled with color c |
+
+
+
+The identifier `Image` is capitalized because, unlike `color`, `text`, and `graphics`, you are expected to be working with an *instance* of this class, rather than calling methods on `Image` itself.  The one exception is `Image.create`, which is the method for creating an image from scratch.  So in the table above, we use `img` to stand in for any `Image` instance, like the one we got from `file.loadImage` in the example above.
+
+Now you know all the methods available on the Image class, but honestly, you will almost never use any of them.  The typical pattern is to load an image from disk, and then draw it to the screen, just as we did above.  Rarely do you need to modify the content of an image, but it's nice to know that you can.
+
+Getting back to the `gfx` module, `gfx.drawImage` takes more parameters than anything else in the Mini Micro API — a total of nine!  But you can think of it as: the image to draw, the area to draw it in, and the area of the image to use.  These let you basically take any rectangular portion of the source image, and stretch or squash it into ane rectangular area of the graphics display.  All the parameters except the image are optional.  If you leave off the last four, the source area, then the entire image will be used.  And if you leave off the *width* and *height* parameters, it will be drawn without any stretching or squashing.
+
+To illustrate, follow the example above with one more try that uses all nine parameters to draw just the mochi's smile, super-sized:
+
+```terminal
+]gfx.drawImage img, 0,0,500,100, 52,14,20,10
+```
+This grabs the rectangular area of the image with a bottom-left corner of 52,14, a width of 20, and a height of 10; and draws it onto the screen with its bottom-left corner at 0,0, and a stretched-out size of 500 wide by 100 tall.
+
+## Exploring the Demos
+
+{i:"`/sys/demo`,`sunset`"}
+Of the demos in `/sys/demo`, the `sunset.ms` program is the best one to review at this point.  It uses only the functions you've seen here to make a lovely picture, with details that are slightly different every time.  The `stars.ms` demo is also good, although it's so simple, you may find it too easy!
+
+{i:"turtle graphics;`/sys/demo`,`turtleDemo`"}
+The other drawing demo is `turtleDemo.ms`.  This uses a trick you'll learn more about tomorrow: `import`.  The `import` function lets you load some code from another file — in this case, a "turtle" module that provides for a very different approach to drawing called *turtle graphics*.  The basic idea here is that there is a little turtle on the screen that can be told to move and turn while drawing a line.  Go ahead and play with this demo;  just keep in mind that those turtle methods are not built into Mini Micro, but instead are only available after importing the turtle module.  (We'll explain more about `import` in the next chapter.)
+
+A> **Chapter Review**
+A> - You explored the Mini Micro pixel display, accessed via `gfx`.
+A> - You learned how to get and set individual pixels, as well as how to draw lines, rectangles, ellipses, and polygons.
+A> - You drew text in three different sizes and in various colors.
+A> - You learned about the Image class, including how to load an image from disk and draw it (in whole or in part) to the screen.

@@ -1,0 +1,321 @@
+{chapterHead: "Day 13: Working with Files", startingPageNum:139}
+
+{width: "50%"}
+![](Chapter13.svg)
+
+Q> Knowledge is power.
+Q>— Francis Bacon (1561 - 1626)
+
+A> **Chapter Objectives**
+A> - Learn the command-line MiniScript functions for working with disk files.
+A> - Start using MiniScript as a superpower that lets you automate repetitive tasks.
+
+After twelve days of MiniScript, you now know all the essential points of the MiniScript language, as well as the intrinsic functions that are common to all MiniScript environments.  Congratulations!  That's a real achievement.
+
+Now we can start considering the additional functionality provided by certain MiniScript environments.  In Chapter 8, you installed command-line MiniScript, and hopefully you've continued to work with it for at least some of the examples since then.  If not, that's OK — but you might want to go back and brush up on it, since we're going to be using it for this chapter!
+
+In addition to all the standard MiniScript functionality, command-line MiniScript provides some extra functions and classes for working with disk files.  That is an extremely useful thing to do, as everything on a computer is organized into files and folders.  With the powers you gain today, you'll be able to create files, rename them, move them around, split them into parts, combine them together, and do all sorts of other tasks that would be much harder to do by hand.
+
+D> The file-related functions covered in this chapter also happen to be available in Mini Micro, which you'll start using in only two more days!  So while you're working with command-line MiniScript today, you're also getting a head start on Mini Micro.
+
+If you go back to the web page where you downloaded command-line MiniScript:
+
+_
+: <https://miniscript.org/cmdline/>
+
+...you will find the file-related functions listed there.  Note that because these are not part of the MiniScript core, they are *not* on the MiniScript Quick Reference sheet, nor in the MiniScript Manual.
+
+## Files, Folders, and Paths
+
+Let's begin my making sure we're all clear on some basic terminology that relates to computer files.
+
+file
+: a collection of bytes stored on disk.  Each file has a name (often including an extension at the end, like ".txt" or ".jpg"), the actual file content, and some other metadata like a creation date.  Things like pictures, text files, and word processing documents are all files.
+
+folder
+: a special kind of disk entry that contains files and other folders.  Sometimes called a *directory*.
+
+path
+: a string that uniquely identifies a file or folder location by specifying the sequence of nested folders needed to get there, as well as the file or folder name itself.  Each part of the path is separated by a slash (a forward slash on Mac, Linux, and Mini Micro; a backslash on Windows).
+
+Every desktop operating system provides some way to browse files and folders as little icons in a window.  But when you're working on the command line, you work with those same files and folders using paths and file names.
+
+Paths come in two types, absolute and relative.
+
+absolute path
+: a path that begins with a disk identifier, and lists all the folders from the very top level of that disk down to the file.  On Windows, absolute paths begin with a drive letter like "C:".  On other systems, absolute paths begin with a forward slash.
+
+relative path
+: a path that does not start at the top level of the disk, and so it can only be interpreted relative to some other folder.  Sometimes called a *partial path*.  A file name is an extreme case of a relative path.
+
+If we were not lazy, we would probably just use absolute paths all the time, since they are unambiguous.  But we are, so we use relative paths a lot.  How then can the computer know how to interpret them?  It does so by defining one folder in particular as the *working directory*, which is the base for any relative path.
+
+working directory
+: the folder that partial paths are considered to be relative to.  Sometimes called the *current directory* or *current folder*.
+
+## The file module
+
+{i:"module;`file` module"}
+Command-line MiniScript (and Mini Micro) tucks away all the file-related function inside a map called `file`.  That's just to avoid adding a dozen new identifiers into the global variable space; instead, it only adds one.  Because this map is *not* a class intended to be used with `new`, it is not capitalized.  We sometimes refer to such a map containing functions as a "module" (just to distinguish it frorm a class).  So, let's take a look at the `file` module.
+
+Start by firing up command-line MiniScript, and at the REPL prompt, type:
+
+```terminal
+> file.indexes
+```
+
+Recall that the `indexes` method, when called on a map, returns a list of all the keys in the map.  In this case, that tells you the names of all the functions in the file module.  There are a bit over a dozen.  The full set is shown below, but just like the tables of intrinsic functions in earlier chapters, don't try to memorize this.  Just skim it now, so you will know where to look if you need it later.
+
+{caption:"Functions in the `file` module", colWidths:"170,*"}
+| `file.curdir` | returns the current working directory |
+| `file.setdir(path)` | changes the current working directory |
+| `file.makedir(path)` | creates a new directory |
+| `file.children(path)` | returns list of files within the given directory |
+| `file.name(path)` | returns the file name from the given path |
+| `file.parent(path)` | returns the path to the directory containing the given path |
+| `file.child(parentPath, childName)` | combines the given directory path and file name, returning path to the child |
+| `file.exists(path)` | returns true if a file exists at the given path |
+| `file.copy(oldPath, newPath)` | copies a file to a new location |
+| `file.move(oldPath, newPath)` | moves/renames a file |
+| `file.delete(path)` | deletes a file |
+| `file.info(path)` | gets a map of details about a file including size, isDirectory, date, and (full) path |
+| `file.readLines(path)` | returns full contents of a text file as a list of strings |
+| `file.writeLines(path, data)` | writes out the given list as a text file, one line per list element |
+| `file.open(path, mode="rw+")` | opens or creates a file |
+
+About half of the functions are just for manipulating paths.  Try entering
+
+```repl
+> file.curdir
+```
+
+This should print your current working directory.  For me, that might be something like `/Users/jstrout/Documents`, but for you it will be different.  That's OK.  Now try
+
+```terminal
+> file.children
+```
+
+It should return a list of files in your current directory.  Hopefully those things look familiar!  Note that it may include some entries that you don't see when you look in the same folder graphically, using Finder or File Explorer.  Those are "hidden" files which the makers of macOS or Windows don't think you should see.  But MiniScript doesn't hide anything — you see what's really there!
+
+Notice that we didn't give `file.children` a path, so it just returned the contents of the working directory.  Now try it again, giving it either the name of a folder inside your working directory, or an absolute path to some other folder.  For example, on my machine I can do:
+
+```terminal
+> file.children "/Users/jstrout"
+```
+
+to get a list of all the stuff in my home directory.  But of course you'll need to change that to some directory on *your* system.  Experiment with this a bit.
+
+Now let's try changing the working directory.  Pick some folder you were able to get the children of, then pass its path to `file.setdir`, like this:
+
+```terminal
+> file.setdir "/Users/jstrout"
+```
+
+(again changing the path to something that exists on your machine).  If successful, this will return 1 (which means `true` in MiniScript, but is also sometimes used to indicate success, like getting a thumbs-up from the function).  Now if you enter `file.curdir`, it will report back the new working directory.  Doing `file.children` with no argument will list the files in that directory, and any partial paths will now be interpreted relative to that folder.  Again, experiment with this until it seems clear.
+
+Now let's consider how to build and take apart paths.  Let's introduce a variable, `p` for "path" (using a short name just to save us some typing).  Start by setting that to the current directory.
+
+```terminal
+> p = file.curdir
+> p
+```
+
+This should print out the path of your working directory, which is an absolute path that probably contains several parts.  Now pick the name of some file in that directory (use `file.children(p)` if you need to review what those files are).  To get the path of a file relative to `p`, you can use the `file.child` method, like so:
+
+```terminal
+> f = file.child(p, "SomeFile.txt")
+> f
+```
+
+That function basically just appends the file name you give it to the path, inserting the appropriate path separator for your platform (i.e. a forward or backward slash).
+
+Now, let's do the reverse: strip the last part of the path off, so that it refers to the parent folder.
+
+```terminal
+> file.parent(f)
+```
+
+This should strip the file name off, and get you back the path `p` that you started with.  Of course you could go further, and get the parent folder of `p` itself (`file.parent(p)`), or any other path, at least until you run out of path parts.
+
+There is another way to split up a path: you might want just the *last* part, stripping off everything before the final file or folder name.
+
+```terminal
+> file.name(f)
+```
+
+## Listing and Searching Files
+
+Let's combine what we've learned so far with one more function, `file.info`, that gets detailed a map of extra details about a file on disk.  These details include `size` in bytes, `isDirectory` (1 for true or 0 for false), `date` that the file was last modified, and `path`, which is the absolute path to the file.  This is a somewhat longer example, so you might put it into a text file and run it rather than typing it into the REPL.
+
+{caption:List files with detials}
+```miniscript
+p = file.curdir
+for f in file.children(p).sort
+	info = file.info(file.child(p, f))
+	padName = (f + " "*40)[:40]
+	padSize = (" "*8 + info.size)[-8:]
+	print padName + padSize + " " + info.date
+end for
+```
+
+This prints out all the files in the current directory, along with their size and modification date, all in neatly formatted columns.  A good demo, but not terribly useful since you can already browse the files with Finder or File Explorer.  So how about something that those can't easily do?  Let's say you were working on something yesterday, but you can't remember where you put it or what it was called.  Here's a little program that can search by whatever criteria you do remember:
+
+{caption:Find a file by any criteria}
+```miniscript
+// Find a file!  Run this from some folder you know contains what
+// you're looking for, even if it's buried several folders deeper.
+
+// Return whether the given file info represents a good candidate.
+isMatch = function(info)
+	// Here program whatever you can remember about the file 
+	// you're looking for.  An easy way is to return false for 
+    // anything that is NOT what you want.
+	if info.path[-4:] != ".txt" then return false
+	if info.date[:10] != "2020-04-27" then return false
+	if info.size < 1024 then return false
+	// If none of the above apply, then this might be a good file!
+	return true
+end function
+
+// Print the path of all good candidates in the given directory,
+// or any sub-folder (repeating to any depth).
+printMatches = function(dirPath)
+	for f in file.children(dirPath)
+		info = file.info(file.child(dirPath, f))
+		if info.isDirectory then
+			// We've found a subdirectory.  Print matches for THAT!
+			printMatches info.path
+		else if isMatch(info) then
+			// This file looks like a good match.
+			print info.path
+		end if
+	end for
+end function
+
+// Main program.  Let's just operate on the current directory
+// (wherever this script was run).
+printMatches file.curdir
+```
+
+Notice the trick here where the `printMatches` function calls itself for any subfolder it runs across.  This trick is called *recursion*.
+
+recursion
+: a programming technique where a function calls itself (directly or indirectly)
+
+Recursion works because variables are local, so the variable `f` (used in the `for` loop) in one call is not the same as the variable `f` in the next call.  Every call of the function gets its own local variables, so MiniScript never gets confused or loses track of what it was doing.
+
+Note that if you type in the above exactly as it is, and run it, it probably won't print anything.  That's because you probably don't have a text file created on April 27, 2020 somewhere under the folder where you run this.  So adjust the criteria in the `isMatch` function to fit some file you know you have, and be sure to run the script from somewhere higher up in the folder hierarchy above that file.
+
+## Creating, Reading, and Altering Files
+
+The rest of the methods in the `file` module are various ways to read or change the contents of your disk.  Most of these assume that you're working with text files, which includes specialized kinds of text like HTML (web pages), MiniScript script files, and so on.
+
+To begin, let's create a new file with MiniScript.  You can do this in the command-line REPL:
+
+```terminal
+> f = "Test.txt"
+> file.writeLines f, ["Hello world!", "This is a test."]
+29
+```
+
+D> Remember, when examples are given for the REPL, you only type what's next to the `>` prompt.  Lines without a prompt are output from MiniScript; you don't need to type those.
+
+Line 1 in the example above assigns a file name to `f`, and then the `file.writeLines` call on line 2 creates a file with that name in the default directory.  The contents of the file are the second parameter to `file.writeLines`.  This should be either a string, or a list of strings.  The return value (29 in this example) is the length of the file created, in bytes.
+
+To verify that it worked, switch over to File Explorer or Finder, and look in the folder you were using as your current directory.  You should see a new file there called "Test.txt", and if you open it up, you'll find it contains two lines, "Hello world!" and "This is a test."
+
+Switching back to MiniScript, you can verify that the file is there with `file.children`.  Then, let's read it from disk back into memory:
+
+```terminal
+> data = file.readLines(f)
+> data
+["Hello world!", "This is a test."]
+```
+
+Isn't that easy?  You already know how to work with strings and lists, so now that you can read and write a file as a list of strings, you can do almost anything with text files on disk!  Keep in mind that our file specifier here ("Test.txt") was just a file name, which is a minimal kind of partial path.  You can also use a longer partial path, or an absolute path.  Any of these ways of specifying the file will work.
+
+Now let's wrap up with other file operations you might need to do from time to time.  To make a copy of the file, just call `file.copy` with the path (partial or absolute) to the original file, and where you want the copy to be:
+
+```terminal
+> file.copy f, "Test Copy.txt"
+1
+```
+
+And now delete that copy using — you guessed it — `file.delete`:
+
+```terminal
+> file.delete "Test Copy.txt"
+1
+```
+
+If you want to move or rename a file, use `file.move`.  These sound like two different operations, but to the computer, they're really the same thing: changing the path at which a file is stored.  You can think of it as "moving" the file if you specify a path to a different directory, or merely "renaming" the file if you specify a different name in the same directory.
+
+```terminal
+> file.move f, "Toast.txt"
+1
+```
+
+Finally, if you need to create a directory in MiniScript, you can use `file.makedir`.
+
+```terminal
+> file.makedir "TestStuff"
+1
+> file.move "Toast.txt", file.child("TestStuff", "Toast.txt")
+1
+```
+
+In this example, the `file.makedir` call on line 1 creates a new folder, and then on line 3 we move the "Toast.txt" file into it, using `file.child` to construct a proper partial path for the destination.  That would be `TestStuff\\Toast.txt` on Windows, or `TestStuff/Toast.txt` on other platforms.
+
+## Using Your New Superpower
+
+As you become a programmer, you will be working with lots of files.  When you make games, you will have folders full of sprite images and sounds.  If you manipulate scientific data, you'll have files of data points that need summarized, analyzed, and collated.  If you do business programming, you'll have files of sales receipts, tax records, and email attachments.  Even if you just use programming for your own purposes around the house, you'll sooner or later see that you have thousands of photos or scans of children's drawings or *something* that could use some attention.
+
+When most people realize they need to rename, sort through, or otherwise work on hundreds or thousands of files, they have to either find some specialized tool that does that, or else they simply give up and abandon the idea.  But you're not most people.  You are learning how to code, and that makes tasks possible for you that would be impractical or impossible otherwise.
+
+I can't tell you exactly what those tasks will be and how to do them, because they're likely to be very specialized to your needs.  If they were *general* needs that lots of people have, there would probably already be some easy solution programmed by somebody else.  The real power of programming is that you can solve problems that are *not* common; problems that may be unique to you and what you want to accomplish.
+
+So, start thinking about it.  When you encounter a problem on a computer, especially if it involves some repetitive task that would have to be done a mind-numbingly large number of times, consider whether you could write a program to do it for you.  It might take you an hour or two to write and debug the program — but if it saves you weeks of work, or makes possible something that wouldn't be possible at all otherwise, it's worth it!
+
+Just to get those juices flowing, let's work through a small example.  Let's start by creating 14 fake data files called `Data1.dat` through `Data14.dat`:
+
+```terminal
+> for i in range(1,14)                                          
+>>> file.writeLines "Data" + i + ".dat", "42"                    
+>>> end for 
+```
+
+That alone was pretty neat — a lot faster than using a text editor to create the first one, then using File Explorer to manually copy it 13 times!  But that's just setting up our example.  Now let's suppose you're working with some other tool that needs files like these to be named with the index padded to 5 digits, and following a dash, like `Data-00012.dat`.  And imagine instead of 14, there were hundreds or thousands of these, so that manually renaming them would take too long.  MiniScript to the rescue!  
+
+This one is a little longer, so it's probably worth creating a script file (perhaps call it *renamer.ms* or something similar).
+
+{caption:File renamer}
+```miniscript
+for f in file.children
+	// make sure it's one of the files we care about
+	// (i.e. starts with Data, and ends with .dat)
+	if f[:4] != "Data" or f[-4:] != ".dat" then
+		print "Ignoring " + f
+		continue
+	end if
+	
+	// Extract the number (after "Data" but before ".dat")
+	num = f[4:-4]
+	
+	// Zero-pad it, and compute the new file name
+	num = ("00000" + num)[-5:]
+	newName = "Data-" + num + ".dat"
+	
+	// Rename the file, and print what we did
+	file.move f, newName
+	print "Renamed " + f + " to " + newName
+end for
+```
+
+Run this with MiniScript in the same folder as your data files, and voilà!  They are all instantly renamed according to the needed pattern.
+
+I've actually had needs like this from time to time.  If you haven't yet, it may not fully sink in how cool it is — but someday, you'll be faced with the need for something like this, and you'll be glad you have the ability to do it with code.
+
+A> **Chapter Review**
+A> - You learned about the `file` module in command-line MiniScript (also found in Mini Micro).
+A> - You know know how to create, delete, read, write, move, and rename files from your MiniScript code.
+A> - You'll be watching for opportunities to use this new ability to make the computer do boring, repetitive file-related tasks for you.

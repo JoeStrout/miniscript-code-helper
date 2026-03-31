@@ -1,0 +1,248 @@
+{chapterHead: "Day 15: Introducing Mini Micro", startingPageNum:171}
+
+{width: "50%"}
+![](Chapter15.svg)
+
+Q> Engineering isn’t just the physics of how a transistor works. It’s using the technology, and being creative with it, and solving problems that people have or creating something beautiful with it.
+Q>— Limor Fried (engineer, co-founder of Adafruit Industries)
+
+A> **Chapter Objectives**
+A> - Download and install Mini Micro.
+A> - Learn the basic Mini Micro commands needed to load and run programs.
+A> - Explore the nifty demos that come with it.
+A> - Review the difference between a programming *language* and a programming *environment*.
+
+This chapter begins the second half of the book, which is quite honestly the more fun half.  *Any* programming is fun, but the fun of text on a web page or terminal window pales in comparison to making pictures, animations, sound effects, and music!
+
+For the rest of this book you'll be using *Mini Micro*.
+
+Mini Micro
+: a neo-retro virtual home computer from an alternate, much cooler universe
+
+Mini Micro is an application you download install on your computer.  At the time of this writing, it runs on desktop computers (Windows, Mac, and Linux), though a version for mobile phones and tablets is in the works and may well be done by the time you're reading this.  Mini Micro is a MiniScript programming environment, and supports all sorts of fun features:
+
+- efficient, interactive graphics
+- synthesized and digitized sounds
+- mouse and keyboard input
+- gamepads and joysticks
+- simple networking
+
+Using Mini Micro, you can write your own games and simulations, package them up for any platform (including web browsers), and share them with your friends or post them on sites like itch.io.  The rest of this book will teach you what you need to know.
+
+## Installing Mini Micro
+
+You can download Mini Micro via the MiniScript home page at <https://miniscript.org>.  Just click the link that says "Boot up the Mini Micro".
+
+That will probably take you to a page that actually has Mini Micro running in demo mode, right within your web browser.  Scroll on down and look for the download links, then click the one for your platform (macOS, Windows, or Linux).
+
+On Mac or Windows, the download is a zip file.  Double-click that to open it up, and in the case of Windows, you should then drag the contents out into another folder (i.e. don't try to run it directly from the zip file).  On Linux, the download is a gzipped tar file; unpack that and place it wherever you like.
+
+Then double-click the Mini Micro application.  It should open a window that looks something like this:
+
+![Mini Micro.](MiniMicroBoot.png)
+
+The details will likely be different: the version number and build date will probably be later than this, and the tip that appears on the third line is selected randomly on each run.  But if you see a welcome screen that looks basically like this, with no error messages, then you are ready to go!
+
+If you do see an error message, the problem is most likely that it can't find or create a place to store your data.  In that case, notice the two slots at the bottom of the window, below the black screen.  Those represent *disk slots*.  Click the top disk slot, and choose "Mount Folder..." from the menu that appears.  Select or create an empty folder wherever you like to store your data (for example, under Documents in your home directory).  Then quit Mini Micro, and relaunch it.  The errors should be gone, as Mini Micro remembers where you previously told it to store your data.
+
+Before you move on, go back to the web page where you downloaded Mini Micro, and scroll down a bit more.  You should see a link that says "Mini Micro Cheat Sheet".  Download that too; it is a very short PDF that summarizes all the special Mini Micro functions and classes.
+
+## Basic Commands
+
+After the welcome messages, you will see a `]` prompt with a boxy blinking cursor, very much like a terminal window.  This is Mini Micro's command-line interface.  It is a REPL (Read, Eval, Print Loop) just like command-line MiniScript.  So everything you've learned in the last week still applies!  But there are some important differences.
+
+First, command-line MiniScript is a thin layer on top of your native operating system (Windows, macOS, or Linux).  So, for example, you have to use backslashes on Windows to separate parts of a file path.  But Mini Micro is a virtual computer with its own operating system, and works the same regardless of what kind of physical computer you have.  It always uses forward slashes in file paths, even on Windows.
+
+Similarly, command-line MiniScript is meant to integrate with the built-in command shell of your system.  You navigate in your file system with commands like `cd` and `ls` or `dir`, which are all built-in shell commands, not part of MiniScript; and then you run `miniscript` as a separate command when you want to enter the MiniScript REPL, or run MiniScript code stored in a file.  Mini Micro is different; the command shell is actually just MiniScript.  You don't "run MiniScript" in Mini Micro; it's *always* running.
+
+In this regard, Mini Micro is easier than command-line MiniScript.  The latter really requires you to know at least two languages: MiniScript, and your command shell language.  These have different syntax that you have to keep straight.  But in Mini Micro, it's all MiniScript, all the time; you only need to think about one language with one syntax.
+
+However, you will still need some commands for navigating around your virtual computer!  These are very much like the ones you used in your Windows or Unix/Linux shell, but they are actually just MiniScript functions.  These functions are predefined for you as part of the Mini Micro startup process, so they are ready for you to call right away.
+
+{i:"Mini Micro, commands;commands, in Mini Micro"}
+| `pwd` | print working directory |
+| `cd` *path* | change working directory |
+| `dir` | list directory contents |
+| `mkdir` *path* | create a new directory |
+| `delete` *path* | delete a file or empty directory |
+| `view` *path* | preview (almost) any file |
+| `clear` | clear the screen |
+| `load` *path* | load a program into memory |
+| `run` | run the currently loaded program |
+| `edit` | edit the currently loaded program |
+| `save` | save the current program to disk |
+| `reset` | clear loaded program and variables |
+
+Try it!  Type `pwd` into Mini Micro right now, and press Return.  You should see:
+
+```terminal
+]pwd
+/usr/
+```
+
+The current working directory on startup is "/usr/", which represents the root directory of the user disk.
+
+user disk
+: the place where all your files are stored; selected with the top disk slot, and referenced in file paths as `/usr`
+system disk
+: the read-only disk where all of Mini Micro's built-in code, images, sounds, and other data are stored; referenced in file paths as `/sys`
+
+Now try listing the contents of your user disk with `dir`:
+
+```terminal
+]dir
+/usr :
+  (Directory empty)
+```
+
+Assuming you just downloaded Mini Micro a few minutes ago, it's not surprising your user disk is empty!  Remember, this is just your *Mini Micro* user disk.  It's *not* the disk of your host (desktop PC) system, though of course ultimately your Mini Micro files must be stored there.  We'll get more into the relationship between your Mini Micro files, and the host files, a bit later.  For now let's get on to the fun stuff.
+
+## Running the Demos
+
+You may have caught above that there are two disks available in Mini Micro:       `/usr` and `/sys`.  (There can actually be a third, /usr2, which accesses a disk file or folder mounted in the second disk slot.  But let's ignore that for now.)
+
+The `/sys` disk is fun and important because it contains all the built-in goodies that come with Mini Micro.  This includes a bunch of fun demos (demonstration programs) and mini-games.  Our goal for today is just to play with these.  If you thought yesterday was hard work, don't worry — today is pure fun!
+
+Use the `cd` command to switch to the `/sys` disk, and then `dir` to list the directory contents.
+
+```terminal
+]cd "/sys"
+]dir
+/sys :
+  data/                                DIR  2020-02-23 06:39:44
+  demo/                                DIR  2020-03-26 12:32:28
+  help/                                DIR  2019-11-16 08:02:50
+  lib/                                 DIR  2020-03-13 11:54:12
+  pics/                                DIR  2020-03-13 13:02:16
+  sounds/                              DIR  2020-03-13 12:42:50
+  startup.ms                          8607  2020-03-17 17:16:14
+  tips.txt                            1229  2019-08-09 16:41:40
+```
+
+Notice that we had to put quotation marks around `"/sys"` in the `cd` command.  That's different from any Unix/Linux/Windows shell.  Why is that?
+
+D> Stop and see if you can answer that question yourself.  Cover up the rest of the page below while you think about it.  Hint: remember that Mini Micro doesn't have a separate command shell; it's all MiniScript, all the time.
+
+The reason quotes are needed is that `cd` here is just a MiniScript function, and    `"/sys"` is just a MiniScript string.  MiniScript requires strings to be quoted.  Without the quotation marks, it would look like you were trying to do math (`cd` divided by `sys`), and would not work at all.  So even though these *look* like standard shell commands, you must remember the quotation marks.
+
+D> Always put quotation marks around paths and file names in Mini Micro.
+
+Now examining the file listing that `dir` gave you, you can see a half-dozen subdirectories, plus a MiniScript file (`startup.ms`) and a text file (`tips.txt`).  Let's ignore those for a moment and focus on the subdirectories... and in particular, the `demo` directory.
+
+```terminal
+]cd "demo"
+]dir
+```
+
+I haven't included the result of this `dir` command for two reasons: the demos will have probably changed a bit by the time you read this, and in any case, there are too many!  When a directory listing is more than a screenful of lines, you will see something like `[3 more]` in inverse text at the bottom, and Mini Micro will wait for you to press a key.  At that point, press the spacebar or Return key to continue, or press Q or Escape to stop the listing there.
+
+{i:"`/sys/demo`"}
+What you find in this `/sys/demo` directory is a whole bunch of MiniScript programs.  Some of them are tiny, like `countdown.ms`, which is only 70 characters.  Others are quite large; the `speedConquest.ms` game is over 24 thousand characters!  A few are simple text demos that could have been done in command-line MiniScript or the Try-It! page, but most of them make full use of Mini Micro's power.
+
+To play any of these programs, you first `load` it with a full or partial file path, and then `run`.  For example:
+
+{i:"`/sys/demo`,`mochiBounce`"}
+```terminal
+]load "mochiBounce.ms"
+193 lines loaded from /sys/demo/mochiBounce.ms
+]run
+```
+
+{width:"75%"}
+!["Mochi Bounce" demo.](MochiBounce.png)
+
+PRINT>That should produce a screen that looks like this picture on the previous page.
+EBOOK>That should produce a screen that looks like the picture above.
+
+Now you can play the game!  Hold the space bar to make the mochi jump, and use the left and right arrow keys to make it veer left or right.  See how far you can climb!  Be sure your computer speakers are on to hear the sound effects.  The game will end when you miss, or you can exit out by pressing the Escape key.
+
+D> To exit out of most Mini Micro programs, press Escape.  If that doesn't work, you can always break out by pressing Control-C.
+
+To try the program again, just enter `run` again.  Or as a shortcut, you can press the up-arrow key to bring back the last command, and then hit Return.
+
+D> At any blinking input prompt, you can use the up and down arrows to step through previous inputs.
+
+That was fun!  Let's try a much simpler one.  Clear the screen, then load a different demo:
+
+```terminal
+]clear
+]load "countdown"
+]run
+```
+
+PRINT>This is a very simple program indeed.  But let's use it to explore editing and saving a program.  Enter `edit`.  The Mini Micro program editor opens, as shown in the picture on the next page.
+EBBOK>This is a very simple program indeed.  But let's use it to explore editing and saving a program.  Enter `edit`.  The Mini Micro program editor opens, as shown in the picture below.
+
+![Mini Micro code editor.](editCountdown.png)
+
+{i: "code editor, Mini Micro"}
+Here you can use the mouse and keyboard as you would in any code editor.  It supports undo and redo, cut/copy/paste, a sophisticated search & replace function, a Navigate menu (much more useful on bigger programs), and a Code menu that can insert various code snippets for you.  Hover over any of the buttons at the top of the screen for a moment, and the name of the function should appear to tell you what's what.
+
+Right now the program counts down from 10 to 1, waiting for 1 second (the default time for `wait`) between each number.  Let's say we're impatient.  Change line 3 to read
+
+{number-from: 3}
+```miniscript
+wait 0.25
+```
+
+so that it waits only a quarter second between each number.  Now click the "X" (Close) button at the left end of the toolbar.  The program editor closes.  Now `run` the program again.  You should see it count down much faster.
+
+But our changes at this point are only in memory; they have not been saved to disk.  So if you quit Mini Micro at this point, your changes would be gone.  Normally you could just enter `save` (or use the save button in the code editor) to save a file to wherever it came from, but this file came from the `/sys` disk, which is read-only (i.e. you can't write to it).  So you will need to supply a path to somewhere on the user disk.
+
+```terminal
+]save "/usr/fastCountdown"
+6 lines saved to /usr/fastCountdown.ms
+```
+
+Now that you know how to load, run, edit, and save the demos, explore!  There are are over two dozen demos in `/sys/demo`, all of them different.  Most of them will be fairly obvious how to use; for anything that looks like a graphical game, try the arrow keys and spacebar, or in some cases the mouse.  If you see a blinking cursor, type something.  A few programs have no input, but just do something interesting on their own.
+
+If you have trouble figuring out how to use a demo, `edit` it and read the comments at the top of the file.  In fact, even if you *don't* have trouble using a program, look over the script anyway!  There may be much you don't understand yet, but don't get discouraged.  A few weeks ago you didn't know how to read MiniScript at all, and now you can!  And by the end of this book, you'll know how to understand pretty much everything you see in these programs, and be well on your way to writing your own.
+
+For now, just skim them over, read the comments at the top, and see if you can find the main loop (usually at the bottom).  This will prepare your brain for all the fun new stuff we're going to pour into it over the next two weeks.
+
+## Getting Help
+
+Mini Micro has a lot of new functions and classes for you to use.  Fortunately you don't have to remember them; there are several good resources to teach or remind you about them.
+
+This book is one, of course.  Here you find more in-depth explanation of the key features and step-by-step examples, all presented in a thoughtful order where each day builds on what you did the days before.
+
+Another resource is the `help` command built into Mini Micro.  Just type `help` at the prompt and it will print some introductory help, with a prompt to get to more by using `help "topics"`.  That leads you to things like `help "files"` or `help "graphics"`.  The help you find this way is brief, but may be a good enough reminder if for some reason you don't have any of the other resources on hand.
+
+{i:"Mini Micro, Cheat Sheet;documentation, Mini Micro Cheat Sheet"}
+Next, keep in mind the Mini Micro Cheat Sheet, a very short (currently 4-page) expansion of the MiniScript Quick Reference you used in the first half of the book.  The additional pages cover almost everything there is to know about Mini Micro: all the built-in classes and functions.  They are organized by topic, so you can quickly find what you need.  If you don't have this yet, put the book down and go get it!  I recommend you keep it handy at all times.  I've included a copy of the current version here in the book just to whet your appetite, but go get your own copy that will be both more current, and big enough to read.
+
+{width:"95%"}
+![Mini Micro Cheat Sheet.](MiniMicro-docs.png)
+
+When you need more detail than the built-in help or the cheat sheet can provide, a good place to turn is the MiniScript Wiki.  This is a community-edited reference for everything having to do with MiniScript and Mini Micro.  You can find it via the MiniScript home page, or go to it directly at `https://miniscript.org/wiki/`.  Once there, follow the link to the Mini Micro page, which contains links to all the special Mini Micro classes and functions, as well as some very handy "How To" articles covering topics like how to make a sprite translucent, how to do simple physics, and so on.
+
+Finally, of course, you are encouraged to join the MiniScript community.  There is an active Discord server as well as web forums, and users there — including me — will be happy as a clam to help you with your MiniScript and Mini Micro questions.  It's also a great place to show off what you have created!
+
+{pageBreak}
+## Language vs. Environment
+
+I'd like to close this first chapter about Mini Micro with a reminder about the difference between a programming *language* and a programming *environment*.
+
+{i:"programming language"}
+MiniScript is a programming *language*.  It has a certain syntax: a way of typing in numbers, strings, loops, branches, and so on so that the computer can understand them.  It has a system of data types (strings, numbers, lists, maps, and functions), rules about how it looks up identifiers, and so on.
+
+{i:"programming environment"}
+Mini Micro is a programming *environment*.  The environment provides a context for using the language.  You've used MiniScript in at least two other environments already: the Try-It! page on the web, and command-line MiniScript.  It's possible you've encountered (or will someday encounter) MiniScript in other contexts too, such as in a game.  The language is the same in all these cases, but what you can *do* with it may vary quite a bit with the environment.
+
+You already saw all this when you moved from the Try-It! page to command-line MiniScript; only the latter, for example, can access files.  But Mini Micro takes this much further.  As you explored the demos, you saw all sorts of fancy things going on: animated graphics and text, sound, music, etc.  But, all of that is done with the MiniScript language you already know.  I'm not going to teach you any new parts of the language, because there aren't any!  From here on out, it's just a matter of familiarizing yourself with the extra functions and classes provided by the environment.
+
+{pageBreak}
+A> **Chapter Review**
+A> - You installed Mini Micro on your own computer.
+A> - You used Mini Micro commands to load, run, edit, and save programs.
+A> - You explored the nifty demos that come with Mini Micro, to get a good idea of what it can do.
+A> - You learned about the various places you can find helpful information about Mini Micro.
+A> - You reviewed the difference between programming language and programming environment.
+
+
+{gap:100}
+{width:"25%"}
+![](chinchilla-03.svg)
+
+
+ 

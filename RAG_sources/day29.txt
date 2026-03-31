@@ -1,0 +1,109 @@
+{chapterHead: "Day 29: Finding Help", startingPageNum:359}
+
+{width: "50%"}
+![](Chapter29.svg)
+
+Q> Don’t be afraid to say "I don’t know" or "I don’t understand" – no question is a dumb question.
+Q>— Margaret Hamilton (software engineering pioneer)
+
+
+A> **Chapter Objectives**
+A> - Learn where to look for programming help on the Internet.
+A> - Explore some places where you can join a community and share your work.
+A> - Learn some common ways programmers find solutions to problems.
+
+I hope you've found this book fun and easy to follow.  If you're like many readers, you began with little or no programming experience, and now you've completed an entire book, entered and debugged a large number of programs, and learned MiniScript syntax as well as most of the Mini Micro classes and functions.
+
+Despite the considerable increase in your programming prowess, you may still find it difficult when you sit down to write a program from scratch.  You may experience a form of "writer's block" where you don't even know how to begin.  Or you may get partway through a project, and then run into some bug you don't know how to solve.  You can certainly search this book for helpful advice, and I hope you find some!  But if that doesn't work, then what do you do?
+
+In this chapter we'll go over some places to get help at times like those.  We'll also cover some communities you can join and participate in even when you don't need help — for example, when you've just coded something cool and want to share it with people who will appreciate it.  The MiniScript community is friendly and supportive.  Here's where you can find them.
+
+Q> The Internet?  Is that thing still around?
+Q>— Homer Simpson
+
+## Official MiniScript Sites
+
+From the very beginning of the book, I've encouraged you to make use of the resources linked from the MiniScript home page.  But it's worth suggesting these again.
+
+MiniScript home page
+: <https://miniscript.org>
+
+This web site is the first step for all things related to MiniScript and Mini Micro.  Other sites may come and go, or change their web address, but this one should always be valid and up to date.
+
+From here you can find links to most of the other places mentioned in this chapter.  You'll also find very helpful resources like the MiniScript Quick Reference.
+
+One of these resources is the **MiniScript User's Manual**, a downloadable reference book that explains the MiniScript language and its intrinsic functions in good detail.  I wouldn't recommend this book to someone who is entirely new to programming.  But you're not new to programming any more!  You will be able to understand pretty much everything in this book at this point.  While much of it is the same material that was covered here, it's presented in a different way, and this might make you say "aha!" if you were confused on some detail of the language.
+
+You'll also find an invitation link for the **MiniScript Discord server** here.  Discord is a popular real-time chat program.  People here communicate mostly by text, though you can also post pictures of your projects, and a voice channel is available when needed.  Text channels are divided into topics, including `#mini-micro`, `#show-and-tell`, and `#game-ideas`, so you can focus on the areas that interest you.  Many MiniScript users hang out here and are always eager to share the excitement of coding.  (If you are underage, please check with a parent or caregiver before joining any online chat.)
+
+MiniScript wiki
+: <https://miniscript.org/wiki/>
+
+The MiniScript wiki is a very useful reference site.  Continually updated and extended by volunteers (including myself), this wiki has a page for just about every language feature and function in MiniScript and Mini Micro.  Let's say you are wondering if there is some way to hide the mouse cursor in Mini Micro.  Just go to the wiki, type "mouse" into the search field, and press Return.  This will take you to the documentation on the `mouse` module, which includes a link to every method and property therein, including `mouse.visible`.  Clicking that takes you to details on `mouse.visible`, including a simple code example you can type in (or copy and paste) to try it yourself.
+
+The wiki is cross-referenced using tags that appear on the bottom of most pages, making it easy to explore and find related topics.  It also features a large number of "how to" articles demonstrating how to solve specific problems, for example, how to move a sprite towards a target.  Just type "how to" into the Search field to find the whole set of these.
+
+MiniScript forums
+: <https://forums.miniscript.org/>
+
+The MiniScript forums are an online discussion board for the MiniScript community.  Posts to the board are divided into topics, similar to Discord, but while Discord messages are real-time and tend to disappear quickly, posts to the forums stick around for a long time and end up indexed by search engines such as Google.  So the forums are a better place for longer, more detailed discussions, or for anyone who just prefers web forums to Discord.
+
+## Third-Party Sites
+
+These are sites that are not directly associated with the MiniScript maintainers, but nonetheless include some useful MiniScript-related content.
+
+YouTube
+: <https://youtube.com>
+
+I doubt I have to explain YouTube to anyone!  The 900-pound-gorilla of video-sharing sites, YouTube includes videos about just about everything, including MiniScript.  Unfortunately it can be a little hard to find, especially since a recent (and completely unrelated) scripting language related to Bitcoin has also started calling itself MiniScript (and there is apparently a children's scooter called the Mini Micro).  So be careful!
+
+There is a MiniScript channel which contains official MiniScript videos; you can find that via <http://bit.ly/miniscript-channel>.  If you're a visual learner, you may find this a helpful resource.
+
+Reddit
+: <https://www.reddit.com/r/MiniScript/>
+
+Reddit is a discussion site that bills itself as "the front page of the internet."  It's divided into topic areas called "subreddits," and the URL above takes you directly to the subreddit for MiniScript.  At the moment, this area gets less traffic than the Discord server or forums, but if you like Reddit's format or are already a user there, you should join this subreddit so you don't miss out on anything.  It's also a fine place to ask questions when you need help; the community tends to be a little less formal and more forgiving than StackOverflow (below).
+
+StackOverflow
+: <https://stackoverflow.com/>
+
+StackOverflow is a question/answer site for programmers.  No, it's *the* question/answer site for programmers!  Professionals and serious hobbyists frequently make use of this site when they have a problem.  The first step is always to search for an existing question; very often if you're stuck on something, someone else was stuck on it before you, and an existing question may have a good answer.
+
+When that fails, then you can post a new question here, and very often get a good answer within days.  Other users will vote on which answers are the best, and the original questioner can mark one answer as "accepted," all of which helps later searchers find an answer likely to work.
+
+StackOverflow can be a little intimidating to new users; it has pretty strict guidelines about what constitutes a programming question, not duplicating a previous question, etc.  Don't let it scare you!  Everyone there is there either to get help, or give help (or both).  And everyone was a first-time user at some point.  If you have a technical question about programming, this is a valid place to find or ask for expert advice.  And if this book turns out to be the start of a long and productive programming career, you will definitely be making use of StackOverflow on a regular basis.
+
+## Other places to find MiniScript code
+
+The last two sites we'll consider in this chapter are not really discussion sites, though they do have some limited commenting features.  They're really *project* sites, where people who have put a lot of work into a MiniScript or Mini Micro project have decided to share it with the world.  These can be really helpful for a beginner.  It's like a new architect not only driving around and looking at buildings, but getting to peek at the blueprints too!
+
+GitHub
+: <https://github.com>
+
+GitHub is a very popular source code hosting site, based on the *git* version control system.  Using git, you can push a copy of your project (source code, images, and other files) up to GitHub, where other people can clone your project to make their own variation, or even suggest fixes or enhancements to yours.  Use of git is beyond the scope of this book, and is a bit involved, but it's something you may want to learn eventually.
+
+In the meantime, though, you can browse other people's projects on GitHub.  On the wiki under "open-source projects" you will find a list of games/apps/programs written in MiniScript; those are mostly or entirely links to GitHub.  Click on any of those to go to the GitHub project, and then start clicking on file or folder names you see to drill down to the MiniScript code files.  Who knows what cool coding tricks you may learn this way?
+
+Itch.io
+: <https://itch.io/games/tag-minimicro>
+
+Itch.io is a project hosting site that is mostly about serving compiled, ready-to-run games and other software projects.  However, in the case of Mini Micro games (which you will find using the URL above), you can usually get to the source code just by pressing Control-C during the game, and then poking around.
+
+D> You can *usually* but not *always* do this because it is possible to package your Mini Micro game in such a way that breaking with Control-C is disabled.  To learn how, go to the MiniScript Wiki and search for "bootOpts.grfon".
+
+The itch.io community is generally very friendly and supportive.  If you like any of the Mini Micro games you find here, post a comment to let the author know!  And someday, when you've created something fun or interesting, consider posting it as a project here for others to enjoy.  You can package your app as a web build, upload it here, and send the URL to everyone you know; they will be able to run your program right in their web browser, without having to download anything.
+
+## The tip of the iceberg
+
+The internet is vast, and of course we've only scratched the surface with this survey.  It's also always in motion, so by the time you read this, there may be other good places to get help or find other MiniScript users.  Don't be afraid to poke around, and ask the folks you meet in one place if there is anywhere else you should check out.
+
+This has been a short chapter, if you only read it — but as always in this book, you learn more from *doing* than from merely reading!  So if you haven't already, I highly recommend you go check out these sites.  All of them are free to use and welcoming to newcomers.
+
+
+A> **Chapter Review**
+A> - You reviewed the official MiniScript sites and resources.
+A> - You learned about some third-party sites that also have some MiniScript content.
+A> - You discovered project-hosting sites where you may find sophisticated MiniScript programs to learn from.
+
+
+

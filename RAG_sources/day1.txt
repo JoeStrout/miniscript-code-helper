@@ -1,0 +1,169 @@
+{chapterHead: "Day 1: First Steps", startingPageNum:7}
+
+{width: "50%"}
+![](Chapter1.svg)
+
+Q> Whether you want to uncover the secrets of the universe, or you just want to pursue a career in the 21st century, basic computer programming is an essential skill to learn.
+Q>— Stephen Hawking (theoretical physicist)
+
+A> **Chapter Objectives**
+A> - Learn how to run MiniScript code on the web.
+A> - Use the `print` command to make MiniScript display something on the screen.
+A> - Learn about numbers and strings.
+
+
+There are many ways to run MiniScript.  You may even find MiniScript within some commercial or open-source game or software tool.  But in this book we are going to cover just three.  The last of these will be Mini Micro, of which you got a glimpse in the Introduction.  In the middle will be command-line MiniScript.  But first, starting today, we begin with the simplest: running MiniScript right within your web browser.
+
+The home of MiniScript on the web is <https://miniscript.org/>, and you will find all sorts of useful resources there.  Today, follow the "Try-It!" link, or just go directly to:
+
+_
+: <https://miniscript.org/tryit/>
+
+This should bring up a page that looks something like the figure below.
+
+![MiniScript Try-It web page](TryItPage.png)
+
+The standard layout has a code editor (with a white background) on the left, and an input/output area (with a black background) on the right.  If you find that they are instead stacked vertically, try stretching out your browser window until they appear side-by-side.  This should work equally well on Mac, Windows, and Linux.  If you are using a tablet or mobile phone, you may not be able to accomplish this; that's OK.  You can still use it when they're stacked vertically.
+
+{i: "code editor, Try-It!"}
+[code editor]
+: a text editor specialized for writing program code
+
+Down below the editor and input/output area, you'll find a "Help & Information" area that is chock full of useful stuff.  By clicking on the items on the left, you can make explanations and reference material appear to the right.  Many of the items on the left are folders; you can twist those open by clicking the little triangle next to them, to drill down into more detailed topics within.  Explore this a bit; you are likely to use this information in the future when writing your own code.
+
+The code editor contains some sample MiniScript code to get you started.  As it's only Day 1, this code probably doesn't make much sense to you yet.  That's OK too.  You'll understand everything there in a couple of weeks.
+
+For now, just select all the code in that code editor, and delete it.  The code editor works just like any other text editor, word processor, or comment form you've ever used; the main difference is that it will automatically color your text as you type.  Don't worry about what the colors mean for now; they're mostly there to make your code look pretty!
+
+Now it's time to write your very first MiniScript program -- and for many readers, your first program of any sort.  We'll begin with the classic greeting program.  After clearing out the sample code, type this into the code editor on the Try-It! page:
+
+{caption: "Greetings program"}
+```miniscript
+print "Hello world!"
+```
+
+Type it exactly as shown here.  Notice that `print` is all lowercase; that's important.  Like most computer languages, MiniScript is *case-sensitive*, which means that if you get the capitalization wrong, it will not work.
+
+case-sensitive
+: a language or system where upper- and lower-case letters are considered different
+
+case-insensitive
+: a language or system where upper- and lower-case letters are considered the same
+
+After entering the above code, click the **Run Script** button.  You should see the words "Hello world!" appear in green text in the input-output area.  If you do, congratulations!  You just wrote your first program!
+
+If you *don't* see that, then you probably have a typo.  Congratulations to you as well, as you have discovered what happens when you make a mistake!  Go back and check your work carefully -- spelling and punctuation must match exactly.
+
+D> Computers work fast, but they are very picky about the details.
+
+If you weren't so fortunate as to make a mistake on your first attempt, then please do so now.  It's important not to be afraid of making a mistake.  It is impossible to hurt the computer by anything you type on the Try-It! page.  When the computer can't understand what you want, it never gets upset or impatient.  It just calmly points out where it got confused, and waits patiently for you to fix it.  So, with that in mind, please try this version of the program:
+
+{caption: "Incorrect greetings program"}
+```miniscript
+Print "Hello world!"
+```
+
+Can you spot the difference between this program and the first one?  We've used a capital "P" here.  Go ahead and enter this code, then click that **Run Script** button again!  You will get no output in the input/output area, and instead, an error message will appear below, along the lines of:
+
+```terminal
+Runtime Error: Undefined Identifier: 'Print' is unknown in this context [line 1]
+```
+
+This is MiniScript's way of telling you that it doesn't know what `Print` means -- even though it *does* know what `print` means, these are considered completely different words, because (again) MiniScript is case-sensitive.
+
+{i: "error, runtime"}
+Runtime Error
+: an error that occurs after the program starts running
+
+{i: "error, compiler"}
+Compiler Error
+: an error that happens even before the program starts running, when MiniScript is studying the code
+
+{i: "error, undefined identifier"}
+Undefined Identifier
+: a type of runtime error that occurs when you use a word MiniScript does not know
+
+Now you may be wondering, what about the words `Hello` and `world`?  Are these words that MiniScript knows?  The answer is no, and it doesn't need to, because we have enclosed them inside of quotation marks.  This is something like giving an actor lines in a language he doesn't speak.  A skillful actor can parrot the words exactly as written in the script, without having any idea what they mean.  Computers are the same way: anything you put inside quotation marks gets parrotted back without having any meaning to the computer.
+
+On the other hand, words that tell the computer to *do* something -- like `print` -- must *not* be in quotation marks, and they must be among the words the computer already knows.  Today, `print` is the only such word you're going to learn, but starting tomorrow you'll learn more, and by the end of the book you'll know all sorts of such words, and even how to add more.
+
+A pair of quotation marks surrounding some words is called a *string*.  This is because the characters (letters, numbers, etc.) are strung together in a certain order, like beads on a string.
+
+{i:"data type, string"}
+string
+: some letters, numbers, or punctuation surrounded by quotation marks
+
+The string in our program above was "Hello world!"  But it can be anything.  Try these:
+
+{caption: "More greetings"}
+```miniscript
+print "Greetings, program!"
+print "My name is 101001."
+print "@*#$!!  I spilled bits on my chips!"
+print "Later alligator!"
+```
+
+You can try out those lines one at a time if you like.  Or, you can type them all in at once, with each `print` statement on a new line in the code editor, as shown above.  In that case each message will appear in the output area, one after the other.
+
+Notice how the strings can contain any combination of letters, numbers, and punctuation.  They can even contain foreign characters or emoji; if you know how to type any of these, go ahead and give it a try.  It's all just strings to MiniScript.
+
+There is one exception, however.  What if you wanted to put quotation marks inside your string?  That's problematic, since the quotation marks are how MiniScript knows where the string ends.  If you stick some in the middle, it will think your string is done, and won't know what to do with the rest of it, resulting in an error.
+
+The solution is to enter the quotation marks *twice* if they occur within a string.{i: "quotation marks"}
+
+I> To include quotation marks in a string, enter them twice in a row.
+
+Here's an example:
+
+{caption: "Quotation marks within a string"}
+```miniscript
+print "Hello, ""Bob,"" if that is your real name."
+```
+
+Try that.  You should see in the output window that the doubled quotation marks have magically transformed into ordinary quotation marks.  This is just a trick to work around the problem of MiniScript knowing where your strings end, and it is the only character that is special in this way.
+
+You now know just about everything there is to know about defining a string.  Strings are one of the four basic types of data in MiniScript.  Before calling it a day, let's learn about one other type: numbers.
+
+{i:"number;data type, number"}
+Numbers are easy.  They are exactly what you think they are.  Here's an example:
+
+{caption: "The ultimate answer"}
+```miniscript
+print 42
+```
+
+Here, `42` is a number.  Nothing to it, right?  Numbers can be any size, and can include a decimal point or not.  They can also be written in *exponential notation*, which is sometimes convenient for very large or very tiny numbers.
+
+exponential notation
+: a way of writing numbers like 2.5E10, where the number after the "E" means to shift the decimal point that many places to the right (or to the left, if the number is negative)
+
+So 2.5E6 is 2.5 times a million (i.e., a 1 followed by 6 zeros), or 2.5 million.  2.5E-6 would be 2.5 times a millionth.  You won't need this form of numbers very often, but now you know it exists.
+
+W> Many regions of the world write their numbers differently, for example, with a comma instead of a period to separate decimals.  MiniScript, like most other computer languages, always uses a period as the decimal point, no matter where you are.
+
+W> Also, you may be used to writing large numbers with some grouping character before the thousands, millions, and so on.  That makes it easier for humans to read, but it only confuses computers.  So even a big number like 7,603,985,818 (the population of Earth at the time of this writing) must be written 7603985818.
+
+We'll end the chapter with one last little sample program.  This prints a variety of strings and numbers.  If you've just been reading and nodding at the examples above, you should be sure to type in this one.  Typing in code trains your fingers and your brain, and will make learning to code that much easier.
+
+{caption: "Printing strings and numbers"}
+```miniscript
+print "The answer to the Ultimate Question..."
+print "of life, the universe, and everything..."
+print "is..."
+print 3.14157
+print "...wait, no, it's actually:"
+print -2.5E6
+print "...no, I'm sorry, the answer is:"
+print 42
+```
+
+D> Were you surprised by how one of those numbers came out?  Strings appear exactly as you type them -- except for doubled quotation marks -- but numbers come out in a standardized format, which may be different from how they appear in your code.
+
+And that wraps up day 1!  You have taken your first steps down an incredibly rewarding path.  Let's review what you learned today:
+
+
+A> **Chapter Review**
+A> - You can run MiniScript code on the web at <https://miniscript.org/>.
+A> - You know how to use `print` to display strings and numbers.
+A> - You learned that MiniScript is case-sensitive, and how to recognize and correct mistakes in your programs.
+

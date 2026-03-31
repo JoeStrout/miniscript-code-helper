@@ -1,0 +1,429 @@
+{chapterHead: "Day 26: Treasure Hunt", startingPageNum:319}
+
+{width: "50%"}
+![](Chapter26.svg)
+
+Q> No more training do you require.  
+Q> Already know you that which you need.
+Q>— Yoda (Star Wars: Episode VI - Return of the Jedi)
+
+A> **Chapter Objectives**
+A> - Build and enjoy the *Treasure Hunt* game.
+A> - See how `TileDisplay` is used in a real program.
+A> - Practice installing resources onto your user disk, so you're not limited to only the stuff on the `/sys` disk.
+
+Your introduction to MiniScript and Mini Micro are essentially complete at this point.  You learned the basics of coding, and flexed your skills via the Try-It! page, in the first week.  The second week you learned to use command-line MiniScript, while also learning about lists, maps, and classes.  Since then you've been exploring Mini Micro, and have learned about displaying text, pixel graphics, sprites, and tiles, not to mention playing sounds and music and interacting with the mouse and keyboard.  As Yoda said: already know you that which you need.
+
+However, just as with Luke's journey to master the Force, your journey is not yet over.  Your head is full of knowledge, but can you actually *use* that knowledge to create your own software?  For most readers, the answer at this point will be "not yet," and that's OK.  Learning to apply what you have learned takes practice.
+
+So the next few chapters of the book will be practice and review, in the form of programs for you to type in.  I urge you not to skip this exercise!  It will make your programming skills stronger.
+
+(And to any eager readers who skipped the first half of the book to get to the "good stuff," I say welcome!  But please remember to go back and go through the rest of the book at some point.  It will give you a strong foundation in the basics, and ultimately save you a lot of time learning things the hard way.)
+
+## *Treasure Hunt*
+
+The program for this chapter is a game based on the classic *Minesweeper*.  The basic idea behind *Minesweeper* dates all the way back to the era of mainframe computers in the 1960s.  For many years a version of *Minesweeper* was included with the Microsoft Windows operating system, leading to a great surge in popularity, and probably causing a noticeable drain on the office economy.
+
+The core game play for all *Minesweeper* variants is the same: you click squares on a map to discover what they contain.  If they contain a mine, it's game-over.  Otherwise, the square reveals how many mines there are in the neighboring squares.  Using these numbers, you can usually find a safe place to try next.
+
+Our version of the game is called *Treasure Hunt*, and adds a little twist: hidden along with the bombs are half a dozen treasures, and uncovering these treasures scores you points.  The faster you discover them, the more points you earn!
+
+{width: "80%"}
+![Screen shot of *Treasure Hunt*.](TreasureHuntGame.png)
+
+Incidentally, this game is so much fun, and the code so straightforward, that it almost didn't make it into this book.  I was very tempted to add it to the built-in demos in `/sys/demo/` in the final version of Mini Micro.  But in the end I decided to instead include it here, as a reward for those of you who took the time to work through this book.  Enjoy!
+
+## Getting the Tile Set
+
+This is the first program in this book that does not rely entirely on resources included on Mini Micro's `/sys` disk.  Instead, you'll need to download a tile set from the internet, and install it on your `/usr` disk.  This will become a very common task as you start building more of your own programs, so it's a good skill to learn.
+
+The tiles for this game are available on OpenGameArt.org, a web site dedicated to sharing artwork for making games.  You can find it by searching for "treasure hunt" on the main page there, or by pointing your web browser directly to `https://opengameart.org/content/treasure-hunt-tiles`.  When you find the right page, there will be a download link for `TreasureHunt.png`, an image that looks like the picture on the next page.
+
+{width: "50%"}
+![`TreasureHunt.png`, the tile set for the game.](TreasureHuntTiles.png)
+
+Now you need to get this onto your `/usr` disk.  You have several options for this:
+
+{pageBreak}
+- If you are using a *folder* for your user disk rather than a "minidisk" file, you can simply download the image with your web browser, and save it to that folder.
+- If not, you can download the image somewhere else, then use the `file.import` command in Mini Micro to copy it into your `usr` disk.
+- Or you can use `http.get` to download the file directly within Mini Micro, by right-clicking on the file link at OpenGameArt, then pasting it into a command like so:
+
+```terminal
+]img = http.get("https://opengameart.org/sites/default/files/treasurehunt_0.png")
+]file.saveImage "TreasureHunt.png", img
+```
+
+No matter which method you use, at the end you should have a `TreasureHunt.png` file on your user disk, in the folder where you plan to save the program.  If needed, review Chapter 14, which discusses how to convert your `/usr` disk between the minidisk (zip file) format and a folder of real files.  When you've got that sorted out, move on to the next step.
+
+## Starting the Program
+
+Now it's time to start on the code!  As in past chapters, we'll break this into sections, with a bit of explanation after each one.  But we won't lead you explicitly through testing code anymore.  You should still test as you go, though — *at least* run the program to make sure it doesn't generate any errors right away.  We'll point out further tests you can do at each point, but it will be up to you to write them.  Your programming skills are growing!
+
+{caption:"Listing 1 (Program set-up).", number-from: 1}
+```miniscript
+// Treasure Hunt!
+// A Minesweeper-type game with treasures.
+
+import "listUtil"
+
+// Constants
+kCols = 20
+kRows = 15
+kCellGrass = 16
+kCellFlag = 17
+kCellBomb = 18
+kCellTreasure = 10      // (first treasure on sand background)
+kCellTransTreasure = 26 // (first one on transparent background)
+
+// Set up the displays
+clear
+display(4).mode = displayMode.tile
+td = display(4)
+td.tileSet = file.loadImage("TreasureHunt.png")
+td.tileSetTileSize = 32
+td.cellSize = 32
+td.extent = [kCols, kRows]
+td.clear kCellGrass
+td.scrollX = -80; td.scrollY = -80
+
+gold = "#FFDD52FF"
+gfx.color = gold
+gfx.print "Treasures Found", 780, 540, gold, "small"
+gfx.line 780-4, 540-4, 780+"Treasures Found".len * 9 + 4, 540-4
+treasureListY = 540 - 48
+treasureListX = 780
+
+text.color = gold
+text.row = 25; print "TREASURE HUNT!"
+score = 0
+treasuresLeft = 0
+
+// Load sounds
+treasureSnd = file.loadSound("/sys/sounds/cha-ching.wav")
+bombSnd = file.loadSound("/sys/sounds/airburst.wav")
+```
+
+Here's a pretty typical first page of a Mini Micro game.  After a header comment, we import the `listUtil` module on line 4.  We'll be using the `list.init2d` method this module adds to conveniently create a 2D array to keep track of the hidden treasures and bombs.
+
+Then we define a bunch of constants on lines 7-13.  `kCols` and `kRows` define the size of the play area, and the other constants define the indexes of various tiles in the tile map, so we're not stuck looking at mysterious numbers like `17` for the rest of the program.
+
+The next block of lines, from 16 through 24, set up a `TileDisplay` and name it `td`, just as we saw in the previous chapter.  Then we set up the graphics display, with a nice gold color for the treasure list, and use the same color on the text display.  So this game is using three of Mini Micro's eight displays:
+
+- a `PixelDisplay` called `gfx` in layer 5, for the treasure list;
+- a `TileDisplay` called `td` in layer 4, for the game board; and
+- a `TextDisplay` called `text` in layer 3, for the time and score.
+
+Note that `gfx` and `text` are the standard layers set up by the `clear` command, but there is no standard `TileDisplay`, which is why we have to explicitly create one on lines 17-18.
+
+Finally, on lines 39-40, we load a couple of sounds we'll need later.
+
+You should run at this point, and make sure you don't see any errors.  You should also see a field of green tiles, a blank "Treasures Found" list on the right, and the "TREASURE HUNT!" title at the top.
+
+D> Also remember to save your work often!
+
+## The `GridPos` Class
+
+In this program we are going to be dealing with grid positions a lot.  We'll have code that figures out what grid position the mouse is over, what secrets are buried at that grid position, which grid positions are neighboring this one, and so on.  We could represent such grid positions as an `[x, y]` list, but a little more effort up front to define a `GridPos` class will pay off in simpler, clearer code later.
+
+{caption:"Listing 2 (The `GridPos` class.)", number-from: 42}
+```miniscript
+// Define a "GridPos" class to represent a grid
+// position (i.e. column, row).
+GridPos = {"col":0, "row":0}
+
+// Function to make a GridPos at a given column and row
+GridPos.make = function(c,r)
+	gp = new GridPos
+	gp.col = c
+	gp.row = r
+	return gp
+end function
+
+// Function to make a random (but in-bounds) GridPos.
+GridPos.random = function()
+	return GridPos.make(floor(kCols * rnd), floor(kRows * rnd))
+end function
+
+// Function to find the GridPos at a screen position;
+// returns null if out of bounds.
+GridPos.atXY = function(screenPos)
+	col = floor((screenPos.x + td.scrollX) / td.cellSize)
+	row = floor((screenPos.y + td.scrollY) / td.cellSize)
+	if col < 0 or col >= kCols then return null
+	if row < 0 or row >= kRows then return null
+	return GridPos.make(col, row)
+end function
+
+// Method to get all in-bounds neighbors of this GridPos
+GridPos.neighbors = function()
+	result = []
+	for i in range(-1, 1)
+		for j in range(-1, 1)
+			if i == 0 and j == 0 then continue
+			p = GridPos.make(self.col + i, self.row + j)
+			if p.col < 0 or p.col >= kCols then continue
+			if p.row < 0 or p.row >= kRows then continue
+			result.push p
+		end for
+	end for
+	return result
+end function
+
+// Method to get the tile cell through this GridPos
+GridPos.cell = function()
+	return td.cell(self.col, self.row)
+end function
+```
+
+Line 44 declares the `GridPos` class by simply assigning a map with default `col` and `row` properties.  To make it easier to create an instance of this class, we have the `GridPos.make` function on line 47.  Getting a *random* grid position is also a useful thing to do, especially when burying bombs and treasures, so we have a function for that starting line 55.  Notice how `GridPos.random` uses `GridPos.make` to make its job easier.
+
+Next, the `GridPos.atXY` function at line 61 works out what grid position is at a certain screen position (such as that given by `mouse`).  The code here is fairly general; it would work for any tile display `td`, provided that its `cellSize` is a simple number (rather than a `[width, height]` list), and no column or row offset is used.  Note that this function also does bounds checking, and returns `null` for any location outside the bounds of the grid.
+
+Lines 70-82 define the `GridPos.neighbors` method.  This is the first one intended to be called on a `GridPos` instance, i.e. some particular grid position, rather than on the `GridPos` class itself.  Its job is to return a list of all the neighboring in-bounds grid positions.  We need that in the game mainly to count how many bombs are hidden in neighboring cells, so we know what number to display.
+
+Finally, the `GridPos.cell` method at line 85 is just a shortcut for looking up the cell index from the tile display.  This turned out to be a sufficiently common thing in the rest of the code, that it was worth making this little helper method.
+
+At this point you should not only make sure the code runs, but also try out these `GridPos` functions.  You can do this right on the command line: call each one, passing in some reasonable parameter value, and make sure you get a sensible result.
+
+## Handling mouse clicks
+
+The next part of the program is a function to handle mouse clicks.  We want to treat each tile cell kind of like a button: darken it while the mouse is pressed and inside the cell, but return it to normal appearance fi the mouse is dragged outside the cell.  If the mouse is released outside the cell, it should have no effect.
+
+If it's released *inside* the cell, then the effect depends on which mouse button was used.  A normal (button 0) click reveals the hidden content of that cell, but a right-click (button 1) toggles a flag.
+
+{caption:"Listing 3 (`handleClick` function.)", number-from: 89}
+```miniscript
+handleClick = function(btn=0)
+	hitPos = GridPos.atXY(mouse)
+	if hitPos == null or hitPos.cell < kCellGrass then
+		// invalid click; just wait for mouse-up and return
+		while mouse.button(btn); yield; end while
+		return		
+	end if
+	// Valid click: highlight until mouse-up
+	while mouse.button(btn)
+		inCell = (GridPos.atXY(mouse) == hitPos)
+		if inCell then
+			td.setCellTint hitPos.col, hitPos.row, "#DDDDDD"
+		else
+			td.setCellTint hitPos.col, hitPos.row, color.white			
+		end if
+		yield
+	end while
+	// If mouse was not released in the hit cell, bail out
+	if not inCell then return
+	td.setCellTint hitPos.col, hitPos.row, color.white			
+	// Otherwise, process the click.
+	// Left click (btn 0), reveal the cell.
+	// Right click (btn 1), toggle flag.
+	if btn == 0 then
+		reveal hitPos
+	else
+		if hitPos.cell == kCellFlag then
+			td.setCell hitPos.col, hitPos.row, kCellGrass
+		else
+			td.setCell hitPos.col, hitPos.row, kCellFlag
+		end if
+	end if
+end function
+```
+
+The function begins by making sure we have clicked a valid cell.  The click is ignored if it is out of bounds, or if the cell index at the clicked point is less than the grass cell; all the tiles in the tile set before that represent already-revealed locations, and clicking those should have no effect.
+
+The loop from line 97 to 105 handles the "button" behavior, darkening the cell while the mouse is pressed within its bounds.  It also sets a local variable `inCell` to note whether the mouse is actually within the cell originally clicked.  So, once the mouse is finally released, line 107 can bail out if it was released outside the cell.
+
+D> If you're confused by all this, open up any ordinary program or web page that has a clickable button.  Mouse-down on the button, then drag the mouse away before you release.  The button should pop back up as soon as you're outside the button, and the button's effect is not triggered.  That's all we're doing here.
+
+Finally, if we make it to line 109, then it's a valid click.  Here we do different things depending on the mouse button used: either reveal the contents of the cell hit, or toggle between grass and flag.
+
+To test this, you will need to make a mock `reveal` method that takes one parameter.  It doesn't need to do anything, but you might have it just print the value of the parameter for testing purposes.  (We'll get to the real `reveal` method later.)  Then, call `handleClick 0` while you hold the left mouse button down on some cell of the grid; or call `handleClick 1` while holding the right mouse button.
+
+## Time, Score, and Burying Stuff
+
+Here are a handful of little functions we'll need.  Dividing your program into small functions like this is almost always a good idea.  Within the function, you can focus on a problem small enough to understand completely; and elsewhere, where you *use* the function, you can forget about the details and just trust that it does what it says it does.
+
+{caption:"Listing 4 (Drawing time and score, and tracking hidden items.)", number-from: 123}
+```miniscript
+// Function to draw the score and time.
+drawTimeAndScore = function()
+	minutes = floor(time/60)
+	seconds = ("00" + (floor(time) % 60))[-2:]
+	s = "Time: " + minutes + ":" + seconds
+	s = s + " " * 6 + "Score: " + ("000000" + score)[-6:]
+	text.row = 25; text.column = 38
+	print s	
+end function
+drawTimeAndScore
+
+// Our map of where stuff is hidden. This is stored as a 2D
+// list, indexed by column, row, with values of 0, 
+// kCellBomb, or kCellTreasure through kCellTreasure+5.
+hidden = list.init2d(kCols, kRows, 0)
+
+// Find an empty (grass) spot in the hidden map.
+findEmptyPos = function()
+	while true
+		p = GridPos.random
+		if hidden[p.col][p.row] == 0 then return p
+	end while
+end function
+
+// Populate the hidden map with bombs and treasures.
+buryStuff = function(qtyBombs=40, qtyTreasures=6)
+	for i in range(1, qtyBombs)
+		p = findEmptyPos
+		hidden[p.col][p.row] = kCellBomb
+	end for
+	for i in range(1, qtyTreasures)
+		p = findEmptyPos
+		hidden[p.col][p.row] = kCellTreasure + (i % 6)
+	end for
+	globals.treasuresLeft = qtyTreasures
+end function
+```
+
+Most of the `drawTimeAndScore` function is just composing the string we want to draw.  Notice the trick being used to add leading zeros to the numbers: add a string of zeros to the front, and then use `[-2:]` to grab just the last two characters of the result (or in the case of score, `[-6:]` to grab the last six).
+
+The global variable called `hidden`, defined on line 137, is important.  It is a two-dimensional list (i.e. list of lists) that keeps track of where all the treasures and bombs are buried.  Each entry is either `0`, indicating nothing of interest, `kCellBomb`, indicating a bomb (of course), or the index of one of the treasure tiles.  We use the `list.init2d` method, which was added by the `listUtil` module imported on line 4, to prepare this data structure.
+
+The next two functions work with that `hidden` list.  The `findEmptyPos` function uses an infinite loop to just keep trying random locations, until it finds one that is empty.  The `buryStuff` function makes use of that to store a number of bombs and treasures.
+
+To test these functions is pretty easy.  When you run the code at this point, you'll now see a time and score (both zero, of course) in the upper-right corner of the screen.  You can print out `hidden` and see that it's all zeros, then print it again after calling `buryStuff`, and see that it now contains some nonzeros (mostly 18, which are the bombs, but also some values between 10 and 16, which represent treasures).
+
+## Game Over!
+
+Next we'll need a couple of functions to handle winning or losing the game.  You lose the game when you click on a bomb, at which point it explodes, we reveal the positions of all the bombs, and then offer to play again.  Winning is simpler, as we just display a happy message, and also offer to replay.
+
+{caption:"Listing 5 (Functions to handle losing or winning the game.)", number-from: 160}
+```miniscript
+// Show an explosion at the given grid position; end the game.
+doBoom = function(p)
+	bombSnd.play
+	for i in range(0,3)
+		td.setCell p.col, p.row, kCellBomb + i
+		wait 0.1
+	end for
+	for c in range(0, kCols-1)
+		for r in range(0, kRows-1)
+			if hidden[c][r] == kCellBomb then
+				td.setCell c, r, kCellBomb
+			end if
+		end for
+	end for
+	td.setCell p.col, p.row, kCellBomb + 2
+	text.row = 1
+	print "Play again (Y/N)?"
+	if key.get.upper == "N" then exit
+	run
+end function
+
+gameWon = function()
+	text.row = 2; text.column = 30
+	print "YOU WIN!"
+	print "Play again (Y/N)?"
+	if key.get.upper == "N" then exit
+	run
+end function
+```
+
+To test the `gameWon` method is trivial (just call it on the command line).  To test `doBoom`, you'll need to pass in a grid position.  Remember that you can use `GridPos.make` to construct one of these very easily — for example, `GridPos.make(5,5)`.
+
+## Final Functions
+
+Only two more functions are needed in the Treasure Hunt game.  The first one is called when you discover a treasure; it updates the display and your score, and checks for successful completion of the game.  The other one reveals the contents of any cell, and takes appropriate action.
+
+{caption:"Listing 6 (`getTreasure` and `reveal` functions.)", number-from: 189}
+```miniscript
+// Show the treasure found; add it to our list and score
+getTreasure = function(p, found)
+	td.setCell p.col, p.row, found
+	treasureSnd.play
+	img = td.tileSet.getImage(32*(found-kCellTreasure+2), 0, 32, 32)
+	gfx.drawImage img, treasureListX + 20, treasureListY
+	points = 100 + ceil(1E6/(10+time))
+	gfx.print points, treasureListX+60, treasureListY+6, gold, "small"
+	globals.treasureListY = treasureListY - 40
+	globals.score = score + points
+	drawTimeAndScore
+	wait 0.5
+	globals.treasuresLeft = treasuresLeft - 1
+	if not treasuresLeft then gameWon
+end function
+
+// Reveal the given grid position.  If it's a bomb,
+// game over!  Otherwise show how many neighboring cells
+// contain bombs.  If that is 0, reveal all neighbors.
+reveal = function(p)
+	if td.cell(p.col, p.row) < kCellGrass then return
+	found = hidden[p.col][p.row]
+	// If we found a bomb, then it's game-over
+	if found == kCellBomb then
+		doBoom p
+		return
+	end if
+	// If we found treasure, reveal it
+	if found >= kCellTreasure and found < kCellTreasure+6 then
+		getTreasure p, found
+		return
+	end if
+	// Otherwise, count bombs and show the number
+	bombCount = 0
+	for n in p.neighbors
+		if hidden[n.col][n.row] == kCellBomb then
+			bombCount = bombCount + 1
+		end if
+	end for
+	td.setCell p.col, p.row, bombCount
+	// ...and if the bomb count was 0, then reveal neighbors too
+	if bombCount == 0 then
+		for n in p.neighbors; reveal n; end for
+	end if
+end function
+```
+
+The `getTreasure` function is fairly straightforward, but it contains a handy trick: it's calling `getImage` on the tile set image itself, to pluck out an image of the treasure for drawing on the pixel display.  You probably noticed that this tile set actually contains two versions of each treasure: one on the sandy background, and one on a transparent background.  This function grabs the transparent one, so we can draw it neatly into our list of collected treasures.
+
+The `reveal` method contains a technique you may find surprising.  If you've ever played Minesweeper, you know that when you click on a cell with *no* bombs next to it, then the game reveals not only that square, but all adjacent squares too.  And if ane of *those* squares have no neighboring bombs, the process repeats, potentially revealing a large hunk of the map at once.  How does this work?
+
+{i:"recursion"}
+It's actually quite simple: line 230 checks for the case where the bomb count is zero, and then that little loop on line 231 does the rest.  We simply loop over the neighbors of this grid position, and call `reveal` on each one.  The `reveal` method is calling itself, which is a technique called *recursion*.  This was first introduced in Chapter 13, in the "find a file" program.  You might go back and compare that program to the listing above, and see if recursion "clicks" for you yet.  (If not, don't worry — it will eventually!)
+
+Testing these functions is pretty straightforward.  You'll need to pass `getTreasure` a grid position (use `GridPos.make` again) as well as a treasure tile index, from 10 to 15.  You should see the treasure appear both on the map and on the "Treasures Found" list on the right side of the screen.
+
+To test `reveal`, just pass it a grid position.  But you might want to call `buryStuff` first, otherwise the map will be empty, and a single `reveal` will simply turn the whole map from grass to sand.
+
+## Main Loop
+
+Finally, as with most programs, the main loop comes at the end.  The main loop in this program is very simple, because we have so neatly divided all the real work out into functions.
+
+{caption:"Listing 7 (setup and main loop.)", number-from: 235}
+```miniscript
+// Setup and main loop
+buryStuff
+while true
+	drawTimeAndScore
+	if mouse.button(0) then handleClick(0)
+	if mouse.button(1) then handleClick(1)
+	yield
+end while
+```
+
+And that's it!  After you've put this in, go and play a while!  It's not an easy game to win, but not impossible either.  My high score is about 250,000 points.  Can you beat that?
+
+## Taking it Further
+
+This is a pretty polished game, but you could make it even better!
+
+You might start with some simple tweaks to optimize the fun.  You can easily change the board size by tweaking those constants on lines 7-8.  You could also change the number of bombs and treasures, by changing the default values on the `buryStuff` function on line 148, or by overriding those defaults where the function is called on line 236.  These tweaks can make the game longer or shorter, easier or harder.  It's up to you!
+
+Beyond that, you might want to do something more exciting when the game ends.  If you lose, there's a fairly satisfying boom and a small animation, but you might want to do something more spectacular... maybe draw a *giant* explosion sprite that covers the whole screen?  Or use a `SolidColorDisplay` to make the whole screen flash?  In the case of the user winning, you should at least play a triumphant fanfare, and maybe some sort of big "YOU WIN" graphic, rather than the easy-to-miss text under the map.  Maybe you'll even want to incorporate the fireworks animation from Day 21, and give the user a *real* treat!
+
+A> **Chapter Review**
+A> - You entered and debugged the *Treasure Hunt* game.
+A> - You practiced working with tile displays.
+A> - You also reviewed use of sounds, pixel displays, and text.
+A> - Most importantly, you practiced the "code a little, test a little" habit, this time with your *own* tests at each step.
+
+
+

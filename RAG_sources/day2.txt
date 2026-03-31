@@ -1,0 +1,301 @@
+{chapterHead: "Day 2: Simple Math and Functions", startingPageNum:15}
+
+{width: "50%"}
+![](Chapter2.svg)
+
+Q> There’s so many exciting things going on in the computer industry, that if you have an idea, a dream, something that you want to do, then just go for it.
+Q>— Stephanie Shirley (IT entrepreneur and philanthropist)
+
+A> **Chapter Objectives**
+A> - Learn how to add, subtract, multiply, and divide numbers and strings.
+A> - Learn what *functions* are and how to use them.
+A> - Explore a few of MiniScript's most common built-in functions.
+A> - Appreciate that coding is an open-book exercise; you don't need to remember everything!
+
+## Doing Math
+
+In Day 1, you learned how to use `print` to make MiniScript display a number or string to the output area.  Except for some minor changes in formatting, what you put in was exactly what you got out -- MiniScript wasn't really doing any work for you.
+
+Today we'll learn how to put that computer to work!  Some people are good at doing math in their heads, but nobody is as good at arithmetic as a computer.  How many minutes are in a year?  Let's use MiniScript to find out!
+
+{caption: "Minutes in a year"}
+```miniscript
+print 365 * 24 * 60
+```
+
+The `*` character in MiniScript (and most other programming languages) means multiplication.  So the program above multiplies 365 days in a year, times 24 hours in a day, times 60 minutes in an hour.  The answer is printed to the output box.
+
+The multiplication symbol `*` is just one of several *operators* that can be applied to numbers in MiniScript.
+
+operator
+: a symbol or word used to indicate an operation (such as addition, division, etc.)
+
+Everyone learns the four basic arithmetic operators in school.  MiniScript numbers support the same four, plus two more: power (raise the first number to the second), and modulo (remainder after division).  We'll expand on these in a moment.  For now, focus on how to write addition, subtraction, multiplication, and division, since these are by far the most common operators you are likely to use.
+
+{i:"numbers, operators;operators, numeric"}
+| `+` | addition |
+| `-` | subtraction |
+| `*` | multiplication |
+| `/` | division |
+| `%` | modulo |
+| `^` | power |
+
+These operators go between the numbers they operate on, just like you always did in school.  So, `39 + 3` adds three to 39, just as you would expect.  The order of operation is the same as standard arithmetic, too; power is always done first, then multiplication and division (and modulo), and finally addition and subtraction is done last.  You can always control the order explicitly by putting in parentheses, again, just like standard math.
+
+{caption: "Order of operations"}
+```miniscript
+print 2 + 3 * 4
+print (2 + 3) * 4
+```
+
+Line 1 in the above example first multiplies 3 and 4 to get 12, then adds 2 to get 14.  This is because multiplication is always done before addition, unless you force it otherwise with parentheses.  The second line above does exactly that: first it adds 2 and 3 to get 5, and then multiplies that by 4 to get 20.
+
+D> Hang in there!  We'll be making creating beautiful art and engrossing games before you know it.
+
+## String Operators
+
+Yesterday you learned about two types of data: numbers and strings.  The mathy stuff above was all about numbers.  What about strings?
+
+It turns out that you can use most of the same operators on strings, too, but they have different effects.  This is a type of math you probably did *not* learn in school, but fortunately it's very simple.  When you add two strings together, it simply joins them in order into one big string.  This operation is technically called *concatenation*.
+
+{i: "string, concatenation"}
+concatenation
+: forming one larger string by joining two smaller strings together
+
+For example:
+
+{caption: "String concatenation"}
+```miniscript
+print "How" + "dy"
+```
+
+Can you guess what output this produces? Try it and see if you were right!
+
+You can also subtract two strings.  This lops the second string off the end of the first one, if indeed it is found at the end; otherwise it returns the first string as-is.  Some examples will help:
+
+{caption: "String subtraction"}
+```miniscript
+print "Howdy" - "dy"
+print "Alien.png" - ".png"
+print "No Such Thing" - "Item"
+```
+
+Line 1 prints out "How", which is what's left after you subtract "dy" from "Howdy".  The second line similarly lops ".png" off the end of "Alien.png", and leaves you with just "Alien" (hey, that example's actually useful!).  And the third example prints "No Such Thing" -- the subtraction has no effect in this case, since the string we're trying to subtract ("Item") does not occur at the end of "No Such Thing".
+
+Multiplication with numbers can be thought of as a shortcut for repeated addition.  For example, `5 * 3` is the same as `5 + 5 + 5`.  With strings, it's same idea: you can multiply a string by a number, and this is the same as adding the string that many times.  So `"Foo" * 3` is the same as `"Foo" + "Foo" + "Foo".`  When you mix multiple operators, the order of operations is the same as with numbers, too.  Try this one:
+
+{i:"string, replication"}
+{caption: "Spam and beans"}
+```miniscript
+print "Spam, " * 4 + "Baked Beans, and Spam!"
+```
+
+Multiplying a string by a number this way is known as *string replication*.  And it works not only for whole numbers.  You can multiply a string by 0.5 to cut it in half, or by 2.5 to add it to itself two whole times and half of once more.  Moreover, you can also use the division operator, `/`, to divide a string down to a fraction of its former self.
+
+{pageBreak}
+D> A common application of string replication is to print out some number of characters in a row.  For example, `print "=" * 60` is much easier way to print a row of 60 equal signs than counting them as you type them in.  And sometimes you'll need to print out some number of spaces that is calculated based on the length of *other* stuff you've printed out... string replication really comes in handy then!
+
+Here are the operators you can use with strings:
+
+{i:"string, operators;operators, string"}
+| `+` | concatenation |
+| `-` | subtraction |
+| `*` | replication (by a number) |
+| `/` | division (by a number) |
+
+All of these operators begin with a string on the left side of the operator.  With `*` and `/`, the right-hand side must be a number.  But with `+` and `-`, the right-hand side can be anything... but if it's not a string, it gets automatically converted to a string, before being added to or subtracted from the left-hand string.
+
+This is frequently used with `print`, to output some combination of strings and numeric values.
+
+{caption: "The number 3.5E6 is automatically converted to a string"}
+```miniscript
+print "Your projected net worth is $" + 3.5E6 + "!"
+```
+
+## Functions
+
+MiniScript has a variety of built-in *functions*, which are like commands or operations that you invoke by name.  You've used one a bunch of times already: `print`. 
+
+function
+: a block of code that can be called upon from other code
+
+When you write
+
+```miniscript
+print 6 * 7
+```
+You are really saying, "Invoke the function called *print* and give it the value of 6 \* 7." (The values you give a function are called its *arguments* in computer jargon.)
+
+argument
+: a value given as input to a function
+
+You probably saw this concept in middle-school math.  Whenever you wrote an equation of like *y = f(x)*, this meant there was some function *f* that took *x* as its argument, and returned a value equal to *y*.
+
+(You may also hear the term *parameter* -- for the sake of Day 2, consider this a synonym for *argument*.  We'll elaborate on this in Chapter 11.)
+
+Functions in MiniScript can cause things to happen -- for example, `print` causes output to appear on the screen -- or they can return a result (or both).  Many of the built-in functions in MiniScript are the sort that return a result, usually based on the argument (or several arguments) that you give it.  For example, the `sign(x)` function returns the sign of its argument: 1 if the argument is positive, -1 if the argument is negative, and 0 if the argument is exactly zero.  Experiment a bit with this:
+
+```miniscript
+print sign(-0.1)
+```
+
+Try some other values, too.
+
+D> Experimenting with code is an extremely powerful way to learn.  Don't give up your power -- experiment!
+
+Notice that when we're supplying arguments to a function, and doing something with the result, then we need to put parentheses around the arguments, just like you did with *f(x)* in school.  Math functions are usually like this; try the `sqrt(x)` function (which returns the square root of its argument) for another example.
+
+What if you need to supply more than one argument?  In this case you just list all your arguments, separated by commas, within the parentheses.  For example, there is a `round(x,d)` function that rounds a number *x* to *d* decimal places.  You invoke it like this:
+
+{caption:"Rounding numbers"}
+```miniscript
+print round(1.23468, 0)
+print round(1.23468, 1)
+print round(1.23468, 2)
+print round(1.23468, 3)
+print round(1.23468, 4)
+```
+
+In the first line above, the first argument is `1.23468`, and the second argument is `0`.  Order matters -- that's the only way MiniScript can know which argument is which.  So when you use an unfamiliar function, you'll look up exactly what the arguments are so you can supply them in the correct order.
+
+Some functions have *optional* arguments.  These can be left out, and MiniScript will assume some value for them.  Because order matters, you can only omit arguments at the *end* of the argument list; you can't omit something in the middle and then provide more arguments after that, because the computer would have no way to know which ones you meant.
+
+optional argument
+: an argument that may be omitted when calling a function; a default value is used in this case.  Also called an *optional parameter*.
+
+As an example, let's revisit that `round` function above.  The second argument -- the number of decimal places to round to -- is actually optional, with a default value of 0.  So if you write just `round(1.23468)`, with a single argument, this is exactly the same as writing `round(1.23468, 0)`.  But don't take my word for it -- try it!
+
+However, sometimes a function doesn't need *any* arguments.  Two good examples are `pi` and `rnd`.  The `pi` function always returns the value of pi, `3.141593`.  Conversely, `rnd` (which is short for "random") returns a different random number between 0 and 1 every time you call it.  Try it:
+
+{caption:"Using `pi` and `rnd`"}
+```miniscript
+print pi
+print rnd
+print rnd
+print rnd
+```
+
+You should run this script multiple times, until you're satisfied that `rnd` really does return a different result every time you use it.
+
+Now notice that when invoking a call without any arguments, you don't need any parentheses.  (Technically you can put empty parentheses after the function name, but this is considered bad MiniScript style.)
+
+You also don't need parentheses when the function you're calling is the first (main) word on the statement, as with `print`.  This won't come as a surprise to you, since you've been using `print` without any parentheses since Day 1!
+
+There's one more trick when it comes to invoking functions.  Many functions that operate on a particular type of data can be invoked in a different way, using a dot (i.e. period) after the data, and before the function name. The value before the dot then gets passed in as the first argument. This seems a little pointless now, but will become more useful once we have variables (which are coming next). Here's an example:
+
+```miniscript
+print "Hello world".len
+```
+
+This uses the `len` function, which returns the length of the string (that is, a count of how many characters it contains).  The above could also be written as:
+
+```miniscript
+print len("Hello world")
+```
+
+...but the dot syntax is more convenient in many cases we'll get to in the future.
+
+{i:"functions, numeric;numeric functions"}
+## Built-In Numeric Functions
+
+In the table below is a list of built-in (or *intrinsic*) MiniScript functions that work with numbers.  In this table, x and y are any number, i is an integer, and r is a number of radians.
+
+intrinsic
+: built into MiniScript, rather than added by your own code
+
+{i:"intrinsic functions, numeric;numeric functions"}
+{caption:"Intrinsic numeric functions"}
+| `abs(x)` | absolute value of `x` |
+| `acos(x)` | arccosine of `x`, in radians |
+| `asin(x)` | arcsine of `x`, in radians |
+| `atan(y, x=1)` | arctangent of `y/x`, in radians |
+| `ceil(x)` | next whole number equal to or greater than `x` |
+| `char(i)` | returns Unicode character with code point `i` |
+| `cos(r)` | cosine of `r` radians |
+| `floor(x)` | next whole number less than or equal to `x` |
+| `pi` | 3.14159265358979 |
+| `round(x, d=0)` | `x` rounded to `d` decimal places |
+| `rnd(seed=null)` | returns random number which is at least 0 but less than 1 |
+| `sign(x)` | sign of `x`: -1 if `x` < 0; 0 if `x` == 0; 1 if `x` > 0 |
+| `sin(r)` | sine of `r` radians |
+| `sqrt(x)` | square root of `x` |
+| `str(x)` | converts `x` to a string |
+| `tan(r)` | tangent of `r` radians |
+
+
+It looks like a lot, but that's OK!  You don't need to remember or even understand all of this table yet.  It's included here just so you'll have a complete table to refer to later.  For now, let's just touch on a few of the highlights.
+
+Some of these functions you have seen already; we covered `sign`, `sqrt`, `pi`, and `round` above.  Many of the others -- `sin`, `cos`, `tan`, `asin`, `acos`, and `atan` -- relate to trigonometry.  Unless you are a mathematician or engineer, you may not have much use for these yet, but you may need them someday.
+
+Two of these functions convert a number to a string, but in different ways.  The `char` function gets a character from its Unicode code point; for example char(65) is "A", char(66) is "B", and so on.
+
+Unicode
+: a standard assignment of a unique number to every character in every human language
+
+On the other hand, `str` converts a number to a string in the same way that `print` does.  So `str(65)` returns the string "65".  (If you print this out, this will look the same as printing 65 directly; for now you'll just have to trust that you really did convert it to a string yourself.)
+
+Here's an example that uses the numeric function `sqrt`.
+```miniscript
+print "The square root of 100 is " + sqrt(100)
+```
+
+{i:"functions, string;string functions"}
+## Built-In String Functions
+
+All the string functions except `slice` are designed to be invoked on strings using dot syntax.  But as noted above, they can also be invoked by putting the function name first, and then passing the string in as the first argument.  The table on the next page shows them with dot syntax.  In this table, `self` refers to the string you called it on, `s` is another string argument, and `i` is an integer (whole) number.
+
+Again, don't worry about understanding all of this.  You'll only need a few of these for quite a while.  `len`, which you've already seen, is handy to get the length of a string.  You may use `upper` and `lower` to convert a string to uppercase or lowercase.
+
+To find the Unicode code point of the first character in a string, you can call the `code` function.  This is the inverse of the `char` function you saw in the *numeric functions* table.  To do the inverse of `str`, that is convert a string into a number, you'll use `val`, but that's covered in detail on Day 4.
+
+{pageBreak}
+{i:"intrinsic functions, string;string functions"}
+{caption:"Intrinsic string functions", colWidths:"150,*"}
+| `.code` | Unicode code point of first character of `self` |
+| `.hasIndex(i)` | 1 if `i` is >= 0 and \< self.len; otherwise 0 |
+| `.indexes` | a list of all valid indexes of the string |
+| `.indexOf(s, after=null)` | 0-based position of first substring `s` within `self`, or `null` if not found; optionally begins the search after the given position |
+| `.len` | length (number of characters) of `self` |
+| `.lower` | lowercase version of `self` |
+| `.remove(s)` | `self`, but with first occurrence of substring s removed (if any) |
+| `.replace(oldVal, newVal, maxCount=null)` | returns a string with the first `maxCount` elements matching `oldVal` replaced with `newVal`; if `maxCount` not specified, replaces all |
+| `.split(delimiter=" ", maxCount=null)` | splits `self` into a list of at most `maxCount` elements |
+| `.upper` | uppercase version of `self` |
+| `.val` | converts `self` to a number (if `self` is not a valid number, returns 0) |
+| `.values` | list of individual characters in `self` (e.g. "spam".values = ["s", "p", "a", "m"] |
+| `slice(s, from, to)` | a substring of `s` starting at index `from` and going up to index `to` |
+
+Example usage:
+
+```miniscript
+print "Hello World!".upper
+```
+
+
+## Coding is an Open-Book Process
+
+Some readers will feel a strong urge to study and memorize all the details thrown at you in this chapter.  Don't bother!  There is no final exam at the end of this book.  The only test is how well you can apply your new coding skills to solve your own problems, and when you do that, you are allowed -- nay, encouraged! -- to use the book, the Internet, the MiniScript Cheat Sheet, the person sitting next to you, and any other resources at your disposal.
+
+So, far more valuable than memorizing all those functions is just remembering that you saw them.  When you need to do something with a number or a string, say to yourself, "hmm, there's probably a function for that," and then either come back to this chapter, or use one of the other resources you know about to find the details.  You will naturally come to remember any functions you use a lot; for everything else, look them up as needed.
+
+To help stretch those new coding muscles, here's one more sample program to try.
+
+{caption: "String and number functions review"}
+```miniscript
+print "The next whole number after pi is " + ceil(pi)
+print "...which is " + "Huge!".upper
+print "Rounded to 2 decimal places, pi is " + round(pi, 2)
+print "...which is " + "NOT So Huge".lower
+print """Hello World"" has " + "Hello World".len + " characters"
+print "...and the code point of the first one is " + "H".code
+print "Your lucky number is: " + floor(rnd * 100)
+```
+
+As always, be sure to type carefully.  Especially be careful with the embedded (and so doubled) quotation marks in line 5.  (Review Day 1 if you've forgotten what that's about.)
+
+A> **Chapter Review**
+A> - You discovered how to do math with numbers and strings.
+A> - You can invoke functions, including providing arguments, and using dot syntax.
+A> - You browsed a list of built-in numeric and string functions.
+A> - You learned that you don't need to memorize all the details, because it's OK to look them up when you need them.
+
