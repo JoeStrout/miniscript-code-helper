@@ -147,5 +147,9 @@ Ah, but I was using a cosine schedule which reset every epoch, and it never made
 ...This did somewhat better; final loss was 0.999.  But it's still failing basic questions about how to iterate (over maps, or even over a range of numbers) in MiniScript.  It was able to correctly explain how MiniScript's `range` differs from Python, but then utterly failed at explaining the single-line `if` syntax (hallucinating a ternary operator instead).
 
 
+## Mar 31, 2026
 
+So, since fine-tuning only got us so far (it's very hard to override Qwen's knowledge of Python), I'm going to try combining it with RAG.  I have assembled some good source material: the MiniScript Quick Reference (already available in .md format), all 30 chapters of _Learn to Code in 30 Days_ (ditto), and the MiniScript Manual, which I exported to plain text and then added simple markup for headers and code blocks.
+
+I'm g oing to use the `sentence-transformers` Python library to do embeddings, as this should run nicely on my local machine.  For the Vector DB, I'll use Chroma, which is pure Python and should be plenty fast enough for the relatively small amount of data it needs to handle.  For orchestrating the RAG process, I'll just write direct Python code.  (But note to my future self: to scale all this up, I shuold look at FAISS for the vector DB, and LangChain or LlamaIndex for orchestration.)
 
