@@ -151,5 +151,47 @@ Ah, but I was using a cosine schedule which reset every epoch, and it never made
 
 So, since fine-tuning only got us so far (it's very hard to override Qwen's knowledge of Python), I'm going to try combining it with RAG.  I have assembled some good source material: the MiniScript Quick Reference (already available in .md format), all 30 chapters of _Learn to Code in 30 Days_ (ditto), and the MiniScript Manual, which I exported to plain text and then added simple markup for headers and code blocks.
 
-I'm g oing to use the `sentence-transformers` Python library to do embeddings, as this should run nicely on my local machine.  For the Vector DB, I'll use Chroma, which is pure Python and should be plenty fast enough for the relatively small amount of data it needs to handle.  For orchestrating the RAG process, I'll just write direct Python code.  (But note to my future self: to scale all this up, I shuold look at FAISS for the vector DB, and LangChain or LlamaIndex for orchestration.)
+I'm going to use the `sentence-transformers` Python library to do embeddings, as this should run nicely on my local machine.  For the Vector DB, I'll use Chroma, which is pure Python and should be plenty fast enough for the relatively small amount of data it needs to handle.  For orchestrating the RAG process, I'll just write direct Python code.  (But note to my future self: to scale all this up, I shuold look at FAISS for the vector DB, and LangChain or LlamaIndex for orchestration.)
 
+To this end, I'm developing two new scripts:
+
+- build_index.py: indexes RAG sources into a ChromaDB vector database
+- inference_rag.py: RAG version of inference_sft.py (interactive chat)
+
+Note that inference_rag.py will use the same fine-tuned adapter as before; we're just adding RAG capability.  (I'll include a `--verbose` option to show the retrieved chunks.)
+
+The build_index.py script is done; it took our ~500k of source material and generated a ~7.5Mb database.  This is mostly the HNSW (Hierarchical Navigable Small World) index, which allows for fast approximate nearest neighbor search.
+
+The inference script is now done too.  And... it works!  Check out this (verbose) output, which is the first time I've seen Qwen answer this question correctly:
+
+```
+You: How would I iterate over a map in MiniScript?
+
+--- Retrieved chunks ---
+  [qa_corpus.md > Map iteration] (dist=0.1861)
+    **User:** How do I iterate over a map in MiniScript?                                                                    ...
+  [MiniScript-Manual.md > Maps] (dist=0.2817)
+    The final basic data type in MiniScript is the map.  A map is a set of key-value pairs, where each unique key maps to so...
+  [day10.txt > Map Intrinsic Functions] (dist=0.3591)
+    MiniScript tends to use functions that are named the same way for multiple data types.  That's why the function that che...
+  [day10.txt > day10.txt] (dist=0.3907)
+    ```miniscript ages = {"Buffy":17, "Willow":16, "Xander":17, "Oz":18} ```  This defines a map called `ages` containing fo...
+  [qa_corpus.md > For loops and `range`] (dist=0.3912)
+    **User:** How do I write a `for` loop in MiniScript?  **Assistant:** A `for` loop in MiniScript iterates over a collecti...
+------------------------
+
+
+Assistant: In MiniScript, iterate over a map using a `for` loop:
+
+```miniscript
+m = {"a": 1, "b": 2, "c": 3}
+
+for kv in m
+    print kv.key + ": " + kv.value
+end for
+```
+
+The loop variable (`kv` in this example) is a mini-map with `.key` and `.value` properties for each entry.
+```
+
+This was kind of a softball, since it was a question directly in the qa_corpus... but recall that I fine-tuned on that same corpus for a long time, and never got Qwen to fully absorb it.  Now it's producing correct answers, and I could easily and quickly extend its correctness by just adding to the RAG sources and rebuilding the vector DB.
